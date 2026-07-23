@@ -1,0 +1,289 @@
+AI Platform 各组件定位
+                AI Platform
+
+        ┌────────────────────┐
+        │      MinIO         │
+        │   原始文件仓库      │
+        └─────────┬──────────┘
+                  │
+                  ▼
+        ┌────────────────────┐
+        │     PostgreSQL     │
+        │  权威业务数据库     │
+        └─────────┬──────────┘
+                  │
+                  ▼
+        ┌────────────────────┐
+        │      Qdrant        │
+        │   向量检索数据库    │
+        └─────────┬──────────┘
+                  │
+                  ▼
+        ┌────────────────────┐
+        │     Obsidian       │
+        │ 第二大脑 / 知识管理 │
+        └────────────────────┘
+
+注意：
+
+Obsidian 不是数据库。
+
+Obsidian 保存什么？
+
+建议只保存：
+
+Projects/
+
+Knowledge/
+
+Permanent Notes/
+
+Daily Notes/
+
+Meeting/
+
+Research/
+
+不要保存：
+
+全部 Chunk
+
+全部 Embedding
+
+全部 Payload
+
+否则 Vault 很快就几十万文件。
+
+推荐目录
+Vault/
+
+├── 00_Inbox/
+│
+├── 10_Projects/
+│
+├── 20_Research/
+│
+├── 30_Knowledge/
+│
+├── 40_Daily/
+│
+├── 50_Meeting/
+│
+├── 60_Templates/
+│
+└── 90_Archive/
+哪些文档同步？
+
+例如：
+
+PDF：
+
+贵州茅台2025年报.pdf
+
+Docling：
+
+得到：
+
+document.md
+
+不要：
+
+200 个 Chunk
+
+↓
+
+全部写 Obsidian
+
+建议：
+
+一份 Markdown
+
+↓
+
+Obsidian
+
+即可。
+
+Metadata
+
+建议：
+
+每篇 Markdown：
+
+---
+document_id: doc123
+
+title: 贵州茅台2025年报
+
+ticker: 600519
+
+market: SH
+
+year: 2025
+
+type: AnnualReport
+
+tags:
+  - 财报
+  - 白酒
+
+source: MinIO
+
+created: 2026-07-17
+---
+
+以后：
+
+Dataview：
+
+直接能查。
+
+Links
+
+例如：
+
+贵州茅台
+
+自动：
+
+[[白酒行业]]
+
+[[贵州茅台]]
+
+[[2025年报]]
+
+[[行业研究]]
+
+形成知识网络。
+
+图片
+
+不要：
+
+Qdrant
+
+↓
+
+图片
+
+图片：
+
+直接：
+
+MinIO
+
+Obsidian：
+
+引用：
+
+![](minio-url)
+
+或者：
+
+同步：
+
+Assets/
+
+即可。
+
+AI 是否写回 Obsidian？
+
+建议：
+
+允许。
+
+例如：
+
+Agent：
+
+分析：
+
+贵州茅台
+
+↓
+
+生成：
+
+投资分析.md
+
+保存：
+
+20_Research/
+
+贵州茅台分析.md
+
+而不是：
+
+覆盖：
+
+原年报
+Obsidian 不保存什么？
+
+建议：
+
+不要保存：
+
+chunks.json
+
+Embedding
+
+Vector
+
+Payload
+
+Qdrant ID
+
+Reranker
+
+缓存
+
+这些：
+
+全部属于：
+
+后台。
+
+Obsidian 与 PostgreSQL 的关系
+
+不要：
+
+Obsidian
+
+↓
+
+数据库
+
+应该：
+
+PostgreSQL
+      │
+      ▼
+Obsidian
+
+数据库：
+
+永远是真实数据。
+
+Obsidian：
+
+只是：
+
+Markdown 展示。
+
+我建议 Obsidian 的最终职责
+内容	是否进入 Obsidian	原因
+PDF 转换后的完整 Markdown	✅	便于阅读、批注、双向链接
+AI 总结、投资分析、研究笔记	✅	第二大脑的核心内容
+Daily Notes、项目记录	✅	Obsidian 最擅长的部分
+原始 PDF	❌	放 MinIO
+Chunk 数据	❌	属于 RAG 索引，不适合 Vault
+Embedding / Vector	❌	属于 Qdrant
+Payload	❌	属于检索层
+PostgreSQL 表数据	❌	数据库负责管理
+
+一句话总结这个平台的职责划分：
+
+MinIO：保存文件（PDF、图片、Markdown 等原始与处理后的文件）。
+PostgreSQL：保存结构化数据和业务关系，是唯一权威数据源。
+Qdrant：保存向量和检索所需的工作副本，用于高性能语义检索。
+Obsidian：保存面向人的知识、笔记和 AI 产出，作为第二大脑，而不是数据库。

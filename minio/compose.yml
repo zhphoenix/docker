@@ -1,0 +1,55 @@
+services:
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-07-23T15-54-02Z
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - ../.env
+    volumes:
+      - /mnt/d/minio/data:/data
+      - ./mc-config.json:/tmp/.mc/config.json:ro
+    command: server /data --console-address ":9001"
+    networks:
+      - ai-platform
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # Bucket 初始化（一次性任务，MinIO 就绪后自动执行）
+  minio-init:
+    image: quay.io/minio/minio:RELEASE.2025-07-23T15-54-02Z
+    container_name: minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    env_file:
+      - ../.env
+    volumes:
+      - ./init-buckets.sh:/init-buckets.sh:ro
+    entrypoint: ["sh", "/init-buckets.sh"]
+    networks:
+      - ai-platform
+    restart: "no"
+
+networks:
+  ai-platform:
+    external: true

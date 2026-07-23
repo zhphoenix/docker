@@ -1,0 +1,167 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ai-platform.local/schemas/metadata.schema.json",
+  "title": "AI Platform Document Metadata",
+  "description": "AI 投研平台文档元数据标准，基础字段所有域共用，通过 domain_fields 扩展业务域特有字段。",
+  "type": "object",
+  "required": [
+    "id",
+    "market",
+    "symbol",
+    "document_type",
+    "year",
+    "language",
+    "parser",
+    "parser_version",
+    "status",
+    "hash",
+    "created_time",
+    "updated_time",
+    "version"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "全局唯一标识"
+    },
+    "market": {
+      "type": "string",
+      "enum": ["cn", "hk", "us"],
+      "description": "市场：cn（A股）/ hk（港股）/ us（美股）"
+    },
+    "symbol": {
+      "type": "string",
+      "minLength": 1,
+      "description": "代码标识（股票代码/ISBN/DOI 等）"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "annual_report",
+        "quarterly_report",
+        "announcement",
+        "news",
+        "research",
+        "prospectus"
+      ],
+      "description": "文档类型"
+    },
+    "year": {
+      "type": "integer",
+      "minimum": 1900,
+      "maximum": 2100,
+      "description": "年份"
+    },
+    "language": {
+      "type": "string",
+      "enum": ["zh", "en"],
+      "description": "语言：zh（中文）/ en（英文）"
+    },
+    "source": {
+      "type": "string",
+      "description": "数据来源（如 SSE、SZSE）"
+    },
+    "publish_date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "发布日期（YYYY-MM-DD）"
+    },
+    "parser": {
+      "type": "string",
+      "minLength": 1,
+      "description": "解析器名称（如 docling）"
+    },
+    "parser_version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "解析器版本"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "parsed", "embedded", "completed"],
+      "description": "处理状态"
+    },
+    "hash": {
+      "type": "string",
+      "minLength": 1,
+      "description": "文件 SHA256 哈希值"
+    },
+    "created_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "创建时间（ISO 8601）"
+    },
+    "updated_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "更新时间（ISO 8601）"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "文档版本号（从 1 递增）"
+    },
+    "embedding_model": {
+      "type": "string",
+      "description": "Embedding 模型名称"
+    },
+    "embedding_version": {
+      "type": "string",
+      "description": "Embedding 版本"
+    },
+    "chunk_strategy": {
+      "type": "string",
+      "description": "切块策略（如 heading）"
+    },
+    "domain_fields": {
+      "type": "object",
+      "description": "域扩展字段，各业务域可自定义子字段",
+      "properties": {
+        "company": {
+          "type": "string",
+          "description": "公司名称（finance 域）"
+        },
+        "exchange": {
+          "type": "string",
+          "description": "交易所（finance 域，如 SSE/SZSE/HKEX/NYSE）"
+        },
+        "industry": {
+          "type": "string",
+          "description": "行业（finance 域）"
+        },
+        "agency": {
+          "type": "string",
+          "description": "法规机构（law 域，如 CSRC）"
+        },
+        "regulation_type": {
+          "type": "string",
+          "description": "法规类型（law 域）"
+        },
+        "effective_date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "生效日期（law 域）"
+        },
+        "title": {
+          "type": "string",
+          "description": "书名（book 域）"
+        },
+        "isbn": {
+          "type": "string",
+          "description": "ISBN（book 域）"
+        },
+        "author": {
+          "type": "string",
+          "description": "作者（book 域）"
+        },
+        "publisher": {
+          "type": "string",
+          "description": "出版社（book 域）"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}
