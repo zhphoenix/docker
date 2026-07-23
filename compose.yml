@@ -1,0 +1,36 @@
+# ============================================================
+# AI 投研平台 — 统一 Docker Compose 入口
+# ============================================================
+#
+# 用法:
+#   启动全部:     docker compose up -d
+#   查看状态:     docker compose ps
+#   查看日志:     docker compose logs -f
+#   停止全部:     docker compose down
+#
+# 单独启动某服务:
+#   cd postgres && docker compose up -d
+#
+# 包含服务:
+#   - PostgreSQL (pgvector)    :5433
+#   - MinIO                    :9000/:9001
+#   - Qdrant                   :6333/:6334
+#   - Docling                  :5001
+#   - Embedding (Qwen3-4B)    :8001
+#   - Reranker (Qwen3-4B)     :8002
+#   - OpenWebUI                :3000
+#   - LangGraph                :8100
+#
+# 前置: 需先创建 ai-platform 网络
+#   docker network create ai-platform
+# ============================================================
+
+include:
+  - postgres/compose.yml
+  - minio/compose.yml
+  - qdrant/compose.yml
+  - docling/compose.yml
+  - embedding/compose.yml
+  - reranker/compose.yml
+  - openwebui/compose.yml
+  - langgraph/compose.yml
