@@ -8,6 +8,16 @@ services:
       - "8100:8100"
     env_file:
       - ../.env
+    environment:
+      # 显式设置 PostgreSQL 连接（覆盖 .env 中可能的冲突变量）
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ai
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: "6333"
+      MINIO_ENDPOINT: minio:9000
     networks:
       - ai-platform
     extra_hosts:

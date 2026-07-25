@@ -7,8 +7,8 @@ class Settings(BaseSettings):
     """全局配置"""
 
     # PostgreSQL
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "ai"
     POSTGRES_HOST: str = "postgres"
     POSTGRES_PORT: int = 5432

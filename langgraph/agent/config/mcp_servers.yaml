@@ -1,0 +1,40 @@
+# MCP Servers 配置
+# 定义平台可用的 MCP (Model Context Protocol) 服务器
+
+servers:
+  obsidian-vault:
+    description: "Obsidian 知识库读写"
+    transport: stdio
+    command: "npx"
+    args: ["-y", "@anthropic/obsidian-mcp"]
+    env:
+      OBSIDIAN_VAULT_PATH: "/mnt/e/Value_capitalism/data/vault"
+    enabled: true
+    tools:
+      - obsidian_get_note
+      - obsidian_list_notes
+      - obsidian_search_notes
+      - obsidian_write_note
+      - obsidian_append_to_note
+
+  filesystem:
+    description: "本地文件系统访问（预留）"
+    transport: stdio
+    command: "npx"
+    args: ["-y", "@anthropic/filesystem-mcp", "/mnt/e/docker/data"]
+    enabled: false
+
+  github:
+    description: "GitHub 仓库操作（预留）"
+    transport: stdio
+    command: "npx"
+    args: ["-y", "@anthropic/github-mcp"]
+    env:
+      GITHUB_TOKEN: ""
+    enabled: false
+
+# 全局配置
+settings:
+  timeout: 30
+  max_retries: 2
+  auto_discover: false

@@ -12,6 +12,8 @@ from fastapi.responses import JSONResponse
 from api.chat import router as chat_router
 from api.models import router as models_router
 from api.health import router as health_router
+from api.providers import router as providers_router
+from api.tasks import router as tasks_router
 from tools.postgres import postgres_tool
 
 # 配置日志
@@ -104,3 +106,5 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(health_router)
 app.include_router(models_router)
 app.include_router(chat_router)
+app.include_router(providers_router)
+app.include_router(tasks_router)

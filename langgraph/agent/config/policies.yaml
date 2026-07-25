@@ -1,0 +1,69 @@
+# Policy Center - 运行时策略配置
+# 支持热更新：修改后无需重启服务
+
+# 数据源优先级
+data_source:
+  priority:
+    - chunk_extract    # 优先从已解析的 chunks 提取
+    - akshare          # 回退到 AkShare API
+    - manual           # 最后使用手动录入
+  fallback_enabled: true
+  max_fallback_depth: 2
+
+# Rate Limit
+rate_limit:
+  llm:
+    requests_per_minute: 30
+    tokens_per_minute: 100000
+  embedding:
+    requests_per_minute: 60
+    batch_size: 32
+  qdrant:
+    requests_per_minute: 120
+  akshare:
+    requests_per_minute: 10
+    retry_delay_seconds: 5
+
+# 重试策略
+retry:
+  max_retries: 3
+  backoff_multiplier: 2
+  initial_delay_seconds: 1
+  max_delay_seconds: 30
+  retryable_errors:
+    - "timeout"
+    - "connection_error"
+    - "rate_limit_exceeded"
+
+# Agent 路由策略
+routing:
+  default_agent: "chat"
+  confidence_threshold: 0.7
+  fallback_agent: "chat"
+  rules:
+    - pattern: "分析|研究|年报|深度"
+      agent: "research"
+      priority: 10
+    - pattern: "估值|投资|买入|DCF|护城河|大师"
+      agent: "investment"
+      priority: 20
+    - pattern: "笔记|记录|写入|Obsidian|vault"
+      agent: "knowledge"
+      priority: 15
+
+# 文档处理 Pipeline
+pipeline:
+  batch_size: 50
+  max_concurrent: 3
+  chunk_size: 1000
+  chunk_overlap: 200
+  embedding_batch_size: 32
+
+# 人审配置
+human_approval:
+  enabled: false
+  triggers:
+    - "vault_write"       # 写入 Obsidian 前需确认
+    - "report_publish"    # 发布研究报告前需确认
+  timeout_hours: 24
+  auto_approve_after_timeout: false
