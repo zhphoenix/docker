@@ -146,7 +146,7 @@ START → Planner → Retrieve → Rerank → Reason → Reflect
 
 | 服务 | 容器名 | 端口 | 用途 | 必需 |
 |------|--------|------|------|------|
-| LLM | qwythos-9b | 8080 | 推理生成 | ✅ |
+| LLM | sisyphus | 8080 | 推理生成 | ✅ |
 | Embedding | embedding | 8080 | 文本向量化 | ✅ |
 | Reranker | reranker | 8080 | 检索重排序 | ✅ |
 | Qdrant | qdrant | 6333 | 向量检索 | ✅ |
@@ -167,7 +167,7 @@ START → Planner → Retrieve → Rerank → Reason → Reflect
 curl -X POST http://localhost:8100/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "qwen3-8b",
+    "model": "sisyphus",
     "messages": [{"role": "user", "content": "你好"}],
     "stream": false
   }'
@@ -179,7 +179,7 @@ curl -X POST http://localhost:8100/v1/chat/completions \
   "id": "chatcmpl-1784277624258",
   "object": "chat.completion",
   "created": 1784277624,
-  "model": "qwen3-8b",
+  "model": "sisyphus",
   "choices": [{
     "index": 0,
     "message": {"role": "assistant", "content": "您好！..."},
@@ -199,7 +199,7 @@ curl -X POST http://localhost:8100/v1/chat/completions \
 curl -X POST http://localhost:8100/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "qwen3-8b",
+    "model": "sisyphus",
     "messages": [{"role": "user", "content": "你好"}],
     "stream": true
   }'
@@ -232,7 +232,7 @@ curl http://localhost:8100/health
 
 | 变量 | 说明 | 示例 |
 |------|------|------|
-| `OPENAI_BASE_URL` | LLM 服务地址 | `http://qwythos-9b:8080/v1` |
+| `OPENAI_BASE_URL` | LLM 服务地址 | `http://sisyphus:8080/v1` |
 | `OPENAI_API_KEY` | API Key（可为空） | `not-needed` |
 | `MODEL_NAME` | 模型名 | `qwen3` |
 | `EMBEDDING_URL` | Embedding 服务 | `http://embedding:8080/v1` |

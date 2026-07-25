@@ -27,7 +27,7 @@ FastAPI 作为 API 网关，提供 OpenAI Compatible API，对接 Open WebUI。
 
 ```json
 {
-  "model": "qwen3",
+  "model": "sisyphus",
   "messages": [
     {"role": "system", "content": "你是一个投研助手"},
     {"role": "user", "content": "分析宁德时代未来三年竞争力"}
@@ -55,7 +55,7 @@ data: [DONE]
   "object": "list",
   "data": [
     {
-      "id": "qwen3",
+      "id": "sisyphus",
       "object": "model",
       "owned_by": "local"
     }

@@ -14,7 +14,7 @@ Docker Desktop
         ├── qdrant         :6333 / :6334
         ├── embedding      :8001
         ├── reranker       :8002
-        ├── qwythos-9b     :8080
+        ├── sisyphus       :8080
         ├── langgraph      :8100
         └── minio          :9000 / :9001
 ```
@@ -272,7 +272,7 @@ MINIO_ROOT_PASSWORD=minioadmin
 # ===== LangGraph Agent =====
 LANGGRAPH_PORT=8100
 OPENAI_API_KEY=EMPTY
-OPENAI_BASE_URL=http://qwythos-9b:8080/v1
+OPENAI_BASE_URL=http://sisyphus:8080/v1
 MODEL_NAME=qwen3
 ```
 
@@ -293,7 +293,7 @@ MODEL_NAME=qwen3
 5. Embedding        docker compose up -d
 6. Reranker         docker compose up -d
 7. Docling          docker compose up -d
-8. LLM (qwythos-9b)  docker compose up -d
+8. LLM (sisyphus)  docker compose up -d
 9. LangGraph Agent  docker compose up -d（依赖上述所有服务）
 10. Open WebUI      docker compose up -d（最后启动）
 11. Obsidian        Windows 侧启动 + 确认 MCP 可用

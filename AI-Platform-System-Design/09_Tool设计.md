@@ -35,7 +35,7 @@ class LLMTool:
     """调用 llama.cpp LLM 服务"""
     
     def __init__(self):
-        self.base_url = settings.OPENAI_BASE_URL  # http://qwythos-9b:8080/v1
+        self.base_url = settings.OPENAI_BASE_URL  # http://sisyphus:8080/v1
     
     async def chat(self, messages: list[dict], **kwargs) -> str:
         """聊天补全"""
