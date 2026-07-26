@@ -207,8 +207,8 @@
 **具体任务**：
 
 1. 统一 Docker Compose
-   - 合并所有服务到一个 `docker-compose.yml`（或保持独立 compose + 共享网络）
-   - 服务清单：PostgreSQL / MinIO / Qdrant / Docling / Embedding / Reranker / LangGraph / OpenWebUI / Redis(可选)
+   - 保持独立 compose + 共享网络）
+   - 服务清单：PostgreSQL / MinIO / Qdrant / Docling / Embedding / Reranker / LangGraph / OpenWebUI 
    - 健康检查 + 依赖顺序（depends_on + healthcheck）
 
 2. 文档处理 Pipeline（LangGraph Workflow）
@@ -380,7 +380,7 @@ AI Platform (docker network: ai-platform)
 ├── reranker            :8002   (BGE-Reranker)
 ├── langgraph           :8100   (FastAPI + LangGraph Agent)
 ├── openwebui           :3000   (用户界面)
-└── redis (可选)        :6379   (队列/缓存)
+
 ```
 
 ### 5.2 存储分工
