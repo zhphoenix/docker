@@ -1,0 +1,589 @@
+# AI Platform 开发计划（Web UI → Tauri 2 桌面版）
+
+> Version: v1.0
+> 更新时间：2026-07-27
+> 目标：先完成 Web UI，再无缝升级为 Tauri 2 原生桌面应用。
+
+---
+
+# 一、总体开发路线
+
+整个 AI Platform 建议采用渐进式开发，而不是一开始就开发桌面版。
+
+推荐路线：
+
+```text
+第一阶段
+Web UI
+↓
+
+第二阶段
+Web UI + 后端稳定
+
+↓
+
+第三阶段
+Tauri 2 封装
+
+↓
+
+第四阶段
+桌面平台优化
+```
+
+这样可以避免大量重复开发。
+
+---
+
+# 二、为什么先开发 Web UI
+
+目前 AI Platform 的主要目标是：
+
+- AI Agent
+- LangGraph
+- 工作流
+- RAG
+- 文档管理
+- 数据分析
+- 投资研究
+
+这些都属于业务功能。
+
+因此应优先开发：
+
+```text
+业务功能
+↑
+高优先级
+
+桌面功能
+↑
+后期增加
+```
+
+因为：
+
+Web UI 与桌面版共用同一套界面代码。
+
+---
+
+# 三、整体架构
+
+最终推荐架构：
+
+```text
+                AI Platform
+
+        ┌───────────────────────┐
+        │      Tauri 2 Desktop   │
+        └────────────┬───────────┘
+                     │
+             React + TypeScript
+                     │
+              Web UI（Mac 风格）
+                     │
+              HTTP / WebSocket
+                     │
+                 FastAPI API
+                     │
+                LangGraph Runtime
+                     │
+       ┌─────────────┼──────────────┐
+       │             │              │
+    PostgreSQL    Qdrant        MinIO
+       │             │              │
+    Docling      Embedding     Reranker
+```
+
+---
+
+# 四、Web UI 与 Tauri 的关系
+
+很多人误认为：
+
+```
+Web UI
+↓
+
+升级为
+
+Tauri
+```
+
+实际上：
+
+```
+React
+↓
+
+Web UI
+
+↓
+
+浏览器
+```
+
+只是运行方式。
+
+以后变成：
+
+```
+React
+↓
+
+Web UI
+
+↓
+
+Tauri
+
+↓
+
+Windows/macOS/Linux
+```
+
+因此：
+
+> **Tauri 只是运行容器（Container），不是 UI 框架。**
+
+---
+
+# 五、开发阶段规划
+
+## Phase 1：纯 Web UI
+
+目标：
+
+完成所有业务功能。
+
+运行方式：
+
+```
+浏览器
+
+↓
+
+React
+
+↓
+
+FastAPI
+```
+
+主要内容：
+
+- 登录
+- Dashboard
+- Chat
+- Workflow
+- Agent
+- Knowledge
+- Documents
+- Settings
+- Prompt Library
+- Model 管理
+- 数据源管理
+
+特点：
+
+- 开发最快
+- 调试方便
+- 不依赖桌面程序
+
+---
+
+## Phase 2：Web UI 完善
+
+增加：
+
+### 页面
+
+- Dashboard
+- Chat
+- Workflow
+- Documents
+- Knowledge Base
+- Models
+- Data Sources
+- Tasks
+- Logs
+- Settings
+
+增加：
+
+### 功能
+
+- 深色主题
+- Mac 风格设计
+- 动画
+- 快捷键
+- WebSocket
+- Streaming
+- Notification
+
+目标：
+
+整个 AI Platform 已经可以正常使用。
+
+---
+
+## Phase 3：接入 Tauri 2
+
+此阶段：
+
+几乎不修改 React。
+
+增加：
+
+```
+React
+
+↓
+
+Tauri 2
+
+↓
+
+Windows
+```
+
+主要新增：
+
+- 桌面窗口
+- 原生菜单
+- 系统托盘
+- 自动启动
+- 自动更新
+- 本地通知
+- 文件拖放
+- 原生文件选择器
+
+此阶段重点：
+
+不是修改 UI。
+
+而是增加：
+
+Rust Command。
+
+---
+
+## Phase 4：桌面能力增强
+
+增加：
+
+### 文件系统
+
+直接访问：
+
+```
+Knowledge/
+
+Documents/
+
+Workspace/
+
+Downloads/
+```
+
+无需浏览器上传。
+
+---
+
+增加：
+
+### 系统托盘
+
+例如：
+
+```
+AI Platform
+
+✓ 正在运行
+
+打开主窗口
+
+暂停 Agent
+
+退出
+```
+
+---
+
+增加：
+
+### 全局快捷键
+
+例如：
+
+```
+Ctrl + Shift + Space
+```
+
+打开：
+
+AI Assistant。
+
+---
+
+增加：
+
+### 自动更新
+
+用户无需重新下载安装。
+
+---
+
+增加：
+
+### 原生通知
+
+例如：
+
+```
+Agent 已完成任务
+
+点击查看
+```
+
+---
+
+# 六、推荐技术栈
+
+## 前端
+
+```
+React
+TypeScript
+Vite
+TailwindCSS
+shadcn/ui
+Framer Motion
+React Query
+Zustand
+```
+
+---
+
+## Web UI
+
+```
+React Router
+
+↓
+
+Pages
+
+↓
+
+Components
+
+↓
+
+API Client
+```
+
+---
+
+## 桌面层
+
+```
+Tauri 2
+
+↓
+
+Rust
+
+↓
+
+IPC
+
+↓
+
+React
+```
+
+---
+
+## 后端
+
+```
+FastAPI
+
+↓
+
+LangGraph
+
+↓
+
+Python
+```
+
+---
+
+## AI 服务
+
+```
+Embedding
+
+Reranker
+
+vLLM
+
+Ollama
+
+Docling
+```
+
+---
+
+## 数据层
+
+```
+PostgreSQL
+
+Qdrant
+
+MinIO
+```
+
+---
+
+# 七、目录建议
+
+```
+ai-platform/
+
+├── frontend/
+│   ├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── hooks/
+│   ├── stores/
+│   ├── services/
+│   └── assets/
+│
+├── backend/
+│   ├── api/
+│   ├── agents/
+│   ├── workflows/
+│   ├── rag/
+│   └── tools/
+│
+├── src-tauri/
+│   ├── src/
+│   ├── capabilities/
+│   ├── icons/
+│   └── tauri.conf.json
+│
+├── docker/
+├── configs/
+├── docs/
+└── scripts/
+```
+
+其中：
+
+- `frontend/`：React Web UI
+- `backend/`：FastAPI 与 LangGraph
+- `src-tauri/`：Tauri 桌面能力（Rust）
+
+---
+
+# 八、开发优先级
+
+## P0（必须完成）
+
+- React Web UI
+- FastAPI
+- LangGraph
+- Agent
+- Workflow
+- RAG
+- Chat
+- Knowledge
+- Documents
+
+---
+
+## P1（建议完成）
+
+- Mac 风格 UI
+- 深色模式
+- Streaming
+- WebSocket
+- 多窗口布局
+- 状态管理
+
+---
+
+## P2（进入桌面版）
+
+- Tauri 2
+- 系统托盘
+- 自动更新
+- 文件系统
+- 原生菜单
+- 快捷键
+
+---
+
+## P3（增强体验）
+
+- 多窗口
+- 插件系统
+- 本地缓存
+- 离线能力
+- 系统级 AI 助手
+- 移动端（Tauri 2 支持 Android/iOS）
+
+---
+
+# 九、为什么采用该路线
+
+采用 **"Web UI 优先、Tauri 后置"** 的开发策略具有以下优势：
+
+1. **开发效率高**
+   - 专注业务逻辑，不受桌面平台限制。
+
+2. **代码复用率高**
+   - Web 版与桌面版共享绝大部分 React 前端代码。
+
+3. **后端保持稳定**
+   - FastAPI、LangGraph、Docker、数据库等无需因桌面化而重构。
+
+4. **逐步扩展能力**
+   - 在业务成熟后，再通过 Tauri 增加系统托盘、自动更新、本地文件访问、快捷键等桌面能力。
+
+5. **长期维护成本低**
+   - 一套核心代码可同时支持浏览器和原生桌面应用，便于持续迭代。
+
+---
+
+# 十、最终目标
+
+```text
+                    AI Platform
+
+                ┌────────────────────┐
+                │   Tauri 2 Desktop  │
+                └──────────┬─────────┘
+                           │
+                React + TypeScript
+                           │
+                   Mac 风格 Web UI
+                           │
+                FastAPI + LangGraph
+                           │
+      ┌──────────────┬──────────────┬──────────────┐
+      │              │              │
+ PostgreSQL      Qdrant         MinIO
+      │              │              │
+ Embedding      Reranker       Docling
+      │
+   多 Agent / Workflow / RAG / Chat / 投资研究
+```
+
+## 核心原则
+
+> **先做好业务平台，再封装桌面应用；让 Web UI 成为唯一的界面实现，Tauri 负责提供原生桌面能力，实现“一套前端，多端运行”。**
