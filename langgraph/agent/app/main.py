@@ -38,8 +38,10 @@ async def lifespan(app: FastAPI):
     from skills.registry import register_skill
     from skills.rag_search import RAGSearchSkill
     from skills.master_analysis import MasterAnalysisSkill
+    from skills.web_article_summary import WebArticleSummarySkill
     register_skill(RAGSearchSkill())
     register_skill(MasterAnalysisSkill())
+    register_skill(WebArticleSummarySkill())
     logger.info("Skills registered")
 
     # 启动 Scheduler

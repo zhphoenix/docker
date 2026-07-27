@@ -33,6 +33,8 @@ _NAV_MARKERS = [
     "close", "the python network", "font size", "socialize",
     "copyright", "all rights reserved", "privacy policy", "terms of use",
     "powered by", "back to top",
+    # 求是网噪音
+    "来源：求是网", "责任编辑", "分享到", "相关阅读", "上一篇", "下一篇",
 ]
 
 

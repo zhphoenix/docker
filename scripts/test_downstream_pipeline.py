@@ -25,18 +25,18 @@ from pipelines.web_pipeline import WebPipeline
 
 
 # ──────────────────────────────────────────────
-# 配置
+# 配置（环境变量优先，默认值为本地开发环境）
 # ──────────────────────────────────────────────
 
-CRAWL4AI_URL = "http://localhost:11235"
-CRAWL4AI_TOKEN = "crawl4ai-dev-token"
-MINIO_ENDPOINT = "localhost:9000"
-MINIO_ACCESS_KEY = "minioadmin"
-MINIO_SECRET_KEY = "minioadmin"
-PG_DSN = "postgresql://postgres:postgres@localhost:5433/ai"
-EMBED_URL = "http://localhost:8001/v1/embeddings"
-QDRANT_HOST = "localhost"
-QDRANT_PORT = 6333
+CRAWL4AI_URL = os.getenv("CRAWL4AI_URL", "http://localhost:11235")
+CRAWL4AI_TOKEN = os.getenv("CRAWL4AI_API_TOKEN", "crawl4ai-dev-token")
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "localhost:9000")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
+MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
+PG_DSN = os.getenv("PG_DSN", "postgresql://postgres:postgres@localhost:5433/ai")
+EMBED_URL = os.getenv("EMBEDDING_URL", "http://localhost:8001/v1/embeddings")
+QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
+QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
 
 # 用 python.org/about 做测试（内容丰富，有标题结构）
 TEST_URL = "https://www.python.org/about/"

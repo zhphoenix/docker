@@ -21,18 +21,18 @@ from pipelines.web_pipeline import WebPipeline
 
 
 # ──────────────────────────────────────────────
-# 配置
+# 配置（环境变量优先，默认值为本地开发环境）
 # ──────────────────────────────────────────────
 
-CRAWL4AI_URL = "http://localhost:11235"
-CRAWL4AI_TOKEN = "crawl4ai-dev-token"
+CRAWL4AI_URL = os.getenv("CRAWL4AI_URL", "http://localhost:11235")
+CRAWL4AI_TOKEN = os.getenv("CRAWL4AI_API_TOKEN", "crawl4ai-dev-token")
 
-MINIO_ENDPOINT = "localhost:9000"
-MINIO_ACCESS_KEY = "minioadmin"
-MINIO_SECRET_KEY = "minioadmin"
-MINIO_BUCKET = "documents"
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "localhost:9000")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
+MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
+MINIO_BUCKET = os.getenv("MINIO_BUCKET", "documents")
 
-PG_DSN = "postgresql://postgres:postgres@localhost:5433/ai"
+PG_DSN = os.getenv("PG_DSN", "postgresql://postgres:postgres@localhost:5433/ai")
 
 # 测试 URL（选择稳定可访问的页面）
 TEST_URLS = [

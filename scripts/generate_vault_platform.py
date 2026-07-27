@@ -37,7 +37,10 @@ PG_USER = os.environ.get("PG_USER", "postgres")
 PG_PASS = os.environ.get("PG_PASS", "postgres")
 PG_DB = os.environ.get("PG_DB", "ai")
 
-DEFAULT_VAULT = os.environ.get("VAULT_ROOT", "/mnt/e/ai-platform/data/obsidian_vault")
+# 项目根目录（基于脚本位置推导，避免硬编码绝对路径）
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+DEFAULT_VAULT = os.environ.get("VAULT_ROOT", str(PROJECT_ROOT / "data" / "obsidian_vault"))
 
 
 def get_conn():

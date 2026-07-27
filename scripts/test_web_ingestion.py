@@ -126,9 +126,9 @@ async def test_crawl4ai_provider():
     print("=" * 60)
 
     provider = Crawl4AIProvider(
-        base_url="http://localhost:11235",
+        base_url=os.getenv("CRAWL4AI_URL", "http://localhost:11235"),
         timeout=30,
-        api_token="crawl4ai-dev-token",
+        api_token=os.getenv("CRAWL4AI_API_TOKEN", "crawl4ai-dev-token"),
     )
 
     # 健康检查

@@ -1,6 +1,10 @@
 """导入 providers.yaml 到 PostgreSQL providers 表
 
 用法: python scripts/import_providers.py
+
+环境变量:
+    PROVIDERS_YAML - providers.yaml 文件路径 (默认: {PROJECT_ROOT}/data/providers.yaml)
+    PG_DSN         - PostgreSQL 连接串 (默认: postgresql://postgres:postgres@localhost:5433/ai)
 """
 
 import asyncio
@@ -12,8 +16,11 @@ from pathlib import Path
 import asyncpg
 import yaml
 
-YAML_PATH = Path(os.environ.get("PROVIDERS_YAML", "/mnt/e/ai-platform/data/providers.yaml"))
-DSN = "postgresql://postgres:postgres@localhost:5433/ai"
+# 项目根目录（基于脚本位置推导）
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+YAML_PATH = Path(os.environ.get("PROVIDERS_YAML", str(PROJECT_ROOT / "data" / "providers.yaml")))
+DSN = os.environ.get("PG_DSN", "postgresql://postgres:postgres@localhost:5433/ai")
 
 
 async def main():

@@ -1,0 +1,912 @@
+# AI Platform UI Design Specification
+> **AI Platform UI 设计规范（Mac 风格）**
+>
+> Version：v2.0  
+> Status：Draft  
+> Last Update：2026-07-27
+
+---
+
+# 一、文档目标（Document Goal）
+
+本规范是 **AI Platform** 的唯一 UI 设计标准（Single Source of Truth）。
+
+适用于整个 AI Platform，包括：
+
+- Dashboard
+- AI Chat
+- Agent Center
+- Workflow
+- Knowledge Base
+- Documents
+- Research Center
+- Prompt Library
+- Models
+- Vector Database
+- System Monitor
+- Settings
+
+本规范统一定义：
+
+- 产品架构
+- 页面布局
+- Design System
+- UI 组件
+- 交互规范
+- 动画规范
+- 前端技术规范
+- 开发规范
+
+确保整个 AI Platform 长期保持：
+
+- 统一
+- 美观
+- 易维护
+- 易扩展
+
+---
+
+# 二、设计理念（Design Philosophy）
+
+整个 AI Platform 遵循 Apple Human Interface Guidelines 与现代 AI 产品设计理念。
+
+核心原则：
+
+## 1. Simple（简洁）
+
+减少视觉噪音。
+
+突出主要内容。
+
+避免：
+
+- 花哨颜色
+- 重阴影
+- 多层边框
+
+---
+
+## 2. Consistent（一致）
+
+所有页面保持一致：
+
+- 字体
+- 间距
+- 圆角
+- 动画
+- 图标
+- 按钮
+
+---
+
+## 3. Efficient（高效）
+
+所有操作尽量：
+
+- 少点击
+- 少弹窗
+- 少等待
+
+支持：
+
+- Command Palette
+- Keyboard Shortcut
+- Context Menu
+
+---
+
+## 4. Natural（自然）
+
+动画应该：
+
+- 柔和
+- 连贯
+- Spring
+- 不夸张
+
+---
+
+## 5. Scalable（可扩展）
+
+未来新增：
+
+- Agent
+- Workflow
+- Plugin
+- MCP
+- Data Source
+
+无需重新设计整个 UI。
+
+---
+
+# 三、产品架构（Product Architecture）
+
+```text
+AI Platform
+│
+├── Dashboard
+├── AI Chat
+├── Agent Center
+├── Workflow
+├── Knowledge
+├── Documents
+├── Research
+├── Prompt Library
+├── Models
+├── Data Source
+├── Vector Database
+├── Logs
+├── Monitor
+└── Settings
+```
+
+---
+
+# 四、整体布局（Layout）
+
+推荐布局：
+
+```text
+┌──────────────────────────────────────────────────────┐
+│ ● ● ●                 AI Platform                    │
+├─────────────┬────────────────────────────────────────┤
+│             │                                        │
+│ Sidebar     │             Main Content               │
+│             │                                        │
+│             │                                        │
+│             │                                        │
+├─────────────┼────────────────────────────────────────┤
+│ Status Bar  │ Bottom Panel                           │
+└─────────────┴────────────────────────────────────────┘
+```
+
+---
+
+# 五、导航规范（Navigation）
+
+Sidebar：
+
+```text
+🏠 Dashboard
+
+💬 Chat
+
+🤖 Agents
+
+📄 Knowledge
+
+🗂 Documents
+
+🔄 Workflow
+
+📊 Research
+
+🧠 Models
+
+🗃 Vector DB
+
+⚙ Settings
+```
+
+要求：
+
+- Hover 动画
+- 当前页面高亮
+- 支持折叠
+- Command+K 快速搜索
+
+---
+
+# 六、Design System
+
+## 6.1 Color
+
+Primary
+
+```
+#0A84FF
+```
+
+Text
+
+```
+#111827
+```
+
+Background
+
+```
+#F8F8F8
+```
+
+Sidebar
+
+```
+rgba(255,255,255,.72)
+```
+
+Danger
+
+```
+#FF453A
+```
+
+Success
+
+```
+#30D158
+```
+
+Warning
+
+```
+#FFD60A
+```
+
+---
+
+## 6.2 Typography
+
+统一：
+
+```css
+font-family: system-ui;
+```
+
+自动适配：
+
+Mac
+
+```
+SF Pro Display
+```
+
+Windows
+
+```
+Segoe UI
+```
+
+Linux
+
+```
+Ubuntu
+```
+
+---
+
+## 6.3 Radius
+
+统一：
+
+```
+16px
+```
+
+Dialog：
+
+```
+18px
+```
+
+Button：
+
+```
+14px
+```
+
+---
+
+## 6.4 Shadow
+
+推荐：
+
+```css
+0 4px 12px rgba(0,0,0,.08)
+```
+
+禁止：
+
+- 黑色重阴影
+- 彩色阴影
+
+---
+
+## 6.5 Glass Effect
+
+```css
+backdrop-filter: blur(30px);
+
+background:
+rgba(255,255,255,.60);
+```
+
+使用位置：
+
+- Sidebar
+- Header
+- Floating Panel
+- Dialog
+
+---
+
+## 6.6 Spacing
+
+统一：
+
+```
+4
+8
+12
+16
+24
+32
+48
+64
+```
+
+---
+
+## 6.7 Icon
+
+统一：
+
+Lucide Icons
+
+风格：
+
+- Outline
+- 简洁
+- 不混用
+
+---
+
+# 七、Design Tokens（设计令牌）
+
+所有颜色、字号、间距、圆角等均应定义为 Design Tokens，而不是写死在代码中。
+
+建议：
+
+```text
+Color
+Typography
+Spacing
+Radius
+Shadow
+Animation
+Border
+Opacity
+```
+
+统一放置：
+
+```text
+src/styles/tokens/
+```
+
+或
+
+```text
+src/theme/
+```
+
+例如：
+
+```css
+--color-primary
+--radius-lg
+--space-4
+--shadow-soft
+```
+
+这样支持：
+
+- Dark Mode
+- 品牌主题
+- 全局修改
+
+---
+
+# 八、组件规范（Component Library）
+
+推荐：
+
+shadcn/ui
+
+统一组件：
+
+- Button
+- Input
+- Card
+- Table
+- Tabs
+- Dialog
+- Drawer
+- Sheet
+- Badge
+- Tooltip
+- Dropdown
+- Accordion
+
+---
+
+# 九、组件状态（Component States）
+
+所有组件必须统一状态：
+
+```
+Default
+
+Hover
+
+Active
+
+Focused
+
+Disabled
+
+Loading
+
+Success
+
+Warning
+
+Error
+```
+
+例如 Button：
+
+```
+Normal
+
+↓
+
+Hover
+
+↓
+
+Pressed
+
+↓
+
+Loading
+
+↓
+
+Disabled
+```
+
+保证交互一致性。
+
+---
+
+# 十、页面规范（Page Specification）
+
+所有页面遵循：
+
+```
+Header
+
+↓
+
+Toolbar
+
+↓
+
+Main Content
+
+↓
+
+Bottom Panel
+```
+
+所有页面：
+
+统一：
+
+- Margin
+- Padding
+- Card
+- Scroll
+
+---
+
+# 十一、交互规范（Interaction）
+
+推荐：
+
+- Hover Lift
+- Ripple（可选）
+- Command Palette
+- Keyboard Shortcut
+
+AI 输出：
+
+- Streaming
+- Markdown
+- Code Highlight
+- Citation
+
+---
+
+# 十二、动画规范（Motion）
+
+统一：
+
+Page
+
+```
+Fade + Slide
+```
+
+Sidebar
+
+```
+Spring
+```
+
+Dialog
+
+```
+Fade + Scale
+```
+
+Button
+
+```
+Scale 0.98
+```
+
+Loading
+
+```
+Skeleton
+```
+
+时间：
+
+```
+150~300ms
+```
+
+---
+
+# 十三、AI 交互规范（AI Interaction Guideline）
+
+统一规范：
+
+AI 回复：
+
+- Streaming Output
+- Markdown Rendering
+- Code Highlight
+- Mermaid
+- Citation
+- References
+
+Agent：
+
+显示：
+
+- Thinking
+- Tool Calling
+- Workflow
+- Current Step
+- Progress
+
+长任务：
+
+显示：
+
+```
+Planning
+
+↓
+
+Running
+
+↓
+
+Generating
+
+↓
+
+Completed
+```
+
+---
+
+# 十四、数据可视化规范（Data Visualization）
+
+统一图表规范：
+
+支持：
+
+- 股票行情
+- 财务数据
+- Agent Flow
+- Workflow DAG
+- 系统监控
+
+建议：
+
+- ECharts
+- React Flow
+
+原则：
+
+- 少颜色
+- 高对比
+- 可缩放
+- 可导出
+
+---
+
+# 十五、主题系统（Theme System）
+
+必须支持：
+
+```
+Light
+
+Dark
+
+Auto(System)
+```
+
+未来支持：
+
+```
+Apple
+
+Ocean
+
+Professional
+
+Custom
+```
+
+统一 Theme Provider。
+
+---
+
+# 十六、无障碍规范（Accessibility）
+
+支持：
+
+- Keyboard Navigation
+- Focus Ring
+- ARIA
+- Screen Reader
+
+颜色：
+
+符合 WCAG AA。
+
+---
+
+# 十七、性能规范（Performance）
+
+目标：
+
+首屏：
+
+```
+<2s
+```
+
+页面：
+
+```
+Lazy Loading
+```
+
+列表：
+
+```
+Virtual List
+```
+
+图片：
+
+```
+Lazy Image
+```
+
+动画：
+
+```
+GPU Accelerated
+```
+
+---
+
+# 十八、响应式规范（Responsive）
+
+支持：
+
+- Desktop（主）
+- Laptop
+- Tablet
+
+移动端：
+
+- Sidebar 折叠
+- Dialog 全屏
+
+---
+
+# 十九、前端技术栈（Technology Stack）
+
+推荐：
+
+```
+React
+
+↓
+
+Next.js
+
+↓
+
+TailwindCSS
+
+↓
+
+shadcn/ui
+
+↓
+
+Framer Motion
+
+↓
+
+Lucide
+
+↓
+
+React Query
+
+↓
+
+Zustand
+```
+
+---
+
+# 二十、项目目录规范
+
+```text
+src/
+│
+├── app/
+├── components/
+│   ├── common/
+│   ├── layout/
+│   ├── dashboard/
+│   ├── chat/
+│   ├── workflow/
+│   ├── research/
+│   ├── settings/
+│   └── monitor/
+│
+├── hooks/
+├── services/
+├── stores/
+├── theme/
+├── styles/
+├── types/
+├── utils/
+└── assets/
+```
+
+---
+
+# 二十一、后端架构
+
+推荐：
+
+```text
+             React Frontend
+
+                    │
+
+     ┌──────────────┼──────────────┐
+
+     ▼              ▼              ▼
+
+ Open WebUI     LangGraph      FastAPI
+
+     │              │              │
+
+     └──────────────┼──────────────┘
+
+                    │
+
+     ┌──────────────┼──────────────┐
+
+     ▼              ▼              ▼
+
+ PostgreSQL      Qdrant        MinIO
+```
+
+保持：
+
+Open WebUI
+
+仅作为 AI 服务。
+
+UI 完全自主开发。
+
+---
+
+# 二十二、开发规范（Development Guidelines）
+
+所有开发遵循：
+
+- Component First
+- Design Token First
+- API First
+- TypeScript First
+
+禁止：
+
+- 页面直接写 CSS
+- 硬编码颜色
+- 硬编码间距
+- 复制组件
+
+要求：
+
+- 高复用
+- 高一致性
+- 易测试
+
+---
+
+# 二十三、未来规划（Roadmap）
+
+未来支持：
+
+- MCP Marketplace
+- Plugin System
+- Agent Marketplace
+- Workflow Marketplace
+- Multi-window
+- Multi-workspace
+- Collaborative Editing
+- AI Desktop（Tauri）
+
+---
+
+# 二十四、总结
+
+本规范是 AI Platform UI 的唯一设计标准，覆盖：
+
+- 产品架构
+- 页面布局
+- Design System
+- Design Tokens
+- 组件规范
+- 交互规范
+- AI 交互规范
+- 动画规范
+- 数据可视化
+- 无障碍
+- 性能优化
+- 响应式设计
+- 技术栈
+- 开发规范
+- 后端集成
+- 长期演进路线
+
+## 核心原则
+
+> **Simple（简洁）**  
+> **Consistent（一致）**  
+> **Efficient（高效）**  
+> **Natural（自然）**  
+> **Scalable（可扩展）**
+
+通过统一的设计规范、组件体系和开发标准，确保 AI Platform 在未来持续演进过程中保持一致的用户体验、优秀的可维护性和良好的扩展能力，成为一个兼具 macOS 设计美学与 AI 产品特性的现代化平台。

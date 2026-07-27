@@ -73,6 +73,7 @@ rate_limit:
     sec.gov: 30
     hkexnews.hk: 20
     eastmoney.com: 30
+    www.qstheory.cn: 10   # 政府网站保守限速
 
 # 代理配置（可选）
 proxy:
@@ -110,3 +111,18 @@ services:
   qdrant:
     host: "qdrant"
     port: 6333
+
+# ──────────────────────────────────────────────
+# 文章摘要配置
+# ──────────────────────────────────────────────
+
+summary:
+  enabled: true
+  model: "qwen3"                    # 使用 Sisyphus LLM
+  max_input_chars: 6000             # 输入截断
+  max_summary_chars: 500            # 摘要长度上限
+  language: "zh-CN"
+  output:
+    - type: postgres                # 写入 web_pages.metadata.summary
+    - type: obsidian                # 写入 Obsidian Vault
+      vault_path: "queries/qiushi/"

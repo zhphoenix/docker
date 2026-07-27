@@ -95,6 +95,35 @@ sites:
     auth_required: false
     enabled: true
 
+  # ── 政策理论 ──
+
+  - domain: www.qstheory.cn
+    description: 求是网（中央政策理论）
+    category: policy
+    market: CN
+    retry_override:
+      max_attempts: 4
+    rate_limit_rpm: 10
+    auth_required: false
+    enabled: true
+    # 抓取规则（列表页 → 文章链接提取）
+    crawl_rules:
+      list_pages:
+        - url: "https://www.qstheory.cn/"
+          name: 首页
+        - url: "https://www.qstheory.cn/qslgxd/"
+          name: 求是论道
+      article_selector: "a[href*='/20260'], a[href*='/20251'], a[href*='/20250']"
+      exclude_patterns:
+        - "javascript:"
+        - "#page"
+        - "/index"
+        - "node_"
+      sort_by: date_desc
+      max_articles: 20
+      pagination:
+        type: none
+
   # ── 公司 IR 页面 ──
 
   - domain: investor.tencent.com

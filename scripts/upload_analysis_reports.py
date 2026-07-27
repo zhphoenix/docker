@@ -1,6 +1,12 @@
 """上传大师分析报告到 MinIO artifacts/research/ Bucket
 
 路径规范: artifacts/research/{market}/{symbol}/master_analysis_{year}.md
+
+环境变量:
+    MINIO_ENDPOINT      - MinIO 服务地址 (默认: localhost:9000)
+    MINIO_ROOT_USER     - MinIO 访问密钥
+    MINIO_ROOT_PASSWORD - MinIO 秘密密钥
+    REPORT_SOURCE_DIR   - 分析报告源目录 (默认: {PROJECT_ROOT}/data/reports)
 """
 
 import os
@@ -10,18 +16,21 @@ from pathlib import Path
 from minio import Minio
 from dotenv import load_dotenv
 
-# 加载环境变量
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+# 项目根目录（基于脚本位置推导，避免硬编码绝对路径）
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-# MinIO 连接
+# 加载环境变量
+load_dotenv(PROJECT_ROOT / ".env")
+
+# MinIO 连接（环境变量: MINIO_ENDPOINT, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD）
 client = Minio(
-    "localhost:9000",
+    os.getenv("MINIO_ENDPOINT", "localhost:9000"),
     access_key=os.getenv("MINIO_ROOT_USER"),
     secret_key=os.getenv("MINIO_ROOT_PASSWORD"),
     secure=False,
 )
 
-REPORTS_DIR = Path(os.environ.get("REPORT_SOURCE_DIR", "/mnt/e/ai-platform/data/reports"))
+REPORTS_DIR = Path(os.environ.get("REPORT_SOURCE_DIR", str(PROJECT_ROOT / "data" / "reports")))
 BUCKET = "artifacts"
 
 # 港股代码列表（用于判断市场）

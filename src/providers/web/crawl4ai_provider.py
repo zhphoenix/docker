@@ -55,6 +55,7 @@ class CrawlResult:
     attempts: int = 0
     crawl_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     metadata: dict[str, Any] = field(default_factory=dict)
+    links: list[dict[str, Any]] = field(default_factory=list)  # 页面内链接（用于列表页解析）
 
     @property
     def domain(self) -> str:
@@ -214,9 +215,11 @@ class Crawl4AIProvider:
         client = await self._get_client()
 
         # Crawl4AI API 请求体（urls 必须为列表）
+        # crawler_config: 禁用 SSRF 防护（本项目通过 websites.yaml 白名单控制允许抓取的域名）
         payload = {
             "urls": [url],
             "priority": 8,
+            "crawler_config": {"ssrf_protection": False},
             **kwargs,
         }
 
@@ -267,6 +270,10 @@ class Crawl4AIProvider:
         # 提取响应头
         resp_headers = result.get("response_headers", {}) or {}
 
+        # 提取页面内链接（用于列表页解析）
+        links_data = result.get("links", {})
+        internal_links = links_data.get("internal", []) if isinstance(links_data, dict) else []
+
         return CrawlResult(
             url=url,
             success=True,
@@ -277,6 +284,7 @@ class Crawl4AIProvider:
             etag=resp_headers.get("etag"),
             last_modified=resp_headers.get("last-modified"),
             metadata=result.get("metadata", {}),
+            links=internal_links,
         )
 
     async def fetch_batch(self, urls: list[str], concurrency: int = 3, **kwargs) -> list[CrawlResult]:
