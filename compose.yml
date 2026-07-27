@@ -36,3 +36,4 @@ include:
   - sisyphus/compose.yml
   - openwebui/compose.yml
   - langgraph/compose.yml
+  - crawl4ai/compose.yml

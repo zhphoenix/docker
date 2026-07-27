@@ -1,0 +1,112 @@
+# ============================================================
+# Crawl4AI 配置 — AI Platform Web Ingestion Layer
+# 基于 Crawl4AI 集成设计规范 第5节 + 第18节
+# ============================================================
+
+# 浏览器配置
+browser:
+  headless: true
+  timeout: 30000          # 页面加载超时（毫秒）
+  max_tabs: 5             # 最大并发标签页
+
+# 抓取配置
+crawl:
+  max_depth: 2            # 最大爬取深度
+  max_pages: 100          # 单次任务最大页面数
+  same_domain: true       # 仅爬取同域名
+
+# Markdown 清洗配置
+markdown:
+  remove_images: true
+  remove_navigation: true
+  remove_footer: true
+  remove_ads: true
+
+# 存储配置
+storage:
+  bucket: documents       # MinIO bucket
+  prefix: website/        # MinIO 路径前缀
+
+# Chunk 配置（Markdown 按标题分块）
+chunk:
+  enabled: true
+  max_chars: 800          # 单个 chunk 最大字符数
+  overlap_chars: 100      # 二次切分重叠字符数
+  min_chars: 50           # 过短 chunk 合并阈值
+
+# Embedding 配置
+embedding:
+  url: "http://embedding:8080/v1/embeddings"  # Docker 内部地址
+  model: "qwen3-embedding"
+  batch_size: 16          # 每次 Embedding 请求的文本数
+  concurrency: 4          # 并发请求数
+  max_chars: 800          # 文本截断限制
+
+# Qdrant 向量库
+qdrant:
+  collection: "web_pages"  # Web 内容专用 collection
+  vector_size: 2560        # Qwen3-Embedding-4B 维度
+  distance: "Cosine"
+
+# ──────────────────────────────────────────────
+# Phase 1: 弹性抓取与失败恢复
+# ──────────────────────────────────────────────
+
+# 重试策略
+retry:
+  max_attempts: 3         # 单次抓取最大重试次数
+  backoff_base: 2         # 指数退避基数（秒）
+  backoff_max: 60         # 单次最大等待时间（秒）
+  retry_on_status:        # 触发重试的 HTTP 状态码
+    - 429
+    - 500
+    - 502
+    - 503
+    - 504
+  dead_letter_after: 5    # 累计失败次数后标记为 dead
+
+# 速率限制
+rate_limit:
+  default_rpm: 60         # 默认每分钟请求数
+  per_domain:             # 按域名覆盖
+    cninfo.com.cn: 20
+    sec.gov: 30
+    hkexnews.hk: 20
+    eastmoney.com: 30
+
+# 代理配置（可选）
+proxy:
+  enabled: false
+  pool: []                # 代理地址列表，如 ["http://proxy1:8080", "http://proxy2:8080"]
+
+# ──────────────────────────────────────────────
+# Phase 2: 增量变更检测（预留）
+# ──────────────────────────────────────────────
+
+incremental:
+  enabled: true
+  hash_algorithm: sha256
+  versioning: true              # MinIO 保留历史版本
+  on_page_removed: archive      # archive | delete | ignore
+  full_refresh_cron: "0 3 * * 0"  # 每周日 03:00 全量刷新
+
+# ──────────────────────────────────────────────
+# 服务连接配置
+# ──────────────────────────────────────────────
+
+services:
+  crawl4ai:
+    url: "http://crawl4ai:11235"   # Docker 内部地址
+    timeout: 60
+    api_token: "${CRAWL4AI_API_TOKEN:-crawl4ai-dev-token}"  # 与 compose.yml 保持一致
+  postgres:
+    host: "postgres"
+    port: 5432                     # Docker 内部端口
+    database: "ai"
+  minio:
+    endpoint: "minio:9000"         # Docker 内部地址
+    secure: false
+    bucket: "documents"
+  qdrant:
+    host: "qdrant"
+    port: 6333

@@ -1,0 +1,116 @@
+# ============================================================
+# Website Registry — 允许抓取的网站注册表
+# 基于 Crawl4AI 集成设计规范 第6节 + 第18.2节
+# ============================================================
+#
+# 规则:
+#   - Agent 不允许直接抓任意网址
+#   - 新增网站仅需修改此 YAML
+#   - 每个站点可覆盖全局重试/限速配置
+#
+# 字段说明:
+#   domain:          域名（必填）
+#   description:     站点描述
+#   category:        分类（announcement/news/regulatory/ir）
+#   market:          市场（CN/HK/US/Global）
+#   retry_override:  覆盖全局重试配置（可选）
+#   rate_limit_rpm:  覆盖全局速率限制（可选）
+#   auth_required:   是否需要认证（Phase 4 预留）
+#   enabled:         是否启用
+# ============================================================
+
+sites:
+
+  # ── 中国 A 股 ──
+
+  - domain: cninfo.com.cn
+    description: 巨潮资讯（官方信息披露）
+    category: announcement
+    market: CN
+    retry_override:
+      max_attempts: 5
+    rate_limit_rpm: 15
+    auth_required: false
+    enabled: true
+
+  - domain: sse.com.cn
+    description: 上海证券交易所
+    category: announcement
+    market: CN
+    rate_limit_rpm: 20
+    auth_required: false
+    enabled: true
+
+  - domain: szse.cn
+    description: 深圳证券交易所
+    category: announcement
+    market: CN
+    rate_limit_rpm: 20
+    auth_required: false
+    enabled: true
+
+  - domain: csrc.gov.cn
+    description: 中国证监会
+    category: regulatory
+    market: CN
+    rate_limit_rpm: 10
+    auth_required: false
+    enabled: true
+
+  - domain: eastmoney.com
+    description: 东方财富（财经新闻）
+    category: news
+    market: CN
+    rate_limit_rpm: 30
+    auth_required: false
+    enabled: true
+
+  - domain: finance.sina.com.cn
+    description: 新浪财经
+    category: news
+    market: CN
+    rate_limit_rpm: 20
+    auth_required: false
+    enabled: true
+
+  # ── 港股 ──
+
+  - domain: hkexnews.hk
+    description: 港交所披露易
+    category: announcement
+    market: HK
+    retry_override:
+      max_attempts: 5
+    rate_limit_rpm: 15
+    auth_required: false
+    enabled: true
+
+  # ── 美股 ──
+
+  - domain: sec.gov
+    description: SEC EDGAR（美股 Filing）
+    category: announcement
+    market: US
+    rate_limit_rpm: 30
+    auth_required: false
+    enabled: true
+
+  # ── 公司 IR 页面 ──
+
+  - domain: investor.tencent.com
+    description: 腾讯控股投资者关系
+    category: ir
+    market: HK
+    rate_limit_rpm: 10
+    auth_required: false
+    enabled: false    # 示例，默认禁用
+
+# ──────────────────────────────────────────────
+# 全局默认配置（可被站点覆盖）
+# ──────────────────────────────────────────────
+
+defaults:
+  retry_max_attempts: 3
+  rate_limit_rpm: 60
+  auth_required: false
+  enabled: true

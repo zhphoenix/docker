@@ -1,0 +1,39 @@
+services:
+  crawl4ai:
+    image: unclecode/crawl4ai:latest
+    container_name: crawl4ai
+    restart: unless-stopped
+    ports:
+      - "11235:11235"
+    shm_size: 2g
+    networks:
+      - ai-platform
+    environment:
+      - CRAWL4AI_HEADLESS=true
+      - CRAWL4AI_MAX_TABS=5
+      # API Token: 设置后服务绑定 0.0.0.0，否则仅绑定 127.0.0.1
+      # 生产环境请更换为强随机字符串
+      - CRAWL4AI_API_TOKEN=${CRAWL4AI_API_TOKEN:-crawl4ai-dev-token}
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 4G
+        reservations:
+          cpus: "1.0"
+          memory: 2G
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:11235/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+networks:
+  ai-platform:
+    external: true
