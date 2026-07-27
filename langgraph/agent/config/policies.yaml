@@ -57,13 +57,26 @@ pipeline:
   max_concurrent: 3
   chunk_size: 1000
   chunk_overlap: 200
-  embedding_batch_size: 32
+  embed_batch_size: 16
+  docling_timeout: 600
+  docling_poll_interval: 5
+
+# Scheduler 定时任务
+scheduler:
+  daily_pipeline_limit: 100
+  enabled: true
+
+# Task Worker
+worker:
+  poll_interval_seconds: 30
+  max_concurrent_tasks: 1
 
 # 人审配置
-human_approval:
-  enabled: false
+approval:
+  content_threshold: 2000   # 超过此字符数的内容需审批
+  enabled: true
   triggers:
-    - "vault_write"       # 写入 Obsidian 前需确认
-    - "report_publish"    # 发布研究报告前需确认
+    - "vault_write"
+    - "report_publish"
   timeout_hours: 24
   auto_approve_after_timeout: false

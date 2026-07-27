@@ -1,5 +1,6 @@
 """Base Agent - Agent 基类"""
 
+import asyncio
 import json
 import logging
 import time
@@ -10,6 +11,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from schemas.chat import ChatRequest, ChatResponse, ChatChoice, ChatMessage, UsageInfo, StreamChunk, StreamChoice, StreamDelta
 from schemas.state import AgentState
 from graph.builder import get_research_graph, get_chat_graph
+from memory import memory_manager
 
 logger = logging.getLogger(__name__)
 
@@ -53,14 +55,37 @@ class BaseAgent:
             ChatResponse
         """
         initial_state = self._build_initial_state(request)
+        question = initial_state["question"]
 
         logger.info("[%s] Starting run", self.agent_name)
         start_time = time.time()
 
-        result = await self.graph.ainvoke(initial_state)
+        # 情景记忆：记录任务开始
+        task_id = await memory_manager.start_episode(
+            question=question,
+            agent_type=self.agent_name,
+        )
+
+        try:
+            result = await self.graph.ainvoke(initial_state)
+        except Exception as e:
+            await memory_manager.fail_episode(task_id, str(e))
+            raise
 
         elapsed = time.time() - start_time
         answer = result.get("answer", "")
+        reflect = result.get("reflect", {})
+        documents = result.get("documents", [])
+
+        # 情景记忆：记录任务完成
+        await memory_manager.complete_episode(
+            task_id=task_id,
+            answer=answer,
+            quality=reflect.get("quality", "unknown"),
+            confidence=reflect.get("confidence", 0.0),
+            document_count=len(documents),
+            elapsed_seconds=elapsed,
+        )
 
         logger.info("[%s] Run completed in %.2fs, answer=%d chars", self.agent_name, elapsed, len(answer))
 
@@ -120,8 +145,14 @@ class BaseAgent:
             # 手动执行前置节点
             if self.agent_name == "research":
                 # Research: Planner → Retrieve → Rerank
-                plan_result = await planner(initial_state)
-                initial_state.update(plan_result)
+                try:
+                    plan_result = await asyncio.wait_for(planner(initial_state), timeout=60.0)
+                    initial_state.update(plan_result)
+                except asyncio.TimeoutError:
+                    logger.warning("[%s] Planner timed out (60s), skipping", self.agent_name)
+                    # Planner 失败时不阻断流程，Retrieve 会自动推断 market
+                except Exception as e:
+                    logger.warning("[%s] Planner failed: %s, skipping", self.agent_name, e)
 
             # Retrieve → Rerank（所有 Agent 都需要）
             retrieve_result = await retrieve(initial_state)
@@ -185,7 +216,10 @@ def _build_context(documents: list[dict]) -> str:
         return "（无检索结果）"
     parts = []
     for i, doc in enumerate(documents, 1):
-        source = doc.get("source", "unknown")
+        symbol = doc.get("symbol", "")
+        year = doc.get("year", "")
+        market = doc.get("market", "")
+        source = f"{symbol}/{year}" if symbol else (market or "unknown")
         content = doc.get("content", "")
         parts.append(f"[文档 {i}] 来源: {source}\n{content}")
     return "\n\n---\n\n".join(parts)

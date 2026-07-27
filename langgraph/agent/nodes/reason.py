@@ -25,8 +25,19 @@ async def reason(state: AgentState) -> dict:
     # 构建上下文
     context = _build_context(documents)
 
-    # 加载 prompt（替换变量）
-    system_prompt = load_prompt("reason", question=question, context=context)
+    # 根据 Agent 类型加载不同 Prompt
+    agent_name = state.get("metadata", {}).get("agent", "research")
+    prompt_map = {
+        "investment": "investment/system",
+        "chat": "chat/system",
+        "knowledge": "chat/system",
+    }
+    prompt_name = prompt_map.get(agent_name, "reason")
+
+    try:
+        system_prompt = load_prompt(prompt_name, question=question, context=context)
+    except FileNotFoundError:
+        system_prompt = load_prompt("reason", question=question, context=context)
 
     # 调用 LLM
     messages = [
@@ -58,7 +69,10 @@ def _build_context(documents: list[dict]) -> str:
 
     parts = []
     for i, doc in enumerate(documents, 1):
-        source = doc.get("source", "unknown")
+        symbol = doc.get("symbol", "")
+        year = doc.get("year", "")
+        market = doc.get("market", "")
+        source = f"{symbol}/{year}" if symbol else (market or "unknown")
         content = doc.get("content", "")
         parts.append(f"[文档 {i}] 来源: {source}\n{content}")
 

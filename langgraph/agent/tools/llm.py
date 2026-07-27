@@ -17,7 +17,8 @@ class LLMTool:
     def __init__(self):
         self.base_url = settings.OPENAI_BASE_URL
         self.model = settings.MODEL_NAME
-        self.timeout = 20.0
+        # Sisyphus (Qwythos-9B) 使用 65K context + 推测解码，单次推理可能耗时 60-120s
+        self.timeout = 120.0
         self._client: httpx.AsyncClient | None = None
 
     def _get_client(self) -> httpx.AsyncClient:

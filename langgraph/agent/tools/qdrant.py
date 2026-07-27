@@ -19,6 +19,7 @@ class QdrantTool:
         self.client = QdrantClient(
             host=settings.QDRANT_HOST,
             port=settings.QDRANT_PORT,
+            timeout=120,  # 2.5M points HNSW 搜索可能耗时较长
         )
 
     async def search(

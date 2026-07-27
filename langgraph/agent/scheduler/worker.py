@@ -1,0 +1,148 @@
+"""Task Worker - 后台任务处理器
+
+职责:
+  - 轮询 tasks 表中 pending 状态的任务
+  - 根据 task_type 分发到对应处理器
+  - 控制并发（同时只运行 1 个 Pipeline 任务）
+  - 失败自动标记（由 Scheduler 负责重试）
+"""
+
+import asyncio
+import json
+import logging
+from typing import Callable, Coroutine, Any
+
+from graph.task_queue import task_queue
+from config.policy_loader import get_policy
+
+logger = logging.getLogger(__name__)
+
+# 任务处理器注册表
+_handlers: dict[str, Callable[..., Coroutine[Any, Any, None]]] = {}
+_worker_task: asyncio.Task | None = None
+_running = False
+
+
+def register_handler(task_type: str, handler: Callable[..., Coroutine[Any, Any, None]]):
+    """注册任务处理器
+
+    Args:
+        task_type: 任务类型（对应 tasks.task_type）
+        handler: async 处理函数，接收 task dict 参数
+    """
+    _handlers[task_type] = handler
+    logger.info("Task handler registered: %s", task_type)
+
+
+async def _handle_doc_pipeline(task: dict) -> None:
+    """处理 doc_pipeline 类型任务"""
+    from graph.pipeline import doc_pipeline
+
+    params = task.get("params", {}) or {}
+    if isinstance(params, str):
+        params = json.loads(params)
+    limit = params.get("limit", 50)
+    await doc_pipeline.process_pending_documents(limit=limit)
+
+
+async def _handle_reindex(task: dict) -> None:
+    """处理 reindex 类型任务（重新索引单个文档）"""
+    from graph.pipeline import doc_pipeline
+
+    params = task.get("params", {}) or {}
+    if isinstance(params, str):
+        params = json.loads(params)
+    doc_id = params.get("document_id", "")
+    if doc_id:
+        await doc_pipeline.reindex_document(doc_id)
+
+
+async def _handle_batch_embed(task: dict) -> None:
+    """处理 batch_embed 类型任务（批量向量化）"""
+    from graph.batch_embed import run_batch_embed
+
+    params = task.get("params", {}) or {}
+    if isinstance(params, str):
+        params = json.loads(params)
+    collection = params.get("collection", "documents_cn")
+    batch_size = params.get("batch_size", 16)
+    limit = params.get("limit", 0)
+    task_id = str(task.get("id", ""))
+    await run_batch_embed(
+        collection=collection, batch_size=batch_size,
+        limit=limit, task_id=task_id,
+    )
+
+
+# 注册默认处理器
+register_handler("doc_pipeline", _handle_doc_pipeline)
+register_handler("reindex", _handle_reindex)
+register_handler("batch_embed", _handle_batch_embed)
+
+
+async def _worker_loop():
+    """Worker 主循环"""
+    global _running
+    _running = True
+
+    poll_interval = get_policy("worker.poll_interval_seconds", 30)
+    logger.info("[Worker] Started | poll_interval=%ds", poll_interval)
+
+    while _running:
+        try:
+            # 获取 pending 任务（按优先级 + 创建时间排序）
+            pending = await task_queue.get_pending_tasks(limit=1)
+
+            if not pending:
+                await asyncio.sleep(poll_interval)
+                continue
+
+            task = pending[0]
+            task_id = str(task["id"])
+            task_type = task["task_type"]
+
+            handler = _handlers.get(task_type)
+            if not handler:
+                logger.warning("[Worker] No handler for task_type=%s", task_type)
+                await task_queue.fail_task(task_id, f"No handler for {task_type}")
+                continue
+
+            # 执行任务
+            logger.info(
+                "[Worker] Processing | %s | type=%s | %s",
+                task_id[:8], task_type, task.get("title", ""),
+            )
+            await task_queue.start_task(task_id)
+
+            try:
+                await handler(task)
+                await task_queue.complete_task(task_id)
+            except Exception as e:
+                logger.error("[Worker] Task failed | %s | %s", task_id[:8], e)
+                await task_queue.fail_task(task_id, str(e))
+
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            logger.error("[Worker] Loop error | %s", e)
+            await asyncio.sleep(10)
+
+    logger.info("[Worker] Stopped")
+
+
+def start_worker() -> None:
+    """启动后台 Worker（在 FastAPI lifespan 中调用）"""
+    global _worker_task
+    if _worker_task is None or _worker_task.done():
+        _worker_task = asyncio.create_task(_worker_loop())
+        logger.info("[Worker] Background task created")
+
+
+def stop_worker() -> None:
+    """停止 Worker"""
+    global _running, _worker_task
+    _running = False
+    if _worker_task and not _worker_task.done():
+        _worker_task.cancel()
+        _worker_task = None
+        logger.info("[Worker] Background task cancelled")

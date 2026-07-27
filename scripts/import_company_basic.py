@@ -15,7 +15,7 @@ PG_USER = os.environ.get("PG_USER", "postgres")
 PG_PASS = os.environ.get("PG_PASS", "postgres")
 PG_DB = os.environ.get("PG_DB", "ai")
 
-DATA_ROOT = Path("/mnt/e/Value_capitalism/data")
+DATA_ROOT = Path(os.environ.get("DATA_ROOT", "/mnt/e/ai-platform/data"))
 
 # 市场目录映射
 MARKET_DIRS = {

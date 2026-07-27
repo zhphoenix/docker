@@ -14,6 +14,8 @@ from api.models import router as models_router
 from api.health import router as health_router
 from api.providers import router as providers_router
 from api.tasks import router as tasks_router
+from api.approvals import router as approvals_router
+from api.vault import router as vault_router
 from tools.postgres import postgres_tool
 
 # 配置日志
@@ -32,18 +34,40 @@ async def lifespan(app: FastAPI):
     await postgres_tool.connect()
     logger.info("PostgreSQL connection pool ready")
 
+    # 注册 Skills
+    from skills.registry import register_skill
+    from skills.rag_search import RAGSearchSkill
+    from skills.master_analysis import MasterAnalysisSkill
+    register_skill(RAGSearchSkill())
+    register_skill(MasterAnalysisSkill())
+    logger.info("Skills registered")
+
+    # 启动 Scheduler
+    from scheduler import start_scheduler
+    start_scheduler()
+
+    # 启动 Task Worker
+    from scheduler.worker import start_worker
+    start_worker()
+
     yield
 
     # 关闭时
     logger.info("Shutting down AI Platform Agent Service...")
+    from scheduler.worker import stop_worker
+    stop_worker()
+    from scheduler import stop_scheduler
+    stop_scheduler()
     from tools.llm import llm_tool
     from tools.embedding import embedding_tool
     from tools.reranker import reranker_tool
     from tools.obsidian import obsidian_tool
+    from tools.docling import docling_tool
     await llm_tool.close()
     await embedding_tool.close()
     await reranker_tool.close()
     await obsidian_tool.close()
+    await docling_tool.close()
     await postgres_tool.close()
 
 
@@ -108,3 +132,5 @@ app.include_router(models_router)
 app.include_router(chat_router)
 app.include_router(providers_router)
 app.include_router(tasks_router)
+app.include_router(approvals_router)
+app.include_router(vault_router)

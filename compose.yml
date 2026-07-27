@@ -18,6 +18,7 @@
 #   - Docling                  :5001
 #   - Embedding (Qwen3-4B)    :8001
 #   - Reranker (Qwen3-4B)     :8002
+#   - Sisyphus (Qwythos-9B)   :8080
 #   - OpenWebUI                :3000
 #   - LangGraph                :8100
 #
@@ -32,5 +33,6 @@ include:
   - docling/compose.yml
   - embedding/compose.yml
   - reranker/compose.yml
+  - sisyphus/compose.yml
   - openwebui/compose.yml
   - langgraph/compose.yml

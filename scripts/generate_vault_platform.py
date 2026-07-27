@@ -37,7 +37,7 @@ PG_USER = os.environ.get("PG_USER", "postgres")
 PG_PASS = os.environ.get("PG_PASS", "postgres")
 PG_DB = os.environ.get("PG_DB", "ai")
 
-DEFAULT_VAULT = "/mnt/e/Value_capitalism/data/vault"
+DEFAULT_VAULT = os.environ.get("VAULT_ROOT", "/mnt/e/ai-platform/data/obsidian_vault")
 
 
 def get_conn():

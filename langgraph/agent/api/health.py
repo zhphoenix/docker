@@ -108,6 +108,35 @@ async def metrics():
     except Exception:
         data["tasks"] = {}
 
+    # Embedding 进度
+    try:
+        embed_rows = await postgres_tool.query(
+            "SELECT collection_name, "
+            "COUNT(*) as total, "
+            "COUNT(qdrant_point_id) as embedded "
+            "FROM chunks GROUP BY collection_name"
+        )
+        data["embedding_progress"] = {
+            r["collection_name"]: {
+                "total": r["total"],
+                "embedded": r["embedded"],
+                "pending": r["total"] - r["embedded"],
+                "pct": round(r["embedded"] / max(r["total"], 1) * 100, 2),
+            }
+            for r in embed_rows
+        }
+    except Exception:
+        data["embedding_progress"] = {}
+
+    # 文档处理状态
+    try:
+        doc_rows = await postgres_tool.query(
+            "SELECT status, COUNT(*) as cnt FROM documents GROUP BY status"
+        )
+        data["document_status"] = {r["status"]: r["cnt"] for r in doc_rows}
+    except Exception:
+        data["document_status"] = {}
+
     return data
 
 

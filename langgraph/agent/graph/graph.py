@@ -11,6 +11,7 @@ from nodes.rerank import rerank
 from nodes.reason import reason
 from nodes.reflect import reflect
 from nodes.finish import finish
+from nodes.knowledge import knowledge
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +94,29 @@ def build_chat_graph() -> StateGraph:
     graph.add_edge("retrieve", "rerank")
     graph.add_edge("rerank", "reason")
     graph.add_edge("reason", "finish")
+    graph.add_edge("finish", END)
+
+    return graph.compile()
+
+
+def build_knowledge_graph() -> StateGraph:
+    """构建 Knowledge Agent 的 Workflow
+
+    Retrieve → Rerank → Reason → Knowledge (Vault 读写) → Finish → END
+    """
+    graph = StateGraph(AgentState)
+
+    graph.add_node("retrieve", retrieve)
+    graph.add_node("rerank", rerank)
+    graph.add_node("reason", reason)
+    graph.add_node("knowledge", knowledge)
+    graph.add_node("finish", finish)
+
+    graph.add_edge(START, "retrieve")
+    graph.add_edge("retrieve", "rerank")
+    graph.add_edge("rerank", "reason")
+    graph.add_edge("reason", "knowledge")
+    graph.add_edge("knowledge", "finish")
     graph.add_edge("finish", END)
 
     return graph.compile()

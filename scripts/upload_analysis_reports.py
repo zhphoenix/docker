@@ -11,7 +11,7 @@ from minio import Minio
 from dotenv import load_dotenv
 
 # 加载环境变量
-load_dotenv("/mnt/e/docker/.env")
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 # MinIO 连接
 client = Minio(
@@ -21,7 +21,7 @@ client = Minio(
     secure=False,
 )
 
-REPORTS_DIR = Path("/mnt/e/Value_capitalism/data/analysis_reports")
+REPORTS_DIR = Path(os.environ.get("REPORT_SOURCE_DIR", "/mnt/e/ai-platform/data/reports"))
 BUCKET = "artifacts"
 
 # 港股代码列表（用于判断市场）

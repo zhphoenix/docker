@@ -1,49 +1,53 @@
 services:
-  reranker:
-    image: ghcr.io/ggml-org/llama.cpp:server
-    container_name: reranker
+  sisyphus:
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda13
+    container_name: sisyphus
     restart: unless-stopped
     ports:
-      - "8002:8080"
+      - "8080:8080"
     volumes:
       - /mnt/g/models:/models:ro
     networks:
       - ai-platform
     command:
       - -m
-      - /models/unsloth/Qwen3-Reranker-0.6B-Q8_0.gguf
-      - --reranking
-      - --embedding
-      - --pooling
-      - rank
-      - --ctx-size
-      - "4096"
-      - -b
-      - "4096"
-      - -ub
-      - "4096"
+      - /models/unsloth/Qwythos-9B-Claude-Mythos-5-1M-MTP-Q8_0.gguf
       - --host
       - 0.0.0.0
       - --port
       - "8080"
+      - --flash-attn
+      - "on"
+      - --cache-type-k
+      - q4_0
+      - --cache-type-v
+      - q4_0
+      - -ngl
+      - "99"
+      - -c
+      - "65536"
+      - --spec-type
+      - draft-mtp
+      - --spec-draft-n-max
+      - "6"
     deploy:
       resources:
         limits:
-          cpus: "2.0"
-          memory: 4G
+          cpus: "4.0"
+          memory: 16G
         reservations:
           devices:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-          cpus: "0.5"
-          memory: 1G
+          cpus: "2.0"
+          memory: 8G
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8080/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 180s
     logging:
       driver: json-file
       options:

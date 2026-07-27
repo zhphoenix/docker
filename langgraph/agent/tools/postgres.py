@@ -62,6 +62,18 @@ class PostgresTool:
         async with self.pool.acquire() as conn:
             return await conn.execute(sql, *args)
 
+    async def execute_many(self, sql: str, args_list: list[tuple]) -> None:
+        """批量执行（使用 asyncpg executemany，高性能）
+
+        Args:
+            sql: SQL 语句
+            args_list: 参数元组列表
+        """
+        if not self.pool:
+            await self.connect()
+        async with self.pool.acquire() as conn:
+            await conn.executemany(sql, args_list)
+
 
 # 模块级单例
 postgres_tool = PostgresTool()

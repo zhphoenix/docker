@@ -7,6 +7,7 @@
   - 优先级排序
 """
 
+import json
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -33,10 +34,10 @@ class TaskQueue:
         await postgres_tool.execute(
             """
             INSERT INTO tasks (id, task_type, title, status, params, total_items, created_by)
-            VALUES ($1, $2, $3, 'pending', $4, $5, $6)
+            VALUES ($1, $2, $3, 'pending', $4::jsonb, $5, $6)
             """,
             task_id, task_type, title,
-            params or {}, total_items, created_by,
+            json.dumps(params or {}), total_items, created_by,
         )
         logger.info("Task created: %s [%s] %s", task_id[:8], task_type, title)
         return task_id
@@ -59,16 +60,19 @@ class TaskQueue:
         current_name: str = "",
     ) -> None:
         """更新任务进度"""
+        # 先获取 total_items 计算进度
+        task = await self.get_task(task_id)
+        total = task.get("total_items", 0) if task else 0
+        progress = round((current_item / total) * 100, 2) if total > 0 else 0
+
         await postgres_tool.execute(
             """
             UPDATE tasks
             SET current_item = $2, stage = $3, current_name = $4,
-                progress = CASE WHEN total_items > 0
-                    THEN ROUND(($2::numeric / total_items) * 100, 2)
-                    ELSE 0 END
+                progress = $5, updated_at = NOW()
             WHERE id = $1
             """,
-            task_id, current_item, stage, current_name,
+            task_id, current_item, stage, current_name, progress,
         )
 
     async def complete_task(self, task_id: str) -> None:
@@ -85,11 +89,12 @@ class TaskQueue:
         logger.info("Task completed: %s", task_id[:8])
 
     async def fail_task(self, task_id: str, error: str) -> None:
-        """标记任务失败"""
+        """标记任务失败（自动递增 retry_count）"""
         await postgres_tool.execute(
             """
             UPDATE tasks
-            SET status = 'failed', error_message = $2, finished_at = NOW()
+            SET status = 'failed', error_message = $2, finished_at = NOW(),
+                retry_count = retry_count + 1, updated_at = NOW()
             WHERE id = $1
             """,
             task_id, error[:2000],
@@ -118,16 +123,40 @@ class TaskQueue:
         return rows[0] if rows else None
 
     async def retry_task(self, task_id: str) -> bool:
-        """重试失败的任务（指数退避由调用方控制）"""
+        """重试失败的任务（检查 retry_count < max_retries）"""
+        task = await self.get_task(task_id)
+        if not task:
+            return False
+        if task["status"] != "failed":
+            return False
+        if task["retry_count"] >= task["max_retries"]:
+            logger.warning(
+                "Task %s exceeded max retries (%d/%d)",
+                task_id[:8], task["retry_count"], task["max_retries"],
+            )
+            return False
+
         result = await postgres_tool.execute(
             """
             UPDATE tasks
-            SET status = 'pending', error_message = NULL, started_at = NULL, finished_at = NULL
+            SET status = 'pending', error_message = NULL,
+                started_at = NULL, finished_at = NULL, updated_at = NOW()
             WHERE id = $1 AND status = 'failed'
             """,
             task_id,
         )
         return "UPDATE 1" in result
+
+    async def get_retry_delay(self, task_id: str) -> float:
+        """计算指数退避延迟（秒）: 1, 2, 4, 8..."""
+        task = await self.get_task(task_id)
+        if not task:
+            return 1.0
+        from config.policy_loader import get_retry_config
+        cfg = get_retry_config()
+        initial = cfg.get("initial_delay_seconds", 1)
+        multiplier = cfg.get("backoff_multiplier", 2)
+        return initial * (multiplier ** task["retry_count"])
 
 
 # 模块级单例

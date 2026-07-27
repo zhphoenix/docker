@@ -8,7 +8,7 @@ servers:
     command: "npx"
     args: ["-y", "@anthropic/obsidian-mcp"]
     env:
-      OBSIDIAN_VAULT_PATH: "/mnt/e/Value_capitalism/data/vault"
+      OBSIDIAN_VAULT_PATH: "/mnt/e/ai-platform/data/obsidian_vault"
     enabled: true
     tools:
       - obsidian_get_note
