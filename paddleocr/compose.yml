@@ -1,0 +1,51 @@
+services:
+  paddleocr:
+    image: ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-vllm-server:latest-nvidia-gpu
+    container_name: paddleocr
+    restart: unless-stopped
+    ports:
+      - "8118:8118"
+    shm_size: "8g"
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK: "True"
+    volumes:
+      - ./paddlex_cache:/home/paddleocr/.paddlex
+      - /mnt/g/models/OCR/PaddleOCR-VL-1.6:/home/paddleocr/.paddlex/official_models/PaddleOCR-VL-1.6:ro
+      - ./vllm_config.yaml:/tmp/vllm_config.yaml:ro
+    command: >
+      paddleocr genai_server
+      --model_name PaddleOCR-VL-1.6-0.9B
+      --backend vllm
+      --host 0.0.0.0
+      --port 8118
+      --backend_config /tmp/vllm_config.yaml
+    networks:
+      - ai-platform
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: 16G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+          cpus: "2.0"
+          memory: 8G
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8118/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+networks:
+  ai-platform:
+    external: true

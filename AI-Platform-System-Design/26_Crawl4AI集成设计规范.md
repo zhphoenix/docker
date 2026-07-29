@@ -1,7 +1,8 @@
-# AI Platform 规范：Crawl4AI 集成设计规范
+# Crawl4AI 集成设计规范
 
 > Version: v1.0
 > Status: Recommended
+> Last Updated: 2026-07-27
 > Scope: AI Platform Web Ingestion Layer
 
 ---

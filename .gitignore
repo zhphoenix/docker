@@ -18,6 +18,7 @@ Thumbs.db
 
 # Docker 数据卷（GB级数据）
 */data/
+paddleocr/paddlex_cache/
 
 # 平台数据目录（stock_a/stock_h/vault 等 GB 级数据）
 data/

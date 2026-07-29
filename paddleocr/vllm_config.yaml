@@ -1,0 +1,8 @@
+# PaddleOCR-VL vLLM 后端配置
+# 目标 GPU: RTX 5060 Ti 16GB
+gpu_memory_utilization: 0.85
+max_num_seqs: 4
+tensor_parallel_size: 1
+dtype: bfloat16
+trust_remote_code: true
+enforce_eager: false

@@ -1,18 +1,9 @@
 # EmbeddingTool 设计规范
 
-> Version: 1.0
->
+> Version: v1.0
 > Status: Production Ready
->
-> Applicable:
->
-> - AI Platform
-> - LangGraph
-> - RAG
-> - GraphRAG
-> - Knowledge Base
-> - Index Builder
-> - Search Service
+> Last Updated: 2026-07-27
+> Scope: LangGraph / RAG / GraphRAG / Knowledge Base / Index Builder
 
 ---
 

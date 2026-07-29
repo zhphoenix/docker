@@ -1,0 +1,151 @@
+# Architecture Specs - 分层架构可执行约束
+# 来源: AI-Platform-System-Design/16_开发规范.md（解释源）
+# 本文件为机器可执行约束（约束源），不独立创作，变更需同步设计文档
+#
+# level 定义:
+#   MUST     - 强制，违反即不合规
+#   MUST_NOT - 禁止，出现即不合规
+#   SHOULD   - 推荐，偏离需说明理由
+
+meta:
+  version: "1.0.0"
+  source_doc: "AI-Platform-System-Design/16_开发规范.md"
+  last_updated: "2026-07-27"
+  scope: "langgraph/agent/"
+
+# ============================================================
+# 分层架构约束 (§2.1 Layer 分离)
+# ============================================================
+layer_rules:
+
+  - id: ARCH-001
+    level: MUST_NOT
+    layer: api/
+    rule: "API 层不含业务逻辑"
+    check: "api/ 文件中不得出现 graph/node/tool 调用以外的业务处理逻辑"
+    source: "§2.1"
+
+  - id: ARCH-002
+    level: MUST_NOT
+    layer: graph/
+    rule: "Graph 层不访问数据库"
+    check: "graph/ 文件中不得出现 asyncpg/qdrant_client/minio/httpx 直连调用"
+    source: "§2.1"
+
+  - id: ARCH-003
+    level: MUST_NOT
+    layer: nodes/
+    rule: "Node 不直接访问基础设施"
+    check: "nodes/ 文件中不得 import asyncpg, qdrant_client, minio, httpx；必须通过 tools/ 访问"
+    source: "§2.1, §2.2"
+
+  - id: ARCH-004
+    level: MUST_NOT
+    layer: tools/
+    rule: "Tool 不含业务逻辑"
+    check: "tools/ 文件中不得包含分析、推理、决策类业务逻辑；只封装外部服务调用"
+    source: "§2.1, §2.3"
+
+# ============================================================
+# 依赖方向约束 (§5)
+# ============================================================
+dependency_rules:
+
+  - id: DEP-001
+    level: MUST
+    rule: "依赖方向单向：api → agents → graph → nodes → tools → config"
+    check: "import 语句只允许引用同层或下层模块"
+    source: "§5"
+
+  - id: DEP-002
+    level: MUST_NOT
+    rule: "禁止反向依赖"
+    check: "tools/ 不得 import nodes/; nodes/ 不得 import graph/; graph/ 不得 import agents/; agents/ 不得 import api/"
+    source: "§5"
+
+  - id: DEP-003
+    level: MUST
+    rule: "Node 通过 Tool 访问外部服务"
+    check: "nodes/ 中的外部服务调用必须经由 tools/ 模块的封装类"
+    source: "§2.2"
+
+# ============================================================
+# Prompt 管理约束 (§2.4)
+# ============================================================
+prompt_rules:
+
+  - id: PRM-001
+    level: MUST
+    rule: "所有 Prompt 存放于 prompts/ 目录"
+    check: "LLM system/user prompt 文本不得硬编码在 nodes/ 或 agents/ 的 .py 文件中"
+    source: "§2.4"
+
+  - id: PRM-002
+    level: MUST
+    rule: "Prompt 使用 .md 文件格式"
+    check: "prompts/ 目录下只允许 .md 文件作为 prompt 模板"
+    source: "§2.4"
+
+  - id: PRM-003
+    level: MUST
+    rule: "通过 Prompt Loader 统一加载"
+    check: "加载 prompt 必须调用 prompts.loader.load_prompt()，不得直接 open/read 文件"
+    source: "§2.4"
+
+  - id: PRM-004
+    level: MUST
+    rule: "每个 Agent 有独立的 system prompt"
+    check: "agents/ 中注册的每个 agent_name 在 prompts/{agent_name}/system.md 有对应文件"
+    source: "§2.4"
+
+# ============================================================
+# 命名约束 (§3)
+# ============================================================
+naming_rules:
+
+  - id: NAM-001
+    level: MUST
+    rule: "文件名使用 snake_case"
+    check: "所有 .py 文件名为小写字母+下划线，如 retrieve.py, base_agent.py"
+    source: "§3"
+
+  - id: NAM-002
+    level: MUST
+    rule: "类名使用 PascalCase"
+    check: "class 定义命名为大驼峰，如 QdrantTool, AgentState"
+    source: "§3"
+
+  - id: NAM-003
+    level: MUST
+    rule: "函数名使用 snake_case"
+    check: "def 定义为小写+下划线，如 search(), build_graph()"
+    source: "§3"
+
+  - id: NAM-004
+    level: MUST
+    rule: "常量使用 UPPER_SNAKE_CASE"
+    check: "模块级常量全大写+下划线，如 MAX_RETRY_COUNT, PROMPTS_DIR"
+    source: "§3"
+
+# ============================================================
+# 代码组织约束 (§4)
+# ============================================================
+organization_rules:
+
+  - id: ORG-001
+    level: MUST
+    rule: "每个文件单一职责"
+    check: "一个 .py 文件只定义一个主要类或一组紧密相关的函数"
+    source: "§4"
+
+  - id: ORG-002
+    level: MUST
+    rule: "类型定义放在 schemas/"
+    check: "Pydantic Model、TypedDict、dataclass 等数据结构定义在 schemas/ 目录"
+    source: "§4"
+
+  - id: ORG-003
+    level: SHOULD
+    rule: "公共工具函数放在 utils/"
+    check: "被 3 个以上模块引用的工具函数应提取到 utils/ 目录"
+    source: "§4"

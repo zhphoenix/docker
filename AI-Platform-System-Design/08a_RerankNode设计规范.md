@@ -1,16 +1,9 @@
 # RerankNode 设计规范
 
-> Version: 1.0
->
+> Version: v1.0
 > Status: Production Ready
->
-> Applicable:
->
-> - AI Platform
-> - LangGraph
-> - RAG
-> - GraphRAG
-> - Search Pipeline
+> Last Updated: 2026-07-27
+> Scope: LangGraph / RAG / GraphRAG / Search Pipeline
 
 ---
 
