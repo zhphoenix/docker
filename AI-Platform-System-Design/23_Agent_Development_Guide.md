@@ -165,7 +165,39 @@ async def retrieve(state: AgentState) -> dict:
 
 ---
 
-## 五、检查清单
+## 六、Skill 层说明
+
+Skill 是介于 Node 和 Tool 之间的**编排层**，负责聚合多个 Tool/Skill 的能力，实现业务逻辑。
+
+| 层级 | 职责 | 示例 |
+|------|------|------|
+| Tool | 纯 SDK 封装，不含业务逻辑 | `FinancialDataTool.get_cn_stock_quote()` |
+| Skill | 编排聚合，市场路由、数据格式转换 | `InvestmentResearchSkill.execute()` |
+| Node | 单一职责，只修改 State | `query_rewrite` Node |
+
+**新增 Skill 步骤**：
+
+1. 在 `skills/` 目录创建 Skill 文件，继承 `BaseSkill`
+2. 实现 `name`、`description`、`tags` 属性和 `execute()` 方法
+3. 在 `skills/__init__.py` 中注册导出
+
+```python
+# skills/investment_research.py
+class InvestmentResearchSkill(BaseSkill):
+    """投资研究高级数据收集 Skill（编排层）"""
+    
+    def __init__(self):
+        self._financial = financial_data_tool  # Tool: 纯 SDK 封装
+        self._rag = RAGSearchSkill()           # Skill: 带过滤的 RAG
+    
+    async def execute(self, **kwargs) -> dict:
+        # 市场路由、数据聚合等业务逻辑在此层实现
+        ...
+```
+
+---
+
+## 七、检查清单
 
 新增 Agent/Node/Tool 时，确认：
 
@@ -181,7 +213,7 @@ async def retrieve(state: AgentState) -> dict:
 
 ---
 
-## 六、目录结构参考
+## 八、目录结构参考
 
 ```text
 agent/
@@ -192,16 +224,33 @@ agent/
 │   └── investment_agent.py    # ← 新增
 ├── nodes/
 │   ├── planner.py
+│   ├── query_rewrite.py       # ← 新增：LLM 驱动查询改写
 │   ├── retrieve.py
 │   ├── analyze_financial.py   # ← 新增
 │   └── ...
 ├── tools/
 │   ├── llm.py
 │   ├── qdrant.py
+│   ├── financial_data.py      # ← 新增：AKShare/yfinance SDK 封装
 │   ├── search.py              # ← 新增
 │   └── ...
-└── prompts/
-    ├── planner.md
-    ├── investment.md           # ← 新增
-    └── ...
+├── skills/
+│   ├── base_skill.py          # Skill 基类
+│   ├── registry.py            # Skill 注册表
+│   ├── rag_search.py          # RAG 检索 Skill（含权威度/时效过滤）
+│   ├── investment_research.py # ← 新增：投资研究编排 Skill
+│   ├── web_article_summary.py
+│   └── master_analysis.py     # ← 新增：大师分析框架 Skill
+├── schemas/
+│   ├── state.py               # AgentState 定义
+│   ├── financial.py           # ← 新增：股价/汇率卡片、权威度枚举、时效过滤
+│   └── authority.py           # ← 新增：source_provider → 权威度映射
+├── prompts/
+│   ├── planner.md             # ← 已扩展：新增垂类参数、时间窗口等字段
+│   ├── query_rewrite.md       # ← 新增：查询改写 Prompt
+│   ├── earnings_call_analysis.md  # ← 新增：电话会议分析 Prompt
+│   ├── investment.md           # ← 新增
+│   └── ...
+└── config/
+    └── settings.py            # ← 已扩展：新增 FINANCIAL_DATA_TIMEOUT
 ```

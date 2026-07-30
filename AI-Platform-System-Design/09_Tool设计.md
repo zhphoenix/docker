@@ -19,6 +19,7 @@ Tool 只负责访问基础设施，不包含业务逻辑。
 | Docling | `tools/docling.py` | Docling | :5001 |
 | Obsidian | `tools/obsidian.py` | Obsidian Vault | MCP |
 | Filesystem | `tools/filesystem.py` | 本地文件系统 | - |
+| FinancialData | `tools/financial_data.py` | AKShare / yfinance SDK | - |
 | Search | `tools/search.py` | Web 搜索（预留） | - |
 
 ---
@@ -216,7 +217,51 @@ class DoclingTool:
             return response.json()
 ```
 
-### 3.8 Obsidian Tool
+### 3.8 FinancialData Tool
+
+**定位**：纯 SDK 封装，不包含业务逻辑。市场路由和数据聚合在 Skill 层处理。
+
+**依赖**：`akshare>=1.14.0`（A 股/港股）、`yfinance>=0.2.40`（美股）
+
+```python
+import asyncio
+from datetime import datetime, timezone
+
+class FinancialDataTool:
+    """金融数据基础设施 Tool -- 纯 SDK 封装"""
+    
+    def __init__(self):
+        self.timeout = settings.FINANCIAL_DATA_TIMEOUT  # 默认 30s
+    
+    async def get_cn_stock_quote(self, symbol: str) -> dict:
+        """调用 AKShare 获取 A 股实时行情
+        返回: {symbol, name, price, change, change_pct, volume, amount, source, updated_at}
+        SDK: akshare.stock_zh_a_spot_em()
+        """
+    
+    async def get_hk_stock_quote(self, symbol: str) -> dict:
+        """调用 AKShare 获取港股实时行情
+        SDK: akshare.stock_hk_spot_em()
+        """
+    
+    async def get_us_stock_quote(self, symbol: str) -> dict:
+        """调用 yfinance 获取美股实时行情
+        SDK: yfinance.Ticker(symbol).fast_info
+        """
+    
+    async def get_forex_rate(self, base: str, target: str) -> dict:
+        """调用 AKShare 获取汇率（数据源: 国家外汇管理局 safe）
+        返回: {base_currency, target_currency, rate, inverse_rate, source, updated_at}
+        SDK: akshare.currency_boc_safe()
+        """
+```
+
+**设计要点**：
+- 同步 SDK 用 `asyncio.to_thread()` 包装，避免阻塞事件循环
+- SDK import 失败时返回 `{"error": "..."}`，不抛异常
+- 每个方法返回原始 dict，不做市场路由/数据聚合（业务逻辑在 Skill 层）
+
+### 3.9 Obsidian Tool
 
 ```python
 import httpx

@@ -127,20 +127,30 @@ documents_{market}
 
 ### 5.2 Payload 标准
 
-每个 Point 的 Payload 包含以下 8 个字段：
+每个 Point 的 Payload 包含以下字段：
 
 ```json
 {
-    "document_id": "uuid",
-    "chunk_id": "uuid",
+    "symbol": "600519",
+    "year": 2025,
+    "market": "cn",
+    "chunk_index": 0,
     "content": "贵州茅台2025年营业收入...",
-    "page": 15,
-    "section": "财务摘要",
-    "title": "贵州茅台2025年报",
-    "tags": ["财报", "白酒"],
-    "language": "zh"
+    "document_type": "annual_report",
+    "source_provider": "cninfo",
+    "published_date": "2025-04-15"
 }
 ```
+
+字段说明：
+- `symbol`：股票代码
+- `year`：报告年份
+- `market`：市场代码（cn/hk/us）
+- `chunk_index`：Chunk 在文档中的序号
+- `content`：文本内容（截断至 2000 字符）
+- `document_type`：文档类型（annual_report / quarterly_report / announcement / news / research 等），支持按类型过滤
+- `source_provider`：数据源 ID（对应 providers.yaml 中的 id，如 cninfo、akshare、sec_edgar），用于权威度分级
+- `published_date`：文档发布日期（来自 documents.created_at，YYYY-MM-DD 格式），用于天级时效过滤
 
 文本内容（content）同时存入 Payload，检索后直接送 LLM，无需回查 PostgreSQL。
 
@@ -184,7 +194,7 @@ async def retrieve(query: str, market: str = "cn", limit: int = 10) -> list[dict
 
 ### 6.2 过滤条件
 
-支持按 market、symbol、year、document_type 过滤：
+支持按 market、symbol、year、document_type、source_provider 过滤：
 
 ```python
 from qdrant_client.models import Filter, FieldCondition, MatchValue
@@ -192,7 +202,9 @@ from qdrant_client.models import Filter, FieldCondition, MatchValue
 filter = Filter(must=[
     FieldCondition(key="market", match=MatchValue(value="cn")),
     FieldCondition(key="symbol", match=MatchValue(value="600519")),
-    FieldCondition(key="year", match=MatchValue(value=2025))
+    FieldCondition(key="year", match=MatchValue(value=2025)),
+    FieldCondition(key="document_type", match=MatchValue(value="annual_report")),
+    FieldCondition(key="source_provider", match=MatchValue(value="cninfo")),
 ])
 ```
 

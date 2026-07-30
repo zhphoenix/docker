@@ -149,3 +149,26 @@ organization_rules:
     rule: "公共工具函数放在 utils/"
     check: "被 3 个以上模块引用的工具函数应提取到 utils/ 目录"
     source: "§4"
+
+# ============================================================
+# 前端 UI 约束
+# ============================================================
+frontend_rules:
+
+  - id: FE-001
+    level: MUST
+    rule: "前端代码位于 frontend/ 目录"
+    check: "所有前端 UI 代码必须在 frontend/ 目录，使用 Vite + React 19 + TypeScript"
+    source: "25_UI设计规范"
+
+  - id: FE-002
+    level: MUST
+    rule: "前端仅通过 HTTP API 与后端通信"
+    check: "前端只允许调用 /v1 和 /health 端点，禁止直接访问数据库或基础设施服务"
+    source: "25_UI设计规范"
+
+  - id: FE-003
+    level: MUST
+    rule: "样式使用 Design Tokens"
+    check: "禁止硬编码颜色/间距值，必须使用 CSS 变量 + Tailwind 原子类"
+    source: "25_UI设计规范 §6-7"

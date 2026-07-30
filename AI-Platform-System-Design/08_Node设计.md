@@ -10,8 +10,9 @@
 
 | Node | 文件 | 职责 | 调用的 Tool |
 |------|------|------|------------|
-| Planner | `nodes/planner.py` | 理解问题，生成执行计划 | LLM |
-| Retrieve | `nodes/retrieve.py` | 语义检索 | Embedding, Qdrant |
+| Planner | `nodes/planner.py` | 理解问题，生成执行计划（含垂类参数） | LLM |
+| QueryRewrite | `nodes/query_rewrite.py` | LLM 驱动查询改写（自然语言 → 专业金融检索词） | LLM |
+| Retrieve | `nodes/retrieve.py` | 语义检索（支持权威度/时效/文档类型过滤） | Embedding, Qdrant |
 | Rerank | `nodes/rerank.py` | 对检索结果重排序 | Reranker |
 | Reason | `nodes/reason.py` | LLM 推理生成回答 | LLM |
 | Reflect | `nodes/reflect.py` | 检查答案质量 | LLM |
@@ -41,33 +42,82 @@ async def planner(state: AgentState) -> dict:
 {
     "plan": {
         "steps": ["检索年报", "分析财务数据", "行业对比"],
-        "tools": ["qdrant", "postgres"],
+        "tools": ["qdrant", "financial_data"],
         "market": "cn",
+        "symbol": "600519",
+        "year": 2025,
+        "document_type": "annual_report",
+        "time_range": {"start_date": "2025-01-01", "end_date": "2025-12-31"},
+        "vertical_params": {"indicator": "ROIC", "sector": "科技"},
+        "enable_rewrite": true
+    }
+}
+```
+
+### 3.2 QueryRewrite
+
+**职责**：将用户自然语言转化为专业金融检索词，提升检索质量。
+
+**流程位置**：Planner → **QueryRewrite** → Retrieve
+
+**设计合规**：Query 改写是业务逻辑（Prompt 编排 + LLM 调用 + 结果解析），属于 Node 层职责（参见 09_Tool设计.md）。
+
+```python
+async def query_rewrite(state: AgentState) -> dict:
+    """查询改写节点"""
+    # 1. 从 plan 检查是否启用改写（enable_rewrite）
+    # 2. 加载 query_rewrite prompt
+    # 3. 调用 LLM 将自然语言转化为专业检索词
+    # 4. 解析 JSON 输出，提取 rewritten_query / keywords / suggested_filters
+    # 5. 更新 plan["rewritten_query"]、plan["keywords"]
+    return {"plan": plan, "messages": [...]}
+```
+
+**输出**：
+```json
+{
+    "rewritten_query": "贵州茅台 2025 年报 ROIC 护城河分析",
+    "keywords": ["ROIC", "护城河", "年报"],
+    "suggested_filters": {
+        "time_range": {"start_date": "2025-01-01"},
+        "document_type": "annual_report",
         "symbol": "600519"
     }
 }
 ```
 
-### 3.2 Retrieve
+**容错机制**：LLM 调用失败时，回退到原始 query，不阻断流程。
 
-**职责**：调用 Embedding 将查询向量化，调用 Qdrant 检索。
+**Prompt**：`prompts/query_rewrite.md`
+
+### 3.3 Retrieve
+
+**职责**：调用 Embedding 将查询向量化，调用 Qdrant 检索。支持多维过滤和权威度标注。
 
 ```python
 async def retrieve(state: AgentState) -> dict:
     """语义检索"""
-    # 1. 从 plan 提取检索查询
+    # 1. 从 plan 提取改写后的查询（rewritten_query），回退到原始 question
     # 2. 调用 Embedding 服务向量化
-    # 3. 调用 Qdrant 检索 Top-K
-    # 4. 写入 state["documents"]
+    # 3. 构建多维过滤条件（symbol/year/document_type/published_date）
+    # 4. 调用 Qdrant 检索 Top-K
+    # 5. 为每个结果标注权威度（基于 source_provider 映射）
+    # 6. 写入 state["documents"]
     return {"documents": documents}
 ```
 
 **调用链**：
 ```
-Planner.plan → 提取查询 → Embedding(:8001) → Qdrant(:6333) → documents
+Planner.plan + QueryRewrite.rewritten_query → Embedding(:8001) → Qdrant(:6333) → documents（含 authority）
 ```
 
-### 3.3 Rerank
+**过滤条件**：
+- `symbol`：股票代码精确匹配
+- `year`：报告年份
+- `document_type`：文档类型（annual_report / quarterly_report / announcement）
+- `published_date`：天级时效过滤（Range 条件，YYYY-MM-DD 格式）
+
+### 3.4 Rerank
 
 **职责**：对 Retrieve 的结果进行重排序。
 
@@ -86,7 +136,7 @@ async def rerank(state: AgentState) -> dict:
 documents + question → Reranker(:8002) → 重排序后的 documents
 ```
 
-### 3.4 Reason
+### 3.5 Reason
 
 **职责**：LLM 根据检索结果推理生成回答。
 
@@ -100,7 +150,7 @@ async def reason(state: AgentState) -> dict:
     return {"answer": answer}
 ```
 
-### 3.5 Reflect
+### 3.6 Reflect
 
 **职责**：检查答案质量，决定是否需要重新检索。
 
@@ -131,11 +181,11 @@ async def reflect(state: AgentState) -> dict:
 - `retry_count >= 2` → Finish（强制结束）
 - `quality == "bad"` → Retrieve（补充检索）
 
-### 3.6 Writer
+### 3.7 Writer
 
 **职责**：格式化最终输出（可选，用于复杂报告生成）。
 
-### 3.7 Finish
+### 3.8 Finish
 
 **职责**：结束处理，清理 State，准备返回。
 
@@ -171,3 +221,4 @@ Tool（基础设施访问）
 - `retrieve` Node 调用 `embedding` Tool 和 `qdrant` Tool
 - `reason` Node 调用 `llm` Tool
 - `planner` Node 调用 `llm` Tool
+- `query_rewrite` Node 调用 `llm` Tool

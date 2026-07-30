@@ -13,3 +13,5 @@ minio>=7.2.0
 python-dotenv>=1.0.0
 pyyaml>=6.0
 apscheduler>=3.10.0
+akshare>=1.14.0
+yfinance>=0.2.40

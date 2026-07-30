@@ -4,9 +4,10 @@ import logging
 import re
 
 from schemas.state import AgentState
+from schemas.authority import get_authority_level
 from tools.embedding import embedding_tool
 from tools.qdrant import qdrant_tool
-from qdrant_client.models import Filter, FieldCondition, MatchValue
+from qdrant_client.models import Filter, FieldCondition, MatchValue, Range
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,9 @@ async def retrieve(state: AgentState) -> dict:
     question = state["question"]
     plan = state.get("plan", {})
 
+    # 使用改写后的 query（由 query_rewrite Node 生成），回退到原始 question
+    search_query = plan.get("rewritten_query", question)
+
     # 确定检索参数
     # 市场检测：关键词检测优先于 Planner 输出（Planner 常误判 hk→cn）
     detected_market = _detect_market(question)
@@ -35,15 +39,16 @@ async def retrieve(state: AgentState) -> dict:
     symbol = _normalize_symbol(plan.get("symbol"), market) if plan.get("symbol") else None
     year = plan.get("year")
     document_type = plan.get("document_type")
+    time_range_data = plan.get("time_range")
 
-    logger.info("Retrieve: searching for market=%s, symbol=%s", market, symbol)
+    logger.info("Retrieve: searching for market=%s, symbol=%s, query='%s'", market, symbol, search_query[:50])
 
-    # 1. Embedding 向量化
-    vectors = await embedding_tool.embed([question])
+    # 1. Embedding 向量化（使用改写后的 query）
+    vectors = await embedding_tool.embed([search_query])
     vector = vectors[0]
 
-    # 2. 构建过滤条件
-    query_filter = _build_filter(market, symbol, year, document_type)
+    # 2. 构建过滤条件（含时效过滤）
+    query_filter = _build_filter(market, symbol, year, document_type, time_range_data)
 
     # 3. Qdrant 检索
     collection = f"documents_{market}"
@@ -57,7 +62,7 @@ async def retrieve(state: AgentState) -> dict:
     # 4. 回退策略：如果带 filter 返回 0 结果，去掉 symbol filter 重试
     if not results and symbol:
         logger.info("Retrieve: 0 results with filters, retrying without symbol filter")
-        fallback_filter = _build_filter(market, None, year, document_type)
+        fallback_filter = _build_filter(market, None, year, document_type, time_range_data)
         results = await qdrant_tool.search(
             collection=collection,
             vector=vector,
@@ -75,7 +80,7 @@ async def retrieve(state: AgentState) -> dict:
             query_filter=None,
         )
 
-    # 4. 格式化文档
+    # 4. 格式化文档 + 权威度标注
     documents = [
         {
             "content": r["payload"].get("content", ""),
@@ -86,6 +91,9 @@ async def retrieve(state: AgentState) -> dict:
             "year": r["payload"].get("year"),
             "page_start": r["payload"].get("page_start"),
             "page_end": r["payload"].get("page_end"),
+            "authority": get_authority_level(
+                r["payload"].get("source_provider", "_default")
+            ),
         }
         for r in results
     ]
@@ -100,8 +108,17 @@ def _build_filter(
     symbol: str = None,
     year: int = None,
     document_type: str = None,
+    time_range: dict = None,
 ) -> Filter | None:
-    """构建 Qdrant 过滤条件"""
+    """构建 Qdrant 过滤条件
+
+    Args:
+        market: 市场代码
+        symbol: 股票代码
+        year: 年份
+        document_type: 文档类型
+        time_range: 时效过滤 {"start_date": "YYYY-MM-DD", "end_date": "YYYY-MM-DD"}
+    """
     conditions = []
 
     if symbol:
@@ -116,6 +133,19 @@ def _build_filter(
         conditions.append(
             FieldCondition(key="document_type", match=MatchValue(value=document_type))
         )
+
+    # 时效过滤：优先用 published_date（天级精度），回退到 year
+    if time_range:
+        start_date = time_range.get("start_date")
+        end_date = time_range.get("end_date")
+        if start_date:
+            conditions.append(
+                FieldCondition(key="published_date", range=Range(gte=str(start_date)))
+            )
+        if end_date:
+            conditions.append(
+                FieldCondition(key="published_date", range=Range(lte=str(end_date)))
+            )
 
     if not conditions:
         return None

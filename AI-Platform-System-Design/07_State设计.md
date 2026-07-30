@@ -51,8 +51,8 @@ class AgentState(TypedDict):
 |------|------|----------|------|
 | `messages` | `list[BaseMessage]` | 所有 Node | 消息历史，使用 `add_messages` 注解自动追加 |
 | `question` | `str` | API 层 | 用户原始问题 |
-| `plan` | `dict` | Planner | 执行计划，包含步骤、工具选择 |
-| `documents` | `list[dict]` | Retrieve / Rerank | 检索到的文档 Chunk |
+| `plan` | `dict` | Planner + QueryRewrite | 执行计划，包含步骤、工具选择、垂类参数、改写查询等（详见下方字段说明） |
+| `documents` | `list[dict]` | Retrieve / Rerank | 检索到的文档 Chunk，含权威度标注 |
 | `tool_results` | `dict` | 各 Tool Node | 工具调用结果缓存 |
 | `answer` | `str` | Reason / Writer | LLM 生成的回答 |
 | `reflect` | `dict` | Reflect | 反思结果：质量评分、是否需要重试 |
@@ -60,7 +60,71 @@ class AgentState(TypedDict):
 
 ---
 
-## 四、State 流转示例
+## 四、plan 字段详细说明
+
+Planner 和 QueryRewrite 节点共同填充 `plan` 字段：
+
+```json
+{
+    "steps": ["检索年报", "分析财务数据", "行业对比"],
+    "tools": ["qdrant", "financial_data"],
+    "market": "cn",
+    "symbol": "600519",
+    "year": 2025,
+    "document_type": "annual_report",
+    "time_range": {"start_date": "2025-01-01", "end_date": "2025-12-31"},
+    "vertical_params": {"indicator": "ROIC", "sector": "科技"},
+    "enable_rewrite": true,
+    "rewritten_query": "贵州茅台 2025 年报 ROIC 护城河分析",
+    "keywords": ["ROIC", "护城河", "年报"]
+}
+```
+
+| 字段 | 写入节点 | 说明 |
+|------|----------|------|
+| `steps` | Planner | 执行步骤列表 |
+| `tools` | Planner | 需要调用的工具列表 |
+| `market` | Planner | 市场代码（cn/hk/us） |
+| `symbol` | Planner | 股票代码 |
+| `year` | Planner | 目标年份 |
+| `document_type` | Planner | 文档类型（annual_report/quarterly_report/announcement） |
+| `time_range` | Planner/QueryRewrite | 时效过滤窗口（天级精度） |
+| `vertical_params` | Planner | 垂类参数（财务指标、行业等） |
+| `enable_rewrite` | Planner | 是否启用 Query 改写（默认 true） |
+| `rewritten_query` | QueryRewrite | LLM 改写后的专业检索词 |
+| `keywords` | QueryRewrite | 提取的关键词列表 |
+
+---
+
+## 五、documents 字段说明
+
+Retrieve 节点填充的每个 document 包含以下字段：
+
+```json
+{
+    "content": "贵州茅台2025年营业收入...",
+    "score": 0.95,
+    "source": "600519/2025",
+    "market": "cn",
+    "symbol": "600519",
+    "year": 2025,
+    "authority": "very_high"
+}
+```
+
+| 字段 | 说明 |
+|------|------|
+| `content` | 文档 Chunk 文本内容 |
+| `score` | 检索相似度分数 |
+| `source` | 来源标识（symbol/year） |
+| `market` | 市场代码 |
+| `symbol` | 股票代码 |
+| `year` | 报告年份 |
+| `authority` | 权威度级别（very_high/high/medium/low），基于 source_provider 映射 |
+
+---
+
+## 六、State 流转示例
 
 ```text
 初始 State:
@@ -75,12 +139,17 @@ class AgentState(TypedDict):
     "metadata": {}
 }
 
-↓ Planner
+↓ Planner + QueryRewrite
 
 {
     "plan": {
         "steps": ["检索年报", "分析财务", "行业对比"],
-        "tools": ["qdrant", "postgres"]
+        "tools": ["qdrant", "financial_data"],
+        "market": "cn",
+        "symbol": "600519",
+        "enable_rewrite": true,
+        "rewritten_query": "贵州茅台 2025 年报 ROIC 护城河分析",
+        "keywords": ["ROIC", "护城河"]
     }
 }
 
@@ -88,8 +157,8 @@ class AgentState(TypedDict):
 
 {
     "documents": [
-        {"content": "...", "score": 0.95, "source": "600519/2025/annual_report"},
-        {"content": "...", "score": 0.89, "source": "600519/2024/annual_report"}
+        {"content": "...", "score": 0.95, "source": "600519/2025", "authority": "very_high"},
+        {"content": "...", "score": 0.89, "source": "600519/2024", "authority": "very_high"}
     ]
 }
 
@@ -116,7 +185,7 @@ class AgentState(TypedDict):
 
 ---
 
-## 五、设计原则
+## 七、设计原则
 
 | 原则 | 说明 |
 |------|------|

@@ -156,7 +156,10 @@ async def main():
         fetch_limit = min(FETCH_SIZE, total_remaining - processed)
         rows = await pool.fetch("""
             SELECT c.id AS chunk_id, c.content, c.chunk_index,
-                   d.symbol, d.year, d.market
+                   d.symbol, d.year, d.market,
+                   d.document_type,
+                   COALESCE(d.metadata->>'source', '') AS source_provider,
+                   d.created_at::date AS published_date
             FROM chunks c
             JOIN documents d ON c.document_id = d.id
             WHERE d.market = $1 AND c.qdrant_point_id IS NULL
@@ -185,6 +188,9 @@ async def main():
                 "symbol": r["symbol"],
                 "year": r["year"],
                 "market": r["market"],
+                "document_type": r["document_type"],
+                "source_provider": r["source_provider"],
+                "published_date": str(r["published_date"]) if r["published_date"] else "",
             })
 
         # 标记跳过的 chunks（避免反复拉取）
@@ -236,6 +242,9 @@ async def main():
                             "market": item["market"],
                             "chunk_index": item["chunk_index"],
                             "content": item["content"][:2000],
+                            "document_type": item["document_type"],
+                            "source_provider": item["source_provider"],
+                            "published_date": item["published_date"],
                         },
                     ))
 

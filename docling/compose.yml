@@ -10,6 +10,7 @@ services:
       UVICORN_WORKERS: "4"
       DOCLING_SERVE_MAX_SYNC_WAIT: "1800"
       DOCLING_SERVE_ENG_LOC_NUM_WORKERS: "4"
+      DOCLING_SERVE_ARTIFACTS_PATH: ""
     volumes:
       - docling-models:/opt/app-root/src/.cache/docling/models
     networks:

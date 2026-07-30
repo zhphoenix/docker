@@ -1,6 +1,6 @@
 # AI Platform System Design
 
-本项目为完全离线、本地部署的 AI 投研平台，采用 FastAPI + LangGraph + Open WebUI 架构。
+本项目为完全离线、本地部署的 AI 投研平台，采用 FastAPI + LangGraph + Custom UI (React) 架构。
 
 核心能力链路：`文档解析 → 向量化 → RAG 检索 → Agent 推理 → 知识沉淀`
 
@@ -63,7 +63,7 @@
 
 | 编号 | 文档 | 说明 |
 |------|------|------|
-| 25 | [UI设计规范](25_UI设计规范.md) | AI Platform UI Design System（Mac 风格） |
+| 25 | [UI设计规范](25_UI设计规范.md) | AI Platform UI Design System（Mac 风格）+ 实现状态 |
 | 26 | [Crawl4AI集成设计规范](26_Crawl4AI集成设计规范.md) | Web Ingestion Layer 完整规范 |
 | 27 | [数据访问层设计规范](27_数据访问层设计规范.md) | 统一数据访问层（DAL） |
 | 28 | [图工程架构设计规范](28_图工程架构设计规范.md) | Graph Engineering 架构演进方向 |

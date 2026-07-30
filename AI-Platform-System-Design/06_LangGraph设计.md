@@ -24,16 +24,19 @@ LangGraph 是系统的**操作系统（Workflow Engine）**，不是 AI，不负
 
 ## 三、Graph 结构
 
-### 3.1 基础 Workflow
+### 3.1 基础 Workflow（Research Agent）
 
 ```text
 START
   │
   ▼
-Planner        → 理解问题，生成执行计划
+Planner        → 理解问题，生成执行计划（含垂类参数、时间窗口、文档类型）
   │
   ▼
-Retrieve       → Embedding + Qdrant 语义检索
+QueryRewrite   → LLM 驱动查询改写（自然语言 → 专业金融检索词 + 垂类参数）
+  │
+  ▼
+Retrieve       → Embedding + Qdrant 语义检索（支持权威度/时效/文档类型过滤）
   │
   ▼
 Rerank         → Reranker 对 Top-K 重排序
@@ -52,6 +55,8 @@ Finish         → 输出最终结果
   ▼
 END
 ```
+
+> **注意**：`QueryRewrite` 节点仅在 Research Agent 中启用，Chat Agent 和 Knowledge Agent 不包含此节点。
 
 ### 3.2 条件路由
 
@@ -73,18 +78,21 @@ def should_continue(state: AgentState) -> str:
 ```python
 from langgraph.graph import StateGraph, START, END
 from graph.state import AgentState
-from nodes.planner import planner_node
+from nodes.planner import planner
+from nodes.query_rewrite import query_rewrite
 from nodes.retrieve import retrieve
 from nodes.rerank import rerank
 from nodes.reason import reason
 from nodes.reflect import reflect
 from nodes.finish import finish
 
-def build_graph() -> StateGraph:
+def build_research_graph() -> StateGraph:
+    """Research Agent: Planner → QueryRewrite → Retrieve → Rerank → Reason → Reflect → Finish"""
     graph = StateGraph(AgentState)
     
     # 添加节点
     graph.add_node("planner", planner)
+    graph.add_node("query_rewrite", query_rewrite)
     graph.add_node("retrieve", retrieve)
     graph.add_node("rerank", rerank)
     graph.add_node("reason", reason)
@@ -93,7 +101,8 @@ def build_graph() -> StateGraph:
     
     # 添加边
     graph.add_edge(START, "planner")
-    graph.add_edge("planner", "retrieve")
+    graph.add_edge("planner", "query_rewrite")
+    graph.add_edge("query_rewrite", "retrieve")
     graph.add_edge("retrieve", "rerank")
     graph.add_edge("rerank", "reason")
     graph.add_edge("reason", "reflect")
@@ -130,9 +139,9 @@ def build_graph() -> StateGraph:
 | Agent | 用途 | Graph 复杂度 |
 |-------|------|-------------|
 | Chat Agent | 简单问答 + RAG | 简单（Retrieve → Reason → Finish） |
-| Research Agent | 研究分析（年报、行业） | 完整 Workflow |
+| Research Agent | 研究分析（年报、行业） | 完整 Workflow（含 QueryRewrite） |
 | Knowledge Agent | 知识管理（Obsidian 双向读写 + Vault 索引维护） | 中等（Retrieve → Reason → Write Vault → Finish） |
-| Investment Agent | 投研分析（DCF、竞争分析） | 完整 + 多工具 |
+| Investment Agent | 投研分析（DCF、竞争分析、实时行情、权威度过滤） | 完整 + 多工具 + Skill 编排 |
 
 ---
 

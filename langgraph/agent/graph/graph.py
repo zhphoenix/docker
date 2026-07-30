@@ -12,6 +12,7 @@ from nodes.reason import reason
 from nodes.reflect import reflect
 from nodes.finish import finish
 from nodes.knowledge import knowledge
+from nodes.query_rewrite import query_rewrite
 
 logger = logging.getLogger(__name__)
 
@@ -41,15 +42,16 @@ def should_continue(state: AgentState) -> str:
 def build_research_graph() -> StateGraph:
     """构建 Research Agent 的完整 Workflow
 
-    Planner → Retrieve → Rerank → Reason → Reflect
-                                        ↓
-                              (bad) → Retrieve (retry)
-                              (good) → Finish → END
+    Planner → QueryRewrite → Retrieve → Rerank → Reason → Reflect
+                                                          ↓
+                                                (bad) → Retrieve (retry)
+                                                (good) → Finish → END
     """
     graph = StateGraph(AgentState)
 
     # 添加节点
     graph.add_node("planner", planner)
+    graph.add_node("query_rewrite", query_rewrite)
     graph.add_node("retrieve", retrieve)
     graph.add_node("rerank", rerank)
     graph.add_node("reason", reason)
@@ -58,7 +60,8 @@ def build_research_graph() -> StateGraph:
 
     # 添加边
     graph.add_edge(START, "planner")
-    graph.add_edge("planner", "retrieve")
+    graph.add_edge("planner", "query_rewrite")
+    graph.add_edge("query_rewrite", "retrieve")
     graph.add_edge("retrieve", "rerank")
     graph.add_edge("rerank", "reason")
     graph.add_edge("reason", "reflect")

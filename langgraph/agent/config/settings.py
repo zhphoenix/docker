@@ -63,6 +63,9 @@ class Settings(BaseSettings):
     # LangGraph
     LANGGRAPH_PORT: int = 8100
 
+    # Financial Data (AKShare / yfinance)
+    FINANCIAL_DATA_TIMEOUT: float = 30.0
+
     # Checkpoint
     CHECKPOINT_CONNSTRING: str = (
         "postgresql+asyncpg://postgres:postgres@postgres:5432/langgraph"
