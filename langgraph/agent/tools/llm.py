@@ -1,12 +1,16 @@
-"""LLM Tool - 封装 llama.cpp LLM 服务调用"""
+"""LLM Tool - 封装 llama.cpp LLM 服务调用
 
-import json
+性能优化：添加指数退避重试，防止单次超时导致整个提取失败。
+"""
+
+import asyncio
 import logging
 from typing import AsyncGenerator
 
 import httpx
 
 from config.settings import settings
+from config.policy_loader import get_policy
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +35,7 @@ class LLMTool:
         return self._client
 
     async def chat(self, messages: list[dict], **kwargs) -> dict:
-        """非流式聊天补全
+        """非流式聊天补全（带指数退避重试）
 
         Args:
             messages: [{"role": "user", "content": "..."}]
@@ -40,6 +44,42 @@ class LLMTool:
         Returns:
             完整响应 dict（含 choices 和 usage）
         """
+        max_retries = get_policy("retry.max_retries", 3)
+        initial_delay = get_policy("retry.initial_delay_seconds", 1)
+        max_delay = get_policy("retry.max_delay_seconds", 30)
+
+        last_exc: Exception | None = None
+
+        for attempt in range(max_retries + 1):
+            try:
+                return await self._do_chat(messages, **kwargs)
+            except httpx.HTTPStatusError as e:
+                # 4xx 客户端错误（除 429 限流外）不可恢复，直接抛出
+                if 400 <= e.response.status_code < 500 and e.response.status_code != 429:
+                    logger.error("LLM client error %d: %s", e.response.status_code, e.response.text[:200])
+                    raise
+                last_exc = e
+            except (httpx.ReadTimeout, httpx.ConnectError) as e:
+                last_exc = e
+
+            if attempt == max_retries:
+                logger.error(
+                    "LLM chat failed after %d attempts: %s",
+                    max_retries + 1, last_exc,
+                )
+                raise last_exc  # type: ignore[misc]
+
+            delay = min(initial_delay * (2 ** attempt), max_delay)
+            logger.warning(
+                "LLM chat attempt %d/%d failed (%s), retrying in %.1fs",
+                attempt + 1, max_retries + 1, type(last_exc).__name__, delay,
+            )
+            await asyncio.sleep(delay)
+
+        raise last_exc  # type: ignore[misc]
+
+    async def _do_chat(self, messages: list[dict], **kwargs) -> dict:
+        """执行单次 LLM 请求"""
         payload = {
             "model": self.model,
             "messages": messages,
@@ -47,20 +87,13 @@ class LLMTool:
             **kwargs,
         }
 
-        try:
-            client = self._get_client()
-            response = await client.post(
-                f"{self.base_url}/chat/completions",
-                json=payload,
-            )
-            response.raise_for_status()
-            return response.json()
-        except httpx.ConnectError:
-            logger.error("LLM service unavailable at %s", self.base_url)
-            raise
-        except httpx.HTTPStatusError as e:
-            logger.error("LLM service error: %s", e.response.text)
-            raise
+        client = self._get_client()
+        response = await client.post(
+            f"{self.base_url}/chat/completions",
+            json=payload,
+        )
+        response.raise_for_status()
+        return response.json()
 
     async def stream_chat(self, messages: list[dict], **kwargs) -> AsyncGenerator[str, None]:
         """流式聊天补全

@@ -23,11 +23,11 @@ async def relation_extractor(state: dict) -> dict:
     """
     entities = state.get("entities", [])
     chunks = state.get("chunks", [])
-    errors = list(state.get("errors", []))
+    new_errors: list[str] = []
 
     if not entities or not chunks:
-        errors.append("RelationExtractor: missing entities or chunks")
-        return {"relations": [], "errors": errors}
+        new_errors.append("RelationExtractor: missing entities or chunks")
+        return {"relations": [], "errors": new_errors}
 
     max_concurrent = get_policy("knowledge.extraction.max_concurrent_llm", 4)
     chunk_max_chars = get_policy("knowledge.extraction.chunk_max_chars", 3000)
@@ -76,7 +76,7 @@ async def relation_extractor(state: dict) -> dict:
 
     for r in results:
         if isinstance(r, Exception):
-            errors.append(f"RelationExtractor: chunk error: {r}")
+            new_errors.append(f"RelationExtractor: chunk error: {r}")
             continue
         for rel in r:
             key = (
@@ -89,7 +89,7 @@ async def relation_extractor(state: dict) -> dict:
                 all_relations.append(rel)
 
     logger.info("RelationExtractor: %d relations from %d chunks", len(all_relations), len(chunks))
-    return {"relations": all_relations, "errors": errors}
+    return {"relations": all_relations, "errors": new_errors}
 
 
 def _parse_relations(text: str, valid_names: set[str]) -> list[dict]:

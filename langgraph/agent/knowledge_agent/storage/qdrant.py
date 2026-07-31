@@ -154,6 +154,24 @@ class KnowledgeQdrantStorage:
             limit=limit,
         )
 
+    async def search_entities_by_vector(
+        self, vector: list[float], limit: int = 3
+    ) -> list[dict]:
+        """向量直接检索实体（跳过 embed 步骤，用于 Validator 消歧）
+
+        Args:
+            vector: 已计算的查询向量
+            limit: 返回数量
+
+        Returns:
+            [{"id", "score", "payload": {"name", "entity_type", ...}}]
+        """
+        return await qdrant_tool.search(
+            collection=COLLECTION_ENTITIES,
+            vector=vector,
+            limit=limit,
+        )
+
     async def search_facts(
         self, query: str, entity_ids: list[str] | None = None, limit: int = 10
     ) -> list[dict]:

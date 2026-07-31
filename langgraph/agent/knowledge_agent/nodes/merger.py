@@ -27,21 +27,28 @@ async def knowledge_merger(state: dict) -> dict:
     facts = state.get("facts", [])
     evidence = state.get("evidence", [])
     document_id = state.get("document_id", "")
-    errors = list(state.get("errors", []))
+    new_errors: list[str] = []
 
     if not entities:
-        errors.append("Merger: no entities to store")
-        return {"stored_entity_ids": [], "stored_fact_ids": [], "errors": errors}
+        new_errors.append("Merger: no entities to store")
+        return {"stored_entity_ids": [], "stored_fact_ids": [], "errors": new_errors}
 
     # ── 1. 准备实体数据 ──
-    # 生成 embedding 用于存储
+    # 复用 Validator 已计算的 embeddings（避免重复 embed）
     entity_texts = [f"{e['name']}: {e.get('description', '')}" for e in entities]
-    try:
-        embeddings = await embedding_tool.embed(entity_texts)
-    except Exception as e:
-        logger.warning("Merger: embedding failed: %s", e)
-        embeddings = [[] for _ in entities]
-        errors.append(f"Merger: embedding failed: {e}")
+    cached_embeddings = state.get("entity_embeddings", [])
+
+    if cached_embeddings and len(cached_embeddings) == len(entities):
+        embeddings = cached_embeddings
+        logger.debug("Merger: reusing %d embeddings from Validator", len(embeddings))
+    else:
+        # Fallback: 重新计算（兼容无 Validator 路径）
+        try:
+            embeddings = await embedding_tool.embed(entity_texts)
+        except Exception as e:
+            logger.warning("Merger: embedding failed: %s", e)
+            embeddings = [[] for _ in entities]
+            new_errors.append(f"Merger: embedding failed: {e}")
 
     # 分离新实体和待合并实体
     new_entities: list[dict] = []
@@ -138,7 +145,7 @@ async def knowledge_merger(state: dict) -> dict:
         await knowledge_qdrant.index_entities(all_entity_records)
     except Exception as e:
         logger.warning("Merger: Qdrant entity indexing failed: %s", e)
-        errors.append(f"Merger: Qdrant entity indexing failed: {e}")
+        new_errors.append(f"Merger: Qdrant entity indexing failed: {e}")
 
     # 事实向量索引
     if stored_fact_ids and facts:
@@ -157,7 +164,7 @@ async def knowledge_merger(state: dict) -> dict:
             await knowledge_qdrant.index_facts(fact_index_data)
         except Exception as e:
             logger.warning("Merger: Qdrant fact indexing failed: %s", e)
-            errors.append(f"Merger: Qdrant fact indexing failed: {e}")
+            new_errors.append(f"Merger: Qdrant fact indexing failed: {e}")
 
     logger.info(
         "Merger: stored %d entities, %d relations, %d facts | doc=%s",
@@ -168,5 +175,5 @@ async def knowledge_merger(state: dict) -> dict:
     return {
         "stored_entity_ids": stored_entity_ids,
         "stored_fact_ids": stored_fact_ids,
-        "errors": errors,
+        "errors": new_errors,
     }

@@ -109,6 +109,46 @@ async def list_entities(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/entities/{entity_id}")
+async def get_entity_detail(entity_id: str):
+    """实体详情（含 aliases、properties）"""
+    try:
+        import uuid as _uuid
+        rows = await postgres_tool.query(
+            """
+            SELECT id, name, entity_type, description, canonical_name,
+                   confidence, source_count, aliases, properties,
+                   status, created_at, updated_at
+            FROM core.entities
+            WHERE id = $1 AND status = 'active'
+            """,
+            _uuid.UUID(entity_id),
+        )
+        if not rows:
+            raise HTTPException(status_code=404, detail="Entity not found")
+        e = rows[0]
+        return {
+            "id": str(e["id"]),
+            "name": e["name"],
+            "entity_type": e["entity_type"],
+            "description": e.get("description"),
+            "canonical_name": e.get("canonical_name"),
+            "confidence": e.get("confidence"),
+            "source_count": e.get("source_count", 0),
+            "aliases": e.get("aliases") or [],
+            "properties": e.get("properties") or {},
+            "created_at": str(e["created_at"]) if e.get("created_at") else None,
+            "updated_at": str(e["updated_at"]) if e.get("updated_at") else None,
+        }
+    except HTTPException:
+        raise
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid entity ID format")
+    except Exception as e:
+        logger.exception("Failed to get entity detail")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/entities/{entity_id}/neighbors")
 async def get_entity_neighbors(
     entity_id: str,

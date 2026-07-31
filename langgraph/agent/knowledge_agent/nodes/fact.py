@@ -22,11 +22,11 @@ async def fact_extractor(state: dict) -> dict:
     """
     entities = state.get("entities", [])
     chunks = state.get("chunks", [])
-    errors = list(state.get("errors", []))
+    new_errors: list[str] = []
 
     if not chunks:
-        errors.append("FactExtractor: no chunks to process")
-        return {"facts": [], "evidence": [], "errors": errors}
+        new_errors.append("FactExtractor: no chunks to process")
+        return {"facts": [], "evidence": [], "errors": new_errors}
 
     max_concurrent = get_policy("knowledge.extraction.max_concurrent_llm", 4)
     chunk_max_chars = get_policy("knowledge.extraction.chunk_max_chars", 3000)
@@ -75,7 +75,7 @@ async def fact_extractor(state: dict) -> dict:
 
     for r in results:
         if isinstance(r, Exception):
-            errors.append(f"FactExtractor: chunk error: {r}")
+            new_errors.append(f"FactExtractor: chunk error: {r}")
             continue
         for item in r:
             fact = item.get("fact", {})
@@ -94,7 +94,7 @@ async def fact_extractor(state: dict) -> dict:
                     all_evidence.append(evidence)
 
     logger.info("FactExtractor: %d facts from %d chunks", len(all_facts), len(chunks))
-    return {"facts": all_facts, "evidence": all_evidence, "errors": errors}
+    return {"facts": all_facts, "evidence": all_evidence, "errors": new_errors}
 
 
 def _parse_facts(text: str, valid_names: set[str], chunk: dict) -> list[dict]:

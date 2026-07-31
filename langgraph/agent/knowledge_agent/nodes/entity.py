@@ -22,11 +22,11 @@ async def entity_extractor(state: dict) -> dict:
     使用 Semaphore 限制并发（尊重 LLM rate limit）。
     """
     chunks = state.get("chunks", [])
-    errors = list(state.get("errors", []))
+    new_errors: list[str] = []
 
     if not chunks:
-        errors.append("EntityExtractor: no chunks to process")
-        return {"entities": [], "errors": errors}
+        new_errors.append("EntityExtractor: no chunks to process")
+        return {"entities": [], "errors": new_errors}
 
     max_concurrent = get_policy("knowledge.extraction.max_concurrent_llm", 4)
     chunk_max_chars = get_policy("knowledge.extraction.chunk_max_chars", 3000)
@@ -64,7 +64,7 @@ async def entity_extractor(state: dict) -> dict:
 
     for r in results:
         if isinstance(r, Exception):
-            errors.append(f"EntityExtractor: chunk error: {r}")
+            new_errors.append(f"EntityExtractor: chunk error: {r}")
             continue
         for e in r:
             key = (e.get("name", "").lower().strip(), e.get("entity_type", ""))
@@ -73,7 +73,7 @@ async def entity_extractor(state: dict) -> dict:
                 all_entities.append(e)
 
     logger.info("EntityExtractor: %d entities from %d chunks", len(all_entities), len(chunks))
-    return {"entities": all_entities, "errors": errors}
+    return {"entities": all_entities, "errors": new_errors}
 
 
 def _parse_entities(text: str) -> list[dict]:

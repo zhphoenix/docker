@@ -19,11 +19,11 @@ async def document_parser(state: dict) -> dict:
     大文档保护：超过 max_chunks_per_document 时截断。
     """
     raw_text = state.get("raw_text", "")
-    errors = list(state.get("errors", []))
+    new_errors: list[str] = []
 
     if not raw_text or not raw_text.strip():
-        errors.append("Parser: raw_text is empty")
-        return {"chunks": [], "errors": errors}
+        new_errors.append("Parser: raw_text is empty")
+        return {"chunks": [], "errors": new_errors}
 
     # 分片
     chunks = chunk_markdown(raw_text)
@@ -36,11 +36,11 @@ async def document_parser(state: dict) -> dict:
             state.get("document_id", "?")[:8], len(chunks), max_chunks,
         )
         chunks = chunks[:max_chunks]
-        errors.append(f"Parser: truncated from {len(chunks)} to {max_chunks} chunks")
+        new_errors.append(f"Parser: truncated from {len(chunks)} to {max_chunks} chunks")
 
     logger.info(
         "Parser: %d chars → %d chunks | doc=%s",
         len(raw_text), len(chunks), state.get("document_id", "?")[:8],
     )
 
-    return {"chunks": chunks}
+    return {"chunks": chunks, "errors": new_errors}

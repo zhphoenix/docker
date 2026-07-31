@@ -3,7 +3,8 @@
 注意：不含 messages 字段（非对话型 Agent，是处理流水线）。
 """
 
-from typing import TypedDict
+from typing import Annotated, TypedDict
+import operator
 
 
 class KnowledgeState(TypedDict):
@@ -31,9 +32,12 @@ class KnowledgeState(TypedDict):
     conflicts: list[dict]
     confidence_score: float
 
+    # ── 性能优化：Embedding 缓存（Validator 计算，Merger 复用） ──
+    entity_embeddings: list[list[float]]
+
     # ── 存储追踪 ──
     stored_entity_ids: list[str]
     stored_fact_ids: list[str]
 
-    # ── 控制 ──
-    errors: list[str]
+    # ── 控制（并行安全：fan-out 分支的错误自动累加，不覆盖） ──
+    errors: Annotated[list[str], operator.add]

@@ -301,6 +301,48 @@ class KnowledgePostgresStorage:
             name, limit,
         )
 
+    async def find_entities_by_names(self, names: list[str]) -> list[dict]:
+        """批量名称查找（替代 N 次 find_entity_by_name）
+
+        单次查询完成所有名称的精确匹配。
+
+        Returns:
+            [{"id", "name", "entity_type", "canonical_name"}]
+        """
+        if not names:
+            return []
+        return await postgres_tool.query(
+            """
+            SELECT id, name, entity_type, canonical_name
+            FROM core.entities
+            WHERE (name = ANY($1) OR canonical_name = ANY($1))
+              AND status = 'active'
+            """,
+            names,
+        )
+
+    async def get_facts_by_subjects(self, subject_ids: list[str], limit_per: int = 20) -> list[dict]:
+        """批量获取多实体的事实（替代 N 次 get_facts_by_subject）
+
+        Returns:
+            [{"id", "subject_entity", "predicate", "object_value", "confidence"}]
+        """
+        if not subject_ids:
+            return []
+        total_limit = limit_per * len(subject_ids)
+        # 显式转换 UUID 类型，避免 asyncpg 类型不匹配
+        uuids = [uuid.UUID(sid) for sid in subject_ids]
+        return await postgres_tool.query(
+            """
+            SELECT id, subject_entity, predicate, object_value, confidence
+            FROM core.facts
+            WHERE subject_entity = ANY($1)
+            ORDER BY time_start DESC NULLS LAST
+            LIMIT $2
+            """,
+            uuids, total_limit,
+        )
+
     async def get_entity_neighbors(self, entity_id: str, depth: int = 2) -> list[dict]:
         """递归图遍历（CTE）
 
