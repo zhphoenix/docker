@@ -6,7 +6,7 @@ services:
     ports:
       - "3000:8080"
     environment:
-      OPENAI_API_BASE_URL: http://host.docker.internal:8080/v1
+      OPENAI_API_BASE_URL: http://sisyphus:8080/v1
       OPENAI_API_KEY: dummy
     volumes:
       - open-webui:/app/backend/data

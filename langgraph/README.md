@@ -152,7 +152,7 @@ START → Planner → Retrieve → Rerank → Reason → Reflect
 | Qdrant | qdrant | 6333 | 向量检索 | ✅ |
 | PostgreSQL | postgres | 5432 | Checkpoint + 业务数据 | ✅ |
 | Docling | docling | 5001 | 文档解析 | ❌ |
-| Obsidian | host:27124 | 27124 | 知识库读写 | ❌ |
+| Obsidian | obsidian | 27124 | 知识库读写 | ❌ |
 | MinIO | minio | 9000 | 对象存储 | ❌ |
 
 所有服务通过 Docker 网络 `ai-platform` 互联。
@@ -228,18 +228,26 @@ curl http://localhost:8100/health
 
 ## 六、配置管理
 
-所有配置通过 `/mnt/e/docker/.env` 管理，关键变量：
+所有服务间通信通过 **Docker 内部网络（容器名直连）**，不经过宿主机。
 
-| 变量 | 说明 | 示例 |
-|------|------|------|
-| `OPENAI_BASE_URL` | LLM 服务地址 | `http://sisyphus:8080/v1` |
-| `OPENAI_API_KEY` | API Key（可为空） | `not-needed` |
-| `MODEL_NAME` | 模型名 | `qwen3` |
-| `EMBEDDING_URL` | Embedding 服务 | `http://embedding:8080/v1` |
-| `RERANKER_URL` | Reranker 服务 | `http://reranker:8080/v1` |
-| `QDRANT_HOST` | Qdrant 地址 | `qdrant` |
-| `OBSIDIAN_URL` | Obsidian API | `https://host.docker.internal:27124` |
-| `OBSIDIAN_API_KEY` | Obsidian API Key | `Bearer xxx` 或纯 key |
+`compose.yml` 中的 `environment` 会覆盖 `.env` 中的同名变量，确保容器内使用正确的服务地址：
+
+| 变量 | 容器名直连地址 | 说明 |
+|------|---------------|------|
+| `OPENAI_BASE_URL` | `http://sisyphus:8080/v1` | LLM 推理服务 |
+| `LLM_BASE_URL` | `http://sisyphus:8080/v1/chat/completions` | LLM 补全端点 |
+| `EMBEDDING_URL` | `http://embedding:8080/v1` | 文本向量化 |
+| `RERANKER_URL` | `http://reranker:8080/v1` | 检索重排序 |
+| `DOCLING_URL` | `http://docling:5001` | 文档解析 |
+| `CRAWL4AI_URL` | `http://crawl4ai:11235` | 网页抓取 |
+| `OBSIDIAN_URL` | `https://obsidian:27124` | 知识库读写 |
+| `POSTGRES_HOST` / `PG_HOST` | `postgres` | PostgreSQL |
+| `QDRANT_HOST` | `qdrant` | 向量数据库 |
+| `MINIO_ENDPOINT` | `minio:9000` | 对象存储 |
+| `OPENAI_API_KEY` | `sk-placeholder` | API Key（占位） |
+| `MODEL_NAME` | `qwen3` | 默认模型名 |
+
+> **注意**：`.env` 中的 `localhost` 地址仅供宿主机调试使用，容器化部署时由 `compose.yml` 的 `environment` 覆盖为容器名。
 
 ---
 
@@ -247,7 +255,7 @@ curl http://localhost:8100/health
 
 ```bash
 # 构建并启动
-cd /mnt/e/docker/langgraph
+cd /mnt/e/ai-platform/langgraph
 docker compose up -d --build
 
 # 查看日志
@@ -271,20 +279,3 @@ docker compose down
 | 真实流式 | LLM stream 直接透传，非假流式 |
 | Token 用量 | 从 LLM 响应提取并透传到 API 响应 |
 | 优雅关闭 | 生命周期管理，shutdown 时关闭所有连接池 |
-
-
-
-
-
-1. **项目概述** - 基于 LangGraph 的多 Agent 投研平台
-2. **项目结构** - 完整的目录树 + 每个文件的职责说明
-3. **调用逻辑** - 从请求到响应的完整生命周期：
-   - `POST /v1/chat/completions` → `dispatch_agent()` 路由
-   - **Chat Graph**: `Retrieve → Rerank → Reason → Finish`
-   - **Research Graph**: `Planner → Retrieve → Rerank → Reason → Reflect → (retry/finish)`
-   - **流式模式**: 手动执行前置节点后直接透传 LLM SSE
-4. **下游服务依赖** - 7 个服务（LLM/Embedding/Reranker/Qdrant/PostgreSQL/Docling/Obsidian）
-5. **API 使用** - curl 示例（流式/非流式/健康检查）
-6. **配置管理** - 所有环境变量说明
-7. **运维命令** - 构建/日志/停止
-8. **性能特性** - httpx 连接池、Qdrant 异步化、真实流式、Token 用量

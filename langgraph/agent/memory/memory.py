@@ -15,8 +15,6 @@
 
 import json
 import logging
-import time
-from typing import Any, Optional
 
 from tools.postgres import postgres_tool
 

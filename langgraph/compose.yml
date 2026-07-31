@@ -19,6 +19,13 @@ services:
       QDRANT_PORT: "6333"
       MINIO_ENDPOINT: minio:9000
       OPENAI_BASE_URL: http://sisyphus:8080/v1
+      EMBEDDING_URL: http://embedding:8080/v1
+      RERANKER_URL: http://reranker:8080/v1
+      DOCLING_URL: http://docling:5001
+      CRAWL4AI_URL: http://crawl4ai:11235
+      LLM_BASE_URL: http://sisyphus:8080/v1/chat/completions
+      OBSIDIAN_URL: https://obsidian:27124
+      PG_HOST: postgres
       VAULT_ROOT: /vault
       REPORT_SOURCE_DIR: /data/analysis_reports
     volumes:

@@ -7,7 +7,6 @@ import logging
 import uuid
 
 from tools.embedding import embedding_tool
-from config.policy_loader import get_policy
 from knowledge_agent.storage.postgres import knowledge_storage
 from knowledge_agent.storage.qdrant import knowledge_qdrant
 

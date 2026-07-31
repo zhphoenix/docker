@@ -3,7 +3,6 @@
 import logging
 
 from graph.graph import build_research_graph, build_chat_graph, build_knowledge_graph
-from graph.checkpoint import get_checkpointer
 
 logger = logging.getLogger(__name__)
 

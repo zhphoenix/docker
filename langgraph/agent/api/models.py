@@ -12,8 +12,16 @@ router = APIRouter()
 
 @router.get("/v1/models")
 async def list_models():
-    """列出可用模型（每个 Agent 作为一个 model 暴露给 Open WebUI）"""
-    models = []
+    """列出可用模型（Sisyphus LLM + 本地 Agent）"""
+    models = [
+        # Sisyphus LLM 模型
+        ModelInfo(
+            id="sisyphus",
+            created=int(time.time()),
+            owned_by="sisyphus",
+        ),
+    ]
+    # 本地 Agent 作为模型
     for agent_name in AGENT_REGISTRY:
         models.append(
             ModelInfo(

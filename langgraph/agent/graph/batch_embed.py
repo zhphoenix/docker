@@ -9,7 +9,6 @@
 """
 
 import asyncio
-import json
 import logging
 import uuid
 from typing import Any

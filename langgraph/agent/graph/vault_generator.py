@@ -11,9 +11,8 @@
 
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 from tools.postgres import postgres_tool
 from config.policy_loader import get_policy
