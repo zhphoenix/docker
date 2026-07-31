@@ -52,13 +52,13 @@ MCP Server
 
 ### 3.3 Vault 路径
 
-`/mnt/e/Knowledge/Vault/`（Windows 侧 `E:\Knowledge\Vault\`）
+`/mnt/e/ai-platform/data/obsidian_vault/`（容器内挂载为 `/vaults/ai-platform`）
 
 ### 3.4 注意事项
 
-- MCP 服务依赖 Obsidian 桌面端运行
+- Obsidian 经 obsidian-remote 容器化部署（Web UI :3002），REST API 插件需启用 HTTP Server(27123) 并绑定 `0.0.0.0`
 - Vault 路径必须匹配
-- Agent 容器通过 `host.docker.internal` 访问 Windows 侧服务
+- Agent 容器通过容器名 `http://obsidian:27123` 访问（经 ai-platform 网络）
 
 ### 3.5 Vault 作为多 Agent 共享空间
 

@@ -271,7 +271,7 @@ class ObsidianTool:
     """通过 MCP (Local REST API) 访问 Obsidian Vault"""
     
     def __init__(self):
-        self.base_url = settings.OBSIDIAN_URL  # https://host.docker.internal:27124
+        self.base_url = settings.OBSIDIAN_URL  # http://obsidian:27123（容器名，经 ai-platform 网络）
         self.headers = {
             "Authorization": settings.OBSIDIAN_API_KEY,
             "Content-Type": "application/json"

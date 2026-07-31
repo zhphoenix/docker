@@ -20,6 +20,7 @@ from qdrant_client.models import (
     Distance,
     CollectionConfig,
     OptimizersConfigDiff,
+    HnswConfigDiff,
 )
 
 # ──────────────────────────────────────────────
@@ -53,6 +54,27 @@ COLLECTIONS = [
         "distance": Distance.COSINE,
         "domain": "finance",
     },
+    {
+        "name": "knowledge_entities",
+        "description": "知识实体描述向量",
+        "vector_size": 2560,
+        "distance": Distance.COSINE,
+        "domain": "knowledge",
+    },
+    {
+        "name": "knowledge_facts",
+        "description": "知识事实描述向量",
+        "vector_size": 2560,
+        "distance": Distance.COSINE,
+        "domain": "knowledge",
+    },
+    {
+        "name": "knowledge_events",
+        "description": "知识事件描述向量",
+        "vector_size": 2560,
+        "distance": Distance.COSINE,
+        "domain": "knowledge",
+    },
 ]
 
 
@@ -70,16 +92,21 @@ def create_client() -> QdrantClient:
 def create_collections(client: QdrantClient) -> None:
     """创建所有 Collection"""
     print("\n===== 创建 Collections =====")
-    for col in COLLECTIONS:
-        existing = client.get_collections().collections
-        exists = any(c.name == col["name"] for c in existing)
+    existing = client.get_collections().collections
+    existing_names = {c.name for c in existing}
 
-        if not exists:
+    for col in COLLECTIONS:
+        if col["name"] not in existing_names:
             client.create_collection(
                 collection_name=col["name"],
                 vectors_config=VectorParams(
                     size=col["vector_size"],
                     distance=col["distance"],
+                ),
+                hnsw_config=HnswConfigDiff(
+                    m=16,
+                    ef_construct=128,
+                    full_scan_threshold=10000,
                 ),
                 optimizers_config=OptimizersConfigDiff(
                     indexing_threshold=20000,

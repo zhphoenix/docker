@@ -74,10 +74,83 @@ async def _handle_batch_embed(task: dict) -> None:
     )
 
 
+async def _handle_knowledge_extraction(task: dict) -> None:
+    """处理 knowledge_extraction 类型任务（知识提取流水线）"""
+    from knowledge_agent.graph import build_knowledge_organization_graph
+    from tools.postgres import postgres_tool
+
+    params = task.get("params", {}) or {}
+    if isinstance(params, str):
+        params = json.loads(params)
+
+    document_ids = params.get("document_ids", [])
+    raw_texts = params.get("raw_texts", {})  # {doc_id: text}
+
+    if not document_ids:
+        logger.warning("[Worker] knowledge_extraction: no document_ids")
+        return
+
+    graph = build_knowledge_organization_graph()
+
+    for doc_id in document_ids:
+        # 获取文档内容
+        raw_text = raw_texts.get(doc_id, "")
+        if not raw_text:
+            # 尝试从 chunks 表获取
+            rows = await postgres_tool.query(
+                "SELECT content FROM chunks WHERE document_id = $1 ORDER BY chunk_index",
+                doc_id,
+            )
+            raw_text = "\n\n".join(r["content"] for r in rows)
+
+        if not raw_text:
+            logger.warning("[Worker] knowledge_extraction: no content for doc=%s", doc_id[:8])
+            continue
+
+        # 获取文档元数据
+        doc_meta = await postgres_tool.query(
+            "SELECT document_type, market, symbol, company FROM documents WHERE id = $1",
+            doc_id,
+        )
+        doc_type = doc_meta[0].get("document_type", "") if doc_meta else ""
+
+        # 执行知识提取 Graph
+        initial_state = {
+            "document_id": doc_id,
+            "document_type": doc_type,
+            "raw_text": raw_text,
+            "source_metadata": doc_meta[0] if doc_meta else {},
+            "chunks": [],
+            "entities": [],
+            "relations": [],
+            "facts": [],
+            "evidence": [],
+            "conflicts": [],
+            "confidence_score": 0.0,
+            "stored_entity_ids": [],
+            "stored_fact_ids": [],
+            "errors": [],
+        }
+
+        try:
+            result = await graph.ainvoke(initial_state)
+            logger.info(
+                "[Worker] knowledge_extraction done | doc=%s | entities=%d | facts=%d | errors=%d",
+                doc_id[:8],
+                len(result.get("stored_entity_ids", [])),
+                len(result.get("stored_fact_ids", [])),
+                len(result.get("errors", [])),
+            )
+        except Exception as e:
+            logger.error("[Worker] knowledge_extraction failed | doc=%s | %s", doc_id[:8], e)
+            raise
+
+
 # 注册默认处理器
 register_handler("doc_pipeline", _handle_doc_pipeline)
 register_handler("reindex", _handle_reindex)
 register_handler("batch_embed", _handle_batch_embed)
+register_handler("knowledge_extraction", _handle_knowledge_extraction)
 
 
 async def _worker_loop():

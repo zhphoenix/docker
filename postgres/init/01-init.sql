@@ -143,7 +143,9 @@ CREATE TABLE IF NOT EXISTS collections (
 INSERT INTO collections (name, description, vector_size, distance, domain) VALUES
     ('documents_cn', 'A股文档（年报、公告、研报等）', 2560, 'Cosine', 'finance'),
     ('documents_hk', '港股文档', 2560, 'Cosine', 'finance'),
-    ('documents_us', '美股文档', 2560, 'Cosine', 'finance')
+    ('documents_us', '美股文档', 2560, 'Cosine', 'finance'),
+    ('knowledge_entities', '知识实体描述向量', 2560, 'Cosine', 'knowledge'),
+    ('knowledge_facts', '知识事实描述向量', 2560, 'Cosine', 'knowledge')
 ON CONFLICT (name) DO NOTHING;
 
 -- ============================================================

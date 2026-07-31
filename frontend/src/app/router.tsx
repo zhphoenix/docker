@@ -1,12 +1,18 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
-import { PlaceholderPage } from '@/components/common/PlaceholderPage'
 
 const DashboardPage = lazy(() => import('@/app/pages/DashboardPage'))
 const ChatPage = lazy(() => import('@/app/pages/ChatPage'))
 const SettingsPage = lazy(() => import('@/app/pages/SettingsPage'))
 const MonitorPage = lazy(() => import('@/app/pages/MonitorPage'))
+const AgentsPage = lazy(() => import('@/app/pages/AgentsPage'))
+const KnowledgePage = lazy(() => import('@/app/pages/KnowledgePage'))
+const DocumentsPage = lazy(() => import('@/app/pages/DocumentsPage'))
+const WorkflowPage = lazy(() => import('@/app/pages/WorkflowPage'))
+const ResearchPage = lazy(() => import('@/app/pages/ResearchPage'))
+const ModelsPage = lazy(() => import('@/app/pages/ModelsPage'))
+const VectorDbPage = lazy(() => import('@/app/pages/VectorDbPage'))
 
 function SuspenseWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -44,31 +50,59 @@ export const router = createBrowserRouter([
       },
       {
         path: '/agents',
-        element: <PlaceholderPage title="Agent Center" description="管理和监控 AI Agent" />,
+        element: (
+          <SuspenseWrapper>
+            <AgentsPage />
+          </SuspenseWrapper>
+        ),
       },
       {
         path: '/knowledge',
-        element: <PlaceholderPage title="Knowledge Base" description="知识库管理与检索" />,
+        element: (
+          <SuspenseWrapper>
+            <KnowledgePage />
+          </SuspenseWrapper>
+        ),
       },
       {
         path: '/documents',
-        element: <PlaceholderPage title="Documents" description="文档管理与解析" />,
+        element: (
+          <SuspenseWrapper>
+            <DocumentsPage />
+          </SuspenseWrapper>
+        ),
       },
       {
         path: '/workflow',
-        element: <PlaceholderPage title="Workflow" description="工作流编排与执行" />,
+        element: (
+          <SuspenseWrapper>
+            <WorkflowPage />
+          </SuspenseWrapper>
+        ),
       },
       {
         path: '/research',
-        element: <PlaceholderPage title="Research Center" description="投研分析中心" />,
+        element: (
+          <SuspenseWrapper>
+            <ResearchPage />
+          </SuspenseWrapper>
+        ),
       },
       {
         path: '/models',
-        element: <PlaceholderPage title="Models" description="模型管理与部署" />,
+        element: (
+          <SuspenseWrapper>
+            <ModelsPage />
+          </SuspenseWrapper>
+        ),
       },
       {
         path: '/vector-db',
-        element: <PlaceholderPage title="Vector Database" description="向量数据库管理" />,
+        element: (
+          <SuspenseWrapper>
+            <VectorDbPage />
+          </SuspenseWrapper>
+        ),
       },
       {
         path: '/monitor',

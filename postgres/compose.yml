@@ -18,30 +18,46 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "1.0"
-          memory: 1G
+          cpus: "2.0"
+          memory: 4G
         reservations:
-          cpus: "0.5"
-          memory: 512M
-    shm_size: "256mb"
+          cpus: "1.0"
+          memory: 2G
+    shm_size: "512mb"
     command:
       - "postgres"
       - "-c"
-      - "shared_buffers=256MB"
+      - "shared_buffers=1GB"
       - "-c"
-      - "effective_cache_size=512MB"
+      - "effective_cache_size=3GB"
       - "-c"
-      - "work_mem=16MB"
+      - "work_mem=64MB"
       - "-c"
-      - "maintenance_work_mem=128MB"
+      - "maintenance_work_mem=512MB"
       - "-c"
-      - "max_connections=50"
+      - "max_connections=100"
       - "-c"
-      - "wal_buffers=8MB"
+      - "max_parallel_workers=4"
+      - "-c"
+      - "max_parallel_workers_per_gather=2"
+      - "-c"
+      - "wal_buffers=16MB"
+      - "-c"
+      - "wal_compression=on"
+      - "-c"
+      - "max_wal_size=2GB"
+      - "-c"
+      - "min_wal_size=512MB"
       - "-c"
       - "checkpoint_completion_target=0.9"
       - "-c"
       - "random_page_cost=1.1"
+      - "-c"
+      - "jit=off"
+      - "-c"
+      - "autovacuum_max_workers=4"
+      - "-c"
+      - "autovacuum_naptime=30s"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d ai"]
       interval: 30s

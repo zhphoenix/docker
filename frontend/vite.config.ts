@@ -22,6 +22,14 @@ export default defineConfig({
         target: 'http://localhost:8100',
         changeOrigin: true,
       },
+      '/api': {
+        target: 'http://localhost:8100',
+        changeOrigin: true,
+      },
+      '/metrics': {
+        target: 'http://localhost:8100',
+        changeOrigin: true,
+      },
     },
   },
 })

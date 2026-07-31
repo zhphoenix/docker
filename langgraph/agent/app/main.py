@@ -16,6 +16,11 @@ from api.providers import router as providers_router
 from api.tasks import router as tasks_router
 from api.approvals import router as approvals_router
 from api.vault import router as vault_router
+from api.agents import router as agents_router
+from api.documents import router as documents_router
+from api.research import router as research_router
+from api.knowledge import router as knowledge_router
+from api.vector import router as vector_router
 from tools.postgres import postgres_tool
 
 # 配置日志
@@ -136,3 +141,8 @@ app.include_router(providers_router)
 app.include_router(tasks_router)
 app.include_router(approvals_router)
 app.include_router(vault_router)
+app.include_router(agents_router)
+app.include_router(documents_router)
+app.include_router(research_router)
+app.include_router(knowledge_router)
+app.include_router(vector_router)

@@ -71,6 +71,23 @@ worker:
   poll_interval_seconds: 30
   max_concurrent_tasks: 1
 
+# Knowledge Organization Agent
+knowledge:
+  extraction:
+    max_concurrent_llm: 4
+    chunk_max_chars: 3000
+    max_chunks_per_document: 200
+    entity_similarity_threshold: 0.85
+  storage:
+    entity_batch_size: 50
+    relation_batch_size: 100
+    fact_batch_size: 100
+    qdrant_upsert_batch: 200
+  retrieval:
+    graph_max_depth: 2
+    vector_limit: 10
+    hybrid_merge_strategy: "rrf"
+
 # 人审配置
 approval:
   content_threshold: 2000   # 超过此字符数的内容需审批

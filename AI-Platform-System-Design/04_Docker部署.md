@@ -16,6 +16,7 @@ Docker Desktop
         ├── reranker       :8002
         ├── sisyphus       :8080
         ├── langgraph      :8100
+        ├── obsidian       :3002 (Web UI) / :27123 (REST API)
         └── minio          :9000 / :9001
 ```
 
@@ -231,27 +232,51 @@ services:
               capabilities: [gpu]
 ```
 
-### 3.9 Obsidian（Windows 侧，非 Docker）
+### 3.9 Obsidian（容器化，obsidian-remote）
 
-Obsidian 不是 Docker 容器，而是 Windows 桌面应用。通过 MCP 协议与 Docker 内的 Agent 通信。
+Obsidian 知识层通过 `ghcr.io/sytone/obsidian-remote` 镜像容器化部署：容器内运行完整 Obsidian + KasmVNC，通过浏览器访问；安装 Local REST API 插件后对内外暴露 REST API。
 
-**前置条件**：
+```yaml
+services:
+  obsidian:
+    image: ghcr.io/sytone/obsidian-remote:latest
+    container_name: obsidian
+    ports:
+      - "3002:8080"      # Web UI（KasmVNC 浏览器访问）
+      - "27123:27123"    # Local REST API - HTTP（需在插件内启用）
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: Asia/Shanghai
+    volumes:
+      - /mnt/e/ai-platform/data/obsidian_vault:/vaults/ai-platform
+      - obsidian-config:/config
+    deploy:
+      resources:
+        limits: { cpus: "2.0", memory: 4G }
+```
 
-1. Windows 侧安装 Obsidian，打开 `E:\Knowledge\Vault` 作为 Vault
-2. 安装 Local REST API 插件（端口 27123）
-3. 确认插件设置中启用 HTTPS
+**首次使用需在 Web UI（http://localhost:3002）内安装并启用 Local REST API 插件**：
+
+1. Settings → Community plugins → 关闭 Safe mode
+2. Browse → 搜索 "Local REST API" → Install → Enable
+3. 插件设置：启用 "Enable Non-encrypted (HTTP) Server"（端口 27123）
+4. 插件设置：允许非本地接口访问（绑定 `0.0.0.0`，否则仅容器内回环可达）
+5. 复制插件生成的 API Key，更新到 `.env` 的 `OBSIDIAN_API_KEY`
 
 **验证连接**：
 
 ```bash
-# 从 WSL2 访问 Windows 侧 Obsidian MCP
-curl -k https://host.docker.internal:27123/api/v1/search?q=test
+# 宿主机（经端口映射）
+curl http://127.0.0.1:27123/
+# langgraph 容器内（经 ai-platform 网络以容器名访问）
+docker exec langgraph curl http://obsidian:27123/
 ```
 
 **注意**：
-- MCP 服务依赖 Obsidian 桌面端运行，关闭 Obsidian 则 MCP 不可用
-- Vault 路径必须匹配（`E:\Knowledge\Vault`）
-- Agent 容器通过 `host.docker.internal` 访问 Windows 侧服务
+- Vault 目录与 langgraph 容器共享同一宿主机路径（`data/obsidian_vault`），Vault 即共享知识空间
+- Agent 容器通过容器名 `http://obsidian:27123` 访问（见 `settings.py` 的 `OBSIDIAN_URL`）
+- 插件必须绑定 `0.0.0.0`，否则其他容器与宿主机均无法访问（默认仅绑定 127.0.0.1）
 
 ---
 
@@ -295,8 +320,8 @@ MODEL_NAME=qwen3
 7. Docling          docker compose up -d
 8. LLM (sisyphus)  docker compose up -d
 9. LangGraph Agent  docker compose up -d（依赖上述所有服务）
-10. Open WebUI      docker compose up -d（最后启动）
-11. Obsidian        Windows 侧启动 + 确认 MCP 可用
+10. Open WebUI      docker compose up -d
+11. Obsidian        docker compose up -d（Web UI :3002，首次需进容器内安装 REST API 插件）
 ```
 
 ---
@@ -313,5 +338,4 @@ MODEL_NAME=qwen3
 | Docling | 2.0 | 4G | 全部 |
 | Open WebUI | 1.0 | 2G | 全部 |
 | LangGraph | 2.0 | 4G | - |
-
-> **注意**：Obsidian 运行在 Windows 侧，不占用 Docker 资源。
+| Obsidian | 2.0 | 4G | - |
