@@ -10,6 +10,7 @@
 | **Chat Agent** | `langgraph/agent/agents/` | `chat_agent.py` | Agent | 通用对话交互 |
 | **Investment Agent** | `langgraph/agent/agents/` | `investment_agent.py` | Agent | 投资研究推理 |
 | **Knowledge Agent** | `langgraph/agent/agents/` + `knowledge_agent/` | `knowledge_agent.py` → `graph.py` | Agent + SubGraph | 文档 → 结构化知识提取（6 节点 fan-out/fan-in） |
+| **News Intelligence Agent** | `langgraph/agent/news_agent/` | `graph.py` | Agent + SubGraph | 新闻采集 → 清洗 → 去重 → 分类 → 实体/事件提取 → 影响分析（7 节点 fan-out/fan-in） |
 | **Research Agent** | `langgraph/agent/agents/` | `research_agent.py` | Agent | 投资研究报告生成 |
 
 ### Knowledge Agent 内部节点
@@ -23,11 +24,24 @@
 | `validator` | `nodes/validator.py` | 知识验证 |
 | `merger` | `nodes/merger.py` | 知识合并写入 |
 
+### News Intelligence Agent 内部节点
+
+| 节点名 | 文件 | 职责 |
+|---|---|---|
+| `cleaner` | `nodes/cleaner.py` | 语言检测 + 清洗 + 标准化 |
+| `deduplicator` | `nodes/deduplicator.py` | 标题相似 + Hash 去重 |
+| `classifier` | `nodes/classifier.py` | 分类 + 重要性评分 |
+| `entity_extractor` | `nodes/entity.py` | 新闻实体识别 |
+| `event_extractor` | `nodes/event.py` | 事件抽取 |
+| `impact_analyzer` | `nodes/impact.py` | 投资影响分析 |
+| `publisher` | `nodes/publisher.py` | 存储 + 触发 Knowledge Agent |
+
 ## 2. 已实现服务
 
 | 规范名称 | 代码目录 | 入口文件 | 类型 | 职责 |
 |---|---|---|---|---|
 | **Knowledge MCP Server** | `mcp-knowledge/` | `server/main.py` | MCP Server | 知识访问层（15 Tools × 5 模块） |
+| **News MCP Server** | `mcp-news/` | `server/main.py` | MCP Server | 新闻查询层（7 Tools × 4 模块，:8201） |
 | **Scheduler** | `langgraph/agent/scheduler/` | `scheduler.py` | Service | 定时任务调度 |
 
 ### Knowledge MCP Server 工具模块
@@ -44,7 +58,6 @@
 
 | 规范名称 | 设计文档 | 职责 | 状态 |
 |---|---|---|---|
-| **News Intelligence Agent** | `docs/design/新闻智能管线规范.md` | 新闻采集 → 清洗 → 去重 → 分类 → 评分 | 设计中 |
 | **Knowledge Maintenance Agent** | `docs/design/新闻生命周期管理（DLM）总体原则.md` §14 | 生命周期管理、置信度衰减、图谱清理 | 设计中 |
 | **Entity Resolution Agent** | `docs/design/invenst_platform.md` v2.0 建议 | 统一实体注册、别名管理、Ticker 映射 | 提案阶段 |
 
@@ -67,7 +80,7 @@
 | 存储 | 职责 | 数据内容 |
 |---|---|---|
 | **PostgreSQL** | 结构化事实真相源 | entity, fact, relation, event, entity_alias, fact_history |
-| **Qdrant** | 向量语义检索 | chunks, entities, facts, reports（4 Collections） |
+| **Qdrant** | 向量语义检索 | chunks, entities, facts, reports, news_embeddings, news_events（6 Collections） |
 | **MinIO** | 原始文件归档（规划） | HTML/PDF/图片/原始 JSON |
 | **Apache AGE** | 图存储（已集成） | Entity/Relation/Event 图结构、Cypher 查询、事件影响链 |
 | ~~pgvector~~ | ~~向量扩展~~ | **已废弃** — 向量存储由 Qdrant 负责 |

@@ -97,3 +97,15 @@ approval:
     - "report_publish"
   timeout_hours: 24
   auto_approve_after_timeout: false
+
+# News Intelligence Agent
+news:
+  classification:
+    max_concurrent_llm: 3
+  extraction:
+    max_concurrent_llm: 4
+    article_max_chars: 3000
+  impact:
+    max_concurrent_llm: 2
+  publisher:
+    enable_knowledge_merge: true

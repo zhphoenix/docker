@@ -5,6 +5,9 @@ Jobs:
   - weekly_consistency: 每周 Embedding 一致性检查
   - monthly_cleanup: 每月清理 staging + 过期数据
   - task_retry: 每 5 分钟重试失败任务（指数退避）
+  - news_collect_high: 每 30 分钟采集高优先级新闻源（RSS）
+  - news_collect_normal: 每 2 小时采集普通新闻源（Crawler）
+  - news_collect_low: 每 6 小时采集低优先级新闻源
 """
 
 import logging
@@ -152,6 +155,72 @@ async def _job_monthly_cleanup():
         logger.error("[Scheduler] Cleanup failed | %s", e)
 
 
+async def _job_news_collect(priority: str = "high"):
+    """新闻采集任务
+
+    按优先级采集新闻源，触发 News Intelligence Agent 处理管线。
+    """
+    from news_agent.collector.source_registry import source_registry
+    from news_agent.collector.rss_collector import collect_rss
+    from news_agent.collector.web_collector import collect_web
+    from news_agent.graph import get_news_graph
+
+    logger.info("[Scheduler] News collection triggered | priority=%s", priority)
+    try:
+        sources = source_registry.get_enabled(priority=priority)
+        if not sources:
+            logger.info("[Scheduler] No %s priority sources", priority)
+            return
+
+        graph = get_news_graph()
+        total_articles = 0
+
+        for source in sources:
+            try:
+                # 采集
+                if source.source_type == "rss":
+                    articles = await collect_rss(source)
+                elif source.source_type == "crawler":
+                    articles = await collect_web(source)
+                else:
+                    continue
+
+                if not articles:
+                    continue
+
+                # 触发处理管线
+                result = await graph.ainvoke({
+                    "source_id": source.id,
+                    "raw_articles": articles,
+                    "cleaned_articles": [],
+                    "unique_articles": [],
+                    "classified_articles": [],
+                    "entities": [],
+                    "events": [],
+                    "relations": [],
+                    "impact_assessments": [],
+                    "stored_article_ids": [],
+                    "stored_event_ids": [],
+                    "knowledge_agent_triggered": False,
+                    "errors": [],
+                })
+
+                stored = len(result.get("stored_article_ids", []))
+                total_articles += stored
+                logger.info(
+                    "[Scheduler] News processed | source=%s | stored=%d",
+                    source.id, stored,
+                )
+
+            except Exception as e:
+                logger.error("[Scheduler] News source failed | %s | %s", source.id, e)
+
+        logger.info("[Scheduler] News collection done | priority=%s | total=%d", priority, total_articles)
+
+    except Exception as e:
+        logger.error("[Scheduler] News collection failed | %s", e)
+
+
 def start_scheduler() -> None:
     """启动调度器（在 FastAPI lifespan 中调用）"""
     global _scheduler
@@ -194,6 +263,37 @@ def start_scheduler() -> None:
         trigger=CronTrigger(day=1, hour=4, minute=0),
         id="monthly_cleanup",
         name="Monthly Cleanup",
+        replace_existing=True,
+    )
+
+    # ── 新闻采集任务 ──
+    # 高优先级源（RSS）：每 30 分钟
+    _scheduler.add_job(
+        _job_news_collect,
+        trigger=IntervalTrigger(minutes=30),
+        args=["high"],
+        id="news_collect_high",
+        name="News Collection (High Priority)",
+        replace_existing=True,
+    )
+
+    # 普通源（Crawler）：每 2 小时
+    _scheduler.add_job(
+        _job_news_collect,
+        trigger=IntervalTrigger(hours=2),
+        args=["normal"],
+        id="news_collect_normal",
+        name="News Collection (Normal Priority)",
+        replace_existing=True,
+    )
+
+    # 低优先级源：每 6 小时
+    _scheduler.add_job(
+        _job_news_collect,
+        trigger=IntervalTrigger(hours=6),
+        args=["low"],
+        id="news_collect_low",
+        name="News Collection (Low Priority)",
         replace_existing=True,
     )
 

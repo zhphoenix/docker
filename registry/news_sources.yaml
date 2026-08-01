@@ -1,0 +1,195 @@
+# ============================================================
+# News Sources Registry — 新闻源配置注册表
+# 基于 docs/design/新闻智能管线规范.md §5 Provider Registry
+# ============================================================
+#
+# 规则:
+#   - 新增新闻源仅需修改此 YAML，无需改代码
+#   - 支持动态启停（enabled 字段）
+#   - 支持优先级调度（priority 字段）
+#   - config 字段包含各类型源的采集参数
+#
+# source_type:
+#   rss     - RSS/Atom Feed（实时新闻，宏观/财经）
+#   crawler - Web Crawl（财经网站，公司新闻）
+#   api     - 结构化 API（专业数据源）
+#
+# priority:
+#   high    - 每 30 分钟采集
+#   normal  - 每 2 小时采集
+#   low     - 每 6 小时采集
+# ============================================================
+
+sources:
+
+  # ── RSS Feeds（高优先级，实时新闻） ──
+
+  - id: reuters_world
+    name: Reuters World News
+    source_type: rss
+    category: [macro, geopolitics]
+    market: [Global]
+    priority: high
+    config:
+      feed_url: "https://www.reutersagency.com/feed/?best-topics=world&post_type=best"
+      max_articles: 30
+      language: en
+    enabled: true
+
+  - id: reuters_business
+    name: Reuters Business
+    source_type: rss
+    category: [macro, stock]
+    market: [Global, US]
+    priority: high
+    config:
+      feed_url: "https://www.reutersagency.com/feed/?best-topics=business-finance&post_type=best"
+      max_articles: 30
+      language: en
+    enabled: true
+
+  - id: cnbc_top
+    name: CNBC Top News
+    source_type: rss
+    category: [stock, company]
+    market: [US]
+    priority: high
+    config:
+      feed_url: "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114"
+      max_articles: 20
+      language: en
+    enabled: true
+
+  - id: ft_home
+    name: Financial Times
+    source_type: rss
+    category: [macro, company]
+    market: [Global]
+    priority: high
+    config:
+      feed_url: "https://www.ft.com/rss/home"
+      max_articles: 20
+      language: en
+    enabled: false  # 需要订阅，默认禁用
+
+  # ── 中国财经（Crawler） ──
+
+  - id: eastmoney_news
+    name: 东方财富财经新闻
+    source_type: crawler
+    category: [stock, company]
+    market: [CN]
+    priority: high
+    config:
+      list_url: "https://finance.eastmoney.com/a/czqyw.html"
+      article_selector: "a[href*='/a/']"
+      max_articles: 20
+      language: zh
+      rate_limit_rpm: 30
+    enabled: true
+
+  - id: sina_finance
+    name: 新浪财经
+    source_type: crawler
+    category: [stock, macro]
+    market: [CN]
+    priority: normal
+    config:
+      list_url: "https://finance.sina.com.cn/"
+      article_selector: "a[href*='finance.sina.com.cn']"
+      max_articles: 15
+      language: zh
+      rate_limit_rpm: 20
+    enabled: true
+
+  - id: cls_telegraph
+    name: 财联社电报
+    source_type: crawler
+    category: [stock, company, macro]
+    market: [CN]
+    priority: high
+    config:
+      list_url: "https://www.cls.cn/telegraph"
+      article_selector: "div.telegraph-content"
+      max_articles: 50
+      language: zh
+      rate_limit_rpm: 20
+    enabled: true
+
+  # ── 政策/宏观（Crawler） ──
+
+  - id: qiushi
+    name: 求是网
+    source_type: crawler
+    category: [policy]
+    market: [CN]
+    priority: low
+    config:
+      list_url: "https://www.qstheory.cn/"
+      article_selector: "a[href*='/2026'], a[href*='/2025']"
+      exclude_patterns: ["javascript:", "#", "/index", "node_"]
+      max_articles: 10
+      language: zh
+      rate_limit_rpm: 10
+    enabled: true
+
+  - id: csrc_news
+    name: 证监会新闻发布
+    source_type: crawler
+    category: [policy, stock]
+    market: [CN]
+    priority: normal
+    config:
+      list_url: "http://www.csrc.gov.cn/csrc/c100028/common_list.shtml"
+      article_selector: "a[href*='/csrc/']"
+      max_articles: 10
+      language: zh
+      rate_limit_rpm: 10
+    enabled: true
+
+  # ── 港股/美股 ──
+
+  - id: hkex_news
+    name: 港交所公告
+    source_type: crawler
+    category: [company, stock]
+    market: [HK]
+    priority: normal
+    config:
+      list_url: "https://www.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main_c.aspx"
+      max_articles: 20
+      language: zh
+      rate_limit_rpm: 15
+    enabled: false  # 需要更复杂的抓取逻辑
+
+  - id: sec_edgar
+    name: SEC EDGAR Filings
+    source_type: api
+    category: [company, stock]
+    market: [US]
+    priority: normal
+    config:
+      api_url: "https://efts.sec.gov/LATEST/search-index?q=*&dateRange=custom&startdt={start}&enddt={end}&forms=8-K,10-K"
+      max_articles: 20
+      language: en
+      rate_limit_rpm: 30
+    enabled: false  # Phase 2 实现
+
+# ──────────────────────────────────────────────
+# 全局默认配置
+# ──────────────────────────────────────────────
+defaults:
+  max_articles: 20
+  rate_limit_rpm: 30
+  timeout_seconds: 60
+  retry_max_attempts: 3
+  language: zh
+  enabled: true
+
+# ──────────────────────────────────────────────
+# 调度配置
+# ──────────────────────────────────────────────
+schedule:
+  high_priority_interval_minutes: 30
+  normal_priority_interval_minutes: 120
+  low_priority_interval_minutes: 360

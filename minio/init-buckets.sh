@@ -22,6 +22,8 @@ mc mb local/knowledge  --ignore-existing
 mc mb local/datasets   --ignore-existing
 mc mb local/artifacts  --ignore-existing
 mc mb local/staging    --ignore-existing
+mc mb local/news-raw   --ignore-existing
+mc mb local/news-images --ignore-existing
 
 # ===== 版本控制 =====
 echo "Enabling versioning..."
@@ -32,6 +34,9 @@ mc version enable local/artifacts
 # ===== 生命周期策略 =====
 # staging: 临时处理目录，30天自动清理
 mc ilm rule add --expire-days 30 local/staging 2>/dev/null || true
+
+# news-raw: 新闻原始文件，90天自动清理（已处理后无需长期保留）
+mc ilm rule add --expire-days 90 local/news-raw 2>/dev/null || true
 
 # ===== 创建目录结构 =====
 echo "Creating directory structure..."
@@ -75,6 +80,12 @@ for status in download ocr chunk tmp retry; do
   mc cp --recursive /dev/null local/staging/${status}/ 2>/dev/null || true
 done
 
+# news-raw: {year}/{month}/{day}/
+mc cp --recursive /dev/null local/news-raw/2026/08/ 2>/dev/null || true
+
+# news-images: {year}/{month}/
+mc cp --recursive /dev/null local/news-images/2026/08/ 2>/dev/null || true
+
 echo "Bucket initialization complete."
 echo ""
 echo "  documents  - 原始文档（版本控制已启用）"
@@ -82,6 +93,8 @@ echo "  knowledge  - AI知识资产（版本控制已启用）"
 echo "  datasets   - 数据集"
 echo "  artifacts  - Agent输出（版本控制已启用）"
 echo "  staging    - 临时处理（30天自动清理）"
+echo "  news-raw   - 新闻原始文件（90天自动清理）"
+echo "  news-images - 新闻图片"
 echo ""
 echo "目录规范:"
 echo "  documents/{market}/{symbol}/{doc_type}/{year}/"

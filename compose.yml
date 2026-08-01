@@ -42,3 +42,4 @@ include:
   - crawl4ai/compose.yml
   - obsidian/compose.yml
   - mcp-knowledge/compose.yml
+  - mcp-news/compose.yml

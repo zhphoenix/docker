@@ -1,0 +1,42 @@
+services:
+  mcp-news:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mcp-news
+    ports:
+      - "8201:8201"
+    env_file:
+      - ../.env
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ai
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: "6333"
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: "8201"
+    networks:
+      - ai-platform
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request,json; req=urllib.request.Request('http://localhost:8201/mcp', data=json.dumps({'jsonrpc':'2.0','id':1,'method':'initialize','params':{'protocolVersion':'2025-03-26','capabilities':{},'clientInfo':{'name':'hc','version':'0.1'}}}).encode(), headers={'Content-Type':'application/json'}); urllib.request.urlopen(req, timeout=3)\" || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
+
+networks:
+  ai-platform:
+    external: true

@@ -212,6 +212,42 @@ event_types:
 # ============================================================
 # 已知不一致（待修复）
 # ============================================================
+
+# ============================================================
+# News Category（6 种）
+# ============================================================
+news_categories:
+
+  - id: macro
+    label: 宏观经济
+    description: "GDP、利率、通胀、就业、央行政策"
+    examples: ["Fed Rate Cut", "China GDP Q1"]
+
+  - id: stock
+    label: 个股/市场
+    description: "股价、交易、指数变动"
+    examples: ["NVDA +10%", "S&P 500 Rally"]
+
+  - id: company
+    label: 企业经营
+    description: "财报、战略、人事变动、并购"
+    examples: ["NVIDIA Q1 Earnings", "Broadcom-VMware Merger"]
+
+  - id: geopolitics
+    label: 地缘政治
+    description: "战争、制裁、贸易摩擦、外交"
+    examples: ["US-China Trade War", "Russia Sanctions"]
+
+  - id: policy
+    label: 监管政策
+    description: "法规、产业政策、出口管制"
+    examples: ["AI Chip Export Restriction", "Antitrust Investigation"]
+
+  - id: technology
+    label: 技术突破
+    description: "新产品、新标准、研发进展"
+    examples: ["GPT-5 Release", "Quantum Computing Milestone"]
+
 known_issues:
 
   - issue: "Prompt relation_extraction.md 使用动词形式（supplies, competes_with），代码使用名词形式（supplier, competitor）"
