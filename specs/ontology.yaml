@@ -1,0 +1,231 @@
+# Knowledge Ontology — 统一类型枚举权威来源
+#
+# 本文件是 entity_type / relation_type / event_type 的唯一权威定义。
+# 所有设计文档、Prompt、代码中的类型枚举必须引用本文件。
+#
+# 变更流程：
+#   1. 修改本文件
+#   2. 同步 prompts/knowledge/*.md 中的类型列表
+#   3. 同步 mcp-knowledge/server/tools/write.py 的 docstring
+#   4. 更新 docs/design/ 相关文档
+
+meta:
+  version: "1.0.0"
+  last_updated: "2026-08-01"
+  authority: "specs/ontology.yaml"
+
+# ============================================================
+# Entity Types（10 种）
+# ============================================================
+entity_types:
+
+  - id: Company
+    label: 企业
+    description: "上市公司、私营企业、子公司"
+    examples: ["NVIDIA", "TSMC", "腾讯"]
+    properties_hint: ["ticker", "exchange", "industry", "country"]
+
+  - id: Person
+    label: 人物
+    description: "企业家、高管、分析师、政策制定者"
+    examples: ["Jensen Huang", "Warren Buffett"]
+    properties_hint: ["title", "organization"]
+
+  - id: Product
+    label: 产品
+    description: "硬件产品、软件平台、服务"
+    examples: ["Blackwell", "H100", "ChatGPT"]
+    properties_hint: ["category", "manufacturer"]
+
+  - id: Technology
+    label: 技术
+    description: "技术路线、协议、标准"
+    examples: ["Transformer", "CUDA", "EUV Lithography"]
+    properties_hint: ["domain", "maturity"]
+
+  - id: Industry
+    label: 行业
+    description: "行业板块、细分市场"
+    examples: ["AI Semiconductor", "Cloud Computing", "New Energy"]
+    properties_hint: ["sector", "market_size"]
+
+  - id: Country
+    label: 国家/地区
+    description: "国家、经济体、地区"
+    examples: ["USA", "China", "EU"]
+    properties_hint: ["region", "gdp"]
+
+  - id: Organization
+    label: 机构
+    description: "政府机构、监管组织、研究机构"
+    examples: ["SEC", "Federal Reserve", "MIIT"]
+    properties_hint: ["type", "jurisdiction"]
+
+  - id: Event
+    label: 事件
+    description: "已发生的重大事件（作为实体引用）"
+    examples: ["AI Chip Export Restriction", "2008 Financial Crisis"]
+    properties_hint: ["event_date", "event_type"]
+
+  - id: Metric
+    label: 指标
+    description: "金融指标、KPI"
+    examples: ["Revenue Growth", "ROIC", "P/E Ratio"]
+    properties_hint: ["unit", "frequency"]
+
+  - id: Concept
+    label: 概念
+    description: "投资概念、主题、趋势"
+    examples: ["AI Infrastructure", "Deglobalization", "Energy Transition"]
+    properties_hint: ["theme"]
+
+# ============================================================
+# Relation Types（10 种）
+# ============================================================
+# 注意：Prompt 中使用动词形式（supplies, competes_with），
+#       代码存储使用名词形式（supplier, competitor）。
+#       本文件以代码存储形式为规范（canonical），Prompt 中需对齐。
+relation_types:
+
+  - id: supplier
+    label: 供应
+    canonical: true
+    prompt_alias: "supplies"
+    description: "A 向 B 供应产品/服务"
+    direction: "source → target"
+    examples: ["TSMC → NVIDIA (先进制程代工)"]
+
+  - id: customer
+    label: 客户
+    canonical: true
+    description: "A 是 B 的客户"
+    direction: "source → target"
+    examples: ["NVIDIA → TSMC (芯片采购)"]
+
+  - id: competitor
+    label: 竞争
+    canonical: true
+    prompt_alias: "competes_with"
+    description: "A 与 B 竞争"
+    direction: "bidirectional"
+    examples: ["NVIDIA ↔ AMD (AI GPU)"]
+
+  - id: depends_on
+    label: 依赖
+    canonical: true
+    description: "A 依赖 B"
+    direction: "source → target"
+    examples: ["NVIDIA → TSMC (制造依赖)"]
+
+  - id: owns
+    label: 拥有
+    canonical: true
+    description: "A 拥有/控股 B"
+    direction: "source → target"
+    examples: ["NVIDIA → Mellanox"]
+
+  - id: uses
+    label: 使用
+    canonical: true
+    description: "A 使用 B 的技术/产品"
+    direction: "source → target"
+    examples: ["OpenAI → NVIDIA GPU"]
+
+  - id: invests_in
+    label: 投资
+    canonical: true
+    description: "A 投资 B"
+    direction: "source → target"
+    examples: ["SoftBank → ARM"]
+
+  - id: located_in
+    label: 位于
+    canonical: true
+    description: "A 位于 B"
+    direction: "source → target"
+    examples: ["NVIDIA → USA"]
+
+  - id: impacts
+    label: 影响
+    canonical: true
+    description: "A 影响 B（政策、事件等）"
+    direction: "source → target"
+    examples: ["Export Restriction → NVIDIA Revenue"]
+
+  - id: causes
+    label: 导致
+    canonical: true
+    description: "A 导致 B（因果关系）"
+    direction: "source → target"
+    examples: ["AI Demand Growth → GPU Shortage"]
+
+# ============================================================
+# Event Types（9 种）
+# ============================================================
+event_types:
+
+  - id: earnings
+    label: 财报
+    description: "季度/年度财报发布"
+    examples: ["NVIDIA Q1 2026 Earnings"]
+
+  - id: regulation
+    label: 监管政策
+    description: "政府法规、出口管制、反垄断"
+    examples: ["AI Chip Export Restriction"]
+
+  - id: merger
+    label: 合并
+    description: "企业合并"
+    examples: ["Broadcom-VMware Merger"]
+
+  - id: acquisition
+    label: 收购
+    description: "企业收购"
+    examples: ["NVIDIA acquires Mellanox"]
+
+  - id: product_launch
+    label: 产品发布
+    description: "新产品/服务发布"
+    examples: ["NVIDIA Blackwell Launch"]
+
+  - id: macro_policy
+    label: 宏观政策
+    description: "利率、财政、货币政策"
+    examples: ["Fed Rate Cut 50bp"]
+
+  - id: geopolitical
+    label: 地缘政治
+    description: "战争、制裁、贸易摩擦"
+    examples: ["US-China Trade War"]
+
+  - id: supply_chain
+    label: 供应链
+    description: "供应链中断、产能变化"
+    examples: ["TSMC Capacity Expansion"]
+
+  - id: technology
+    label: 技术突破
+    description: "重大技术进展"
+    examples: ["GPT-5 Release"]
+
+# ============================================================
+# 已知不一致（待修复）
+# ============================================================
+known_issues:
+
+  - issue: "Prompt relation_extraction.md 使用动词形式（supplies, competes_with），代码使用名词形式（supplier, competitor）"
+    resolution: "以本文件 canonical 形式为准，Prompt 需同步更新"
+    affected_files:
+      - "langgraph/agent/prompts/knowledge/relation_extraction.md"
+      - "mcp-knowledge/server/tools/write.py"
+
+  - issue: "Prompt 缺少 customer 关系类型"
+    resolution: "在 relation_extraction.md 中补充 customer 类型"
+    affected_files:
+      - "langgraph/agent/prompts/knowledge/relation_extraction.md"
+
+  - issue: "设计文档 knowledge-graph-ingestion-agent.md v1.0 定义了不同的关系集（partners_with, manufactures, regulates, restricts）"
+    resolution: "v2.0 已对齐本文件，旧版仅供历史参考"
+    affected_files:
+      - "docs/design/knowledge-graph-ingestion-agent.md"

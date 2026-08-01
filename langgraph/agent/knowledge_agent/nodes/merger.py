@@ -1,6 +1,6 @@
 """Node 6: Knowledge Merger - 知识合并 + 存储
 
-合并重复实体/关系，批量写入 PostgreSQL + Qdrant。
+合并重复实体/关系，批量写入 PostgreSQL + Qdrant + Apache AGE。
 """
 
 import logging
@@ -9,6 +9,7 @@ import uuid
 from tools.embedding import embedding_tool
 from knowledge_agent.storage.postgres import knowledge_storage
 from knowledge_agent.storage.qdrant import knowledge_qdrant
+from knowledge_agent.storage.age import knowledge_age
 
 logger = logging.getLogger(__name__)
 
@@ -164,6 +165,18 @@ async def knowledge_merger(state: dict) -> dict:
         except Exception as e:
             logger.warning("Merger: Qdrant fact indexing failed: %s", e)
             new_errors.append(f"Merger: Qdrant fact indexing failed: {e}")
+
+    # ── 6. Apache AGE 图同步（异步，失败不阻塞） ──
+    try:
+        if knowledge_age.available:
+            await knowledge_age.sync_entities(all_entity_records)
+            if relation_records:
+                await knowledge_age.sync_relations(relation_records)
+            logger.debug("Merger: AGE sync completed (%d entities, %d relations)",
+                         len(all_entity_records), len(relation_records))
+    except Exception as e:
+        logger.warning("Merger: AGE sync failed (non-fatal): %s", e)
+        new_errors.append(f"Merger: AGE sync failed: {e}")
 
     logger.info(
         "Merger: stored %d entities, %d relations, %d facts | doc=%s",

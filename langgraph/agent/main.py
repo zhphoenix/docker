@@ -11,5 +11,7 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8100,
         reload=reload,
+        reload_dirs=["."] if reload else None,
+        reload_excludes=["tests/*", "__pycache__/*", "*.pyc"] if reload else None,
         log_level="info",
     )

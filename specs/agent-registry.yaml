@@ -1,0 +1,100 @@
+# Agent & Service Registry — 统一命名注册表
+
+> **权威来源**：所有 Agent/Service 的规范名称、目录映射和职责定义以本文件为准。
+> 设计文档和代码中出现的其他名称均为历史遗留，应以本注册表为准。
+
+## 1. 已实现 Agent
+
+| 规范名称 | 代码目录 | 入口文件 | 类型 | 职责 |
+|---|---|---|---|---|
+| **Chat Agent** | `langgraph/agent/agents/` | `chat_agent.py` | Agent | 通用对话交互 |
+| **Investment Agent** | `langgraph/agent/agents/` | `investment_agent.py` | Agent | 投资研究推理 |
+| **Knowledge Agent** | `langgraph/agent/agents/` + `knowledge_agent/` | `knowledge_agent.py` → `graph.py` | Agent + SubGraph | 文档 → 结构化知识提取（6 节点 fan-out/fan-in） |
+| **Research Agent** | `langgraph/agent/agents/` | `research_agent.py` | Agent | 投资研究报告生成 |
+
+### Knowledge Agent 内部节点
+
+| 节点名 | 文件 | 职责 |
+|---|---|---|
+| `parser` | `nodes/parser.py` | 文档清洗、分段 |
+| `entity_extractor` | `nodes/entity.py` | 实体识别 |
+| `relation_extractor` | `nodes/relation.py` | 关系抽取 |
+| `fact_extractor` | `nodes/fact.py` | 事实抽取 |
+| `validator` | `nodes/validator.py` | 知识验证 |
+| `merger` | `nodes/merger.py` | 知识合并写入 |
+
+## 2. 已实现服务
+
+| 规范名称 | 代码目录 | 入口文件 | 类型 | 职责 |
+|---|---|---|---|---|
+| **Knowledge MCP Server** | `mcp-knowledge/` | `server/main.py` | MCP Server | 知识访问层（15 Tools × 5 模块） |
+| **Scheduler** | `langgraph/agent/scheduler/` | `scheduler.py` | Service | 定时任务调度 |
+
+### Knowledge MCP Server 工具模块
+
+| 模块 | 文件 | Tools 数量 | 职责 |
+|---|---|---|---|
+| Entity | `tools/entity.py` | 3 | 实体搜索/详情/图谱 |
+| Fact | `tools/fact.py` | 3 | 事实查询/历史/时间线 |
+| Semantic | `tools/semantic.py` | 2 | 向量语义检索（Qdrant） |
+| Analysis | `tools/analysis.py` | 3 | 公司画像/供应链/风险 |
+| Write | `tools/write.py` | 4 | 知识创建/更新 |
+
+## 3. 规划中 Agent（未实现）
+
+| 规范名称 | 设计文档 | 职责 | 状态 |
+|---|---|---|---|
+| **News Intelligence Agent** | `docs/design/新闻智能管线规范.md` | 新闻采集 → 清洗 → 去重 → 分类 → 评分 | 设计中 |
+| **Knowledge Maintenance Agent** | `docs/design/新闻生命周期管理（DLM）总体原则.md` §14 | 生命周期管理、置信度衰减、图谱清理 | 设计中 |
+| **Entity Resolution Agent** | `docs/design/invenst_platform.md` v2.0 建议 | 统一实体注册、别名管理、Ticker 映射 | 提案阶段 |
+
+## 4. 命名映射表（历史名称 → 规范名称）
+
+| 历史名称（设计文档中） | 规范名称 | 所在文档 |
+|---|---|---|
+| Knowledge Graph Ingestion Agent | **Knowledge Agent** | `knowledge-graph-ingestion-agent.md` |
+| knowledge_graph_agent | **Knowledge Agent** | `新闻生命周期管理（DLM）总体原则.md` §15 |
+| news_ingestion_agent | **News Intelligence Agent**（规划） | `新闻生命周期管理（DLM）总体原则.md` §15 |
+| knowledge_maintenance_agent | **Knowledge Maintenance Agent**（规划） | `新闻生命周期管理（DLM）总体原则.md` §15 |
+| News Intelligence Agent | **News Intelligence Agent**（规划） | `新闻生命周期管理（DLM）总体原则.md` §16 |
+| Knowledge Organization Agent | **Knowledge Agent** | `新闻智能管线规范.md` §2 架构图 |
+| Lifecycle Agent | **Knowledge Maintenance Agent**（规划） | `新闻生命周期管理（DLM）总体原则.md` §14 |
+| Intent Agent | **Research Agent**（查询意图子模块） | `apache-age-cypher-query-library.md` |
+| Query Planner Agent | **Research Agent**（查询规划子模块） | `apache-age-cypher-query-library.md` |
+
+## 5. 存储职责边界
+
+| 存储 | 职责 | 数据内容 |
+|---|---|---|
+| **PostgreSQL** | 结构化事实真相源 | entity, fact, relation, event, entity_alias, fact_history |
+| **Qdrant** | 向量语义检索 | chunks, entities, facts, reports（4 Collections） |
+| **MinIO** | 原始文件归档（规划） | HTML/PDF/图片/原始 JSON |
+| **Apache AGE** | 图存储（已集成） | Entity/Relation/Event 图结构、Cypher 查询、事件影响链 |
+| ~~pgvector~~ | ~~向量扩展~~ | **已废弃** — 向量存储由 Qdrant 负责 |
+
+> **当前状态**：Apache AGE 已集成（PG17 + AGE 1.5.0 自建镜像）。
+> **Fallback**：AGE 不可用时，`get_entity_graph` 等工具自动降级为 PostgreSQL 递归 CTE。
+> **同步脚本**：`scripts/sync_to_age.py`（存量数据迁移）。
+
+## 6. 类型枚举
+
+所有 entity_type / relation_type / event_type 的权威定义在 `specs/ontology.yaml`。
+
+- Entity Types：10 种（Company/Person/Product/Technology/Industry/Country/Organization/Event/Metric/Concept）
+- Relation Types：10 种（supplier/customer/competitor/depends_on/owns/uses/invests_in/located_in/impacts/causes）
+- Event Types：9 种（earnings/regulation/merger/acquisition/product_launch/macro_policy/geopolitical/supply_chain/technology）
+
+## 7. 变更流程
+
+修改 Agent 命名或新增 Agent 时：
+
+1. 更新本文件
+2. 同步 `architecture.yaml` 的 scope（如新 Agent 不在 `langgraph/agent/` 范围内）
+3. 更新 `docs/design/invenst_platform.md` 的 ARCH 编号索引
+4. 为新 Agent 创建 `prompts/{agent_name}/system.md`（遵守 PRM-004）
+
+修改类型枚举时：
+
+1. 更新 `specs/ontology.yaml`
+2. 同步 `prompts/knowledge/*.md` 中的类型列表
+3. 同步 `mcp-knowledge/server/tools/write.py` 的 docstring

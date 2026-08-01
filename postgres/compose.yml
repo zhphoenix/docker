@@ -1,6 +1,8 @@
 services:
   postgres:
-    image: pgvector/pgvector:pg18
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: postgres
     restart: unless-stopped
     ports:
@@ -9,9 +11,9 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: ai
-      PGDATA: /var/lib/postgresql/18/docker
+      PGDATA: /var/lib/postgresql/17/docker
     volumes:
-      - pg_data:/var/lib/postgresql
+      - pg_data:/var/lib/postgresql/17/docker
       - ./init:/docker-entrypoint-initdb.d:ro
     networks:
       - ai-platform

@@ -29,21 +29,9 @@ CREATE INDEX IF NOT EXISTS idx_chunks_document_id ON chunks(document_id);
 CREATE INDEX IF NOT EXISTS idx_chunks_qdrant_point_id ON chunks(qdrant_point_id);
 
 -- ============================================================
--- tasks 表 — Agent 工作流任务
+-- tasks 表 — 补齐 01-init.sql 中可能缺失的列（幂等）
 -- ============================================================
-CREATE TABLE IF NOT EXISTS tasks (
-    id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    document_id       UUID REFERENCES documents(id) ON DELETE CASCADE,
-    task_type         VARCHAR(50) NOT NULL,
-    status            VARCHAR(20) DEFAULT 'pending',
-    priority          INTEGER DEFAULT 0,
-    start_time        TIMESTAMPTZ,
-    end_time          TIMESTAMPTZ,
-    error             TEXT,
-    result            JSONB DEFAULT '{}',
-    created_at        TIMESTAMPTZ DEFAULT NOW(),
-    updated_at        TIMESTAMPTZ DEFAULT NOW()
-);
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS document_id UUID REFERENCES documents(id) ON DELETE CASCADE;
 
 CREATE INDEX IF NOT EXISTS idx_tasks_document_id ON tasks(document_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);

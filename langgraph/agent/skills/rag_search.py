@@ -75,7 +75,7 @@ class RAGSearchSkill(BaseSkill):
             results = await self._qdrant.search(
                 collection=collection,
                 vector=query_vector,
-                top_k=top_k * 2 if use_rerank else top_k,
+                limit=top_k * 2 if use_rerank else top_k,
                 query_filter=query_filter,
             )
 

@@ -4,6 +4,7 @@
 生成结构化投资分析报告。
 """
 
+import json
 import logging
 from pathlib import Path
 from typing import Any
@@ -17,6 +18,13 @@ logger = logging.getLogger(__name__)
 
 # 电话会议记录存放目录
 EARNINGS_CALLS_DIR = Path("files/earnings_calls")
+
+# 结构化年报数据目录（容器内挂载路径）
+STOCK_DATA_DIRS = {
+    "cn": Path("/data/stock_a"),
+    "hk": Path("/data/stock_h"),
+    "us": Path("/data/stock_us"),
+}
 
 # 分析维度
 ANALYSIS_DIMENSIONS = {
@@ -118,6 +126,11 @@ class MasterAnalysisSkill(BaseSkill):
             context = self._build_context(documents)
             dim_desc = ANALYSIS_DIMENSIONS.get(dimension, "综合大师分析")
 
+            # 2.5 加载结构化财务数据（如有）
+            financial_context = self._load_financial_data(symbol, market, year)
+            if financial_context:
+                context = financial_context + "\n\n---\n\n" + context
+
             # 3. 电话会议数据收集（如有）
             earnings_call_context = ""
             if with_earnings_call and symbol:
@@ -152,7 +165,8 @@ class MasterAnalysisSkill(BaseSkill):
             ]
 
             # 4. LLM 生成分析
-            answer = await llm_tool.chat(messages, temperature=0.7, max_tokens=4096)
+            response = await llm_tool.chat(messages, temperature=0.7, max_tokens=4096)
+            answer = response["choices"][0]["message"]["content"]
 
             return {
                 "success": True,
@@ -183,6 +197,89 @@ class MasterAnalysisSkill(BaseSkill):
             source = f"{symbol}/{year}" if symbol else "unknown"
             content = doc.get("content", "")[:2000]
             parts.append(f"[文档 {i}] 来源: {source}\n{content}")
+        return "\n\n---\n\n".join(parts)
+
+    @staticmethod
+    def _load_financial_data(symbol: str | None, market: str, year: int | None) -> str:
+        """加载结构化财务数据（从年报 JSON 文件）
+
+        查找 /data/stock_{market}/{symbol}_*_年度报告.json，
+        提取 financial 指标和 business_summary 构建上下文。
+        """
+        if not symbol:
+            return ""
+
+        data_dir = STOCK_DATA_DIRS.get(market)
+        if not data_dir or not data_dir.exists():
+            return ""
+
+        # 查找匹配的 JSON 文件
+        pattern = f"{symbol}_*年度报告.json"
+        json_files = sorted(data_dir.glob(pattern), reverse=True)
+
+        if not json_files:
+            return ""
+
+        # 按年份过滤
+        if year:
+            year_files = [f for f in json_files if f"{year}年" in f.name]
+            if year_files:
+                json_files = year_files
+
+        # 取最新 1-2 份年报数据
+        recent_files = json_files[:2]
+
+        parts = []
+        for jf in recent_files:
+            try:
+                data = json.loads(jf.read_text(encoding="utf-8"))
+                meta = data.get("meta", {})
+                fin = data.get("financial", {})
+                summary = data.get("business_summary", "")
+                risks = data.get("risks", [])
+
+                section = f"## 结构化财务数据（{meta.get('stock_name', symbol)} {meta.get('title', '')}\uff09\n"
+
+                # 财务指标表格
+                indicators = [
+                    ("营业收入(亿)", fin.get("revenue")),
+                    ("营收同比(%)", fin.get("revenue_yoy")),
+                    ("净利润(亿)", fin.get("net_profit")),
+                    ("净利润同比(%)", fin.get("net_profit_yoy")),
+                    ("扣非净利润(亿)", fin.get("deducted_net_profit")),
+                    ("毛利率(%)", fin.get("gross_profit_margin")),
+                    ("EPS", fin.get("eps")),
+                    ("总资产(亿)", fin.get("total_assets")),
+                    ("净资产(亿)", fin.get("net_assets")),
+                    ("资产负债率(%)", fin.get("debt_to_asset_ratio")),
+                    ("经营现金流(亿)", fin.get("operating_cashflow")),
+                    ("ROE(%)", fin.get("roe")),
+                    ("ROA(%)", fin.get("roa")),
+                    ("应收账款(亿)", fin.get("accounts_receivable")),
+                    ("PE", fin.get("pe_ratio")),
+                    ("总市值(亿)", fin.get("total_market_cap")),
+                    ("每10股分红", fin.get("dividend_per_10")),
+                ]
+
+                valid = [(k, v) for k, v in indicators if v is not None]
+                if valid:
+                    section += "\n| 指标 | 数值 |\n|------|------|\n"
+                    for k, v in valid:
+                        section += f"| {k} | {v} |\n"
+
+                # 经营摘要（截断）
+                if summary:
+                    section += f"\n### 经营情况讨论\n{summary[:1500]}\n"
+
+                # 风险因素
+                if risks:
+                    section += f"\n### 风险因素\n{', '.join(risks) if isinstance(risks, list) else risks}\n"
+
+                parts.append(section)
+                logger.info("Loaded financial data: %s", jf.name)
+            except Exception as e:
+                logger.warning("Failed to load financial JSON %s: %s", jf.name, e)
+
         return "\n\n---\n\n".join(parts)
 
     async def _collect_earnings_calls(
@@ -268,7 +365,8 @@ class MasterAnalysisSkill(BaseSkill):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"分析以下电话会议记录：\n\n{earnings_context}"},
             ]
-            answer = await llm_tool.chat(messages, temperature=0.5, max_tokens=4096)
+            response = await llm_tool.chat(messages, temperature=0.5, max_tokens=4096)
+            answer = response["choices"][0]["message"]["content"]
             return {
                 "success": True,
                 "data": {

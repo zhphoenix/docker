@@ -19,6 +19,7 @@ from api.vault import router as vault_router
 from api.agents import router as agents_router
 from api.documents import router as documents_router
 from api.research import router as research_router
+from api.reports import router as reports_router
 from api.knowledge import router as knowledge_router
 from api.vector import router as vector_router
 from tools.postgres import postgres_tool
@@ -38,6 +39,13 @@ async def lifespan(app: FastAPI):
     logger.info("Starting AI Platform Agent Service...")
     await postgres_tool.connect()
     logger.info("PostgreSQL connection pool ready")
+
+    # Apache AGE 图存储（可选，失败不阻塞）
+    from knowledge_agent.storage.age import knowledge_age
+    try:
+        await knowledge_age.connect()
+    except Exception as e:
+        logger.info("AGE storage init skipped: %s", e)
 
     # 注册 Skills
     from skills.registry import register_skill
@@ -76,6 +84,8 @@ async def lifespan(app: FastAPI):
     await obsidian_tool.close()
     await docling_tool.close()
     await postgres_tool.close()
+    from knowledge_agent.storage.age import knowledge_age
+    await knowledge_age.close()
 
 
 # 创建 FastAPI 实例
@@ -144,5 +154,6 @@ app.include_router(vault_router)
 app.include_router(agents_router)
 app.include_router(documents_router)
 app.include_router(research_router)
+app.include_router(reports_router)
 app.include_router(knowledge_router)
 app.include_router(vector_router)

@@ -9,6 +9,7 @@ Tools:
 from fastmcp import FastMCP
 
 from server.storage.postgres import pg_storage
+from server.storage.age import age_storage
 from server.cache import knowledge_cache
 from server.utils import serialize
 
@@ -56,16 +57,26 @@ def register_entity_tools(mcp: FastMCP) -> None:
     async def get_entity_graph(entity: str, depth: int = 2) -> dict:
         """获取实体关系图谱
 
-        从指定实体出发，递归遍历关系网络（最大深度 2）。
+        从指定实体出发，递归遍历关系网络。
+        优先使用 Apache AGE Cypher 查询，AGE 不可用时降级为 PostgreSQL CTE。
 
         Args:
             entity: 实体名称（如 "NVIDIA"、"腾讯"）
-            depth: 遍历深度（1-2）
+            depth: 遍历深度（1-3）
 
         Returns:
             {nodes: [{id, name, entity_type}], edges: [{source, target, relation_type, confidence, depth}]}
         """
-        # 先解析实体名 → ID
+        # 尝试 AGE Cypher 查询
+        if age_storage.available:
+            try:
+                result = await age_storage.get_entity_graph(entity, depth)
+                if result.get("nodes"):
+                    return result
+            except Exception:
+                pass  # Fallback to PG CTE
+
+        # Fallback: PostgreSQL CTE
         entities = await pg_storage.find_entity_by_name(entity, limit=1)
         if not entities:
             return {"nodes": [], "edges": [], "message": f"Entity '{entity}' not found"}

@@ -1,16 +1,18 @@
+# 生产环境 - 镜像固化模式（代码 COPY 进镜像，无热更新）
+# 使用: docker compose -f compose.prod.yml up -d --build
 services:
   langgraph:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: langgraph
     ports:
       - "8100:8100"
     env_file:
       - ../.env
     environment:
-      # 开发模式：启用 uvicorn 热重载
-      RELOAD: "true"
+      # 生产模式：禁用热重载
+      RELOAD: "false"
       # 显式设置 PostgreSQL 连接（覆盖 .env 中可能的冲突变量）
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -31,12 +33,9 @@ services:
       VAULT_ROOT: /vault
       REPORT_SOURCE_DIR: /data/analysis_reports
     volumes:
-      - ./agent:/app
+      # 生产模式：不挂载代码，仅挂载数据卷
       - /mnt/e/ai-platform/data/obsidian_vault:/vault
       - /mnt/e/ai-platform/data/reports:/data/analysis_reports:ro
-      - /mnt/e/ai-platform/data/stock_a:/data/stock_a:ro
-      - /mnt/e/ai-platform/data/stock_h:/data/stock_h:ro
-      - /mnt/e/ai-platform/data/stock_us:/data/stock_us:ro
     networks:
       - ai-platform
     extra_hosts:

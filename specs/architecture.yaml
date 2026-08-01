@@ -8,10 +8,15 @@
 #   SHOULD   - 推荐，偏离需说明理由
 
 meta:
-  version: "1.0.0"
+  version: "1.1.0"
   source_doc: "AI-Platform-System-Design/16_开发规范.md"
-  last_updated: "2026-07-27"
-  scope: "langgraph/agent/"
+  last_updated: "2026-08-01"
+  scope:
+    - "langgraph/agent/"
+    - "mcp-knowledge/"
+  registries:
+    agents: "specs/agent-registry.yaml"
+    ontology: "specs/ontology.yaml"
 
 # ============================================================
 # 分层架构约束 (§2.1 Layer 分离)
@@ -172,3 +177,45 @@ frontend_rules:
     rule: "样式使用 Design Tokens"
     check: "禁止硬编码颜色/间距值，必须使用 CSS 变量 + Tailwind 原子类"
     source: "25_UI设计规范 §6-7"
+
+# ============================================================
+# MCP Server 约束（v1.1.0 新增，scope 扩展至 mcp-knowledge/）
+# ============================================================
+mcp_server_rules:
+
+  - id: MCP-001
+    level: MUST_NOT
+    layer: mcp-knowledge/server/tools/
+    rule: "MCP Tool 不含业务逻辑"
+    check: "tools/ 文件中不得包含分析、推理、决策类逻辑；只封装存储查询"
+    source: "ARCH-004 延伸"
+
+  - id: MCP-002
+    level: MUST
+    rule: "MCP Tool 通过 storage/ 访问数据库"
+    check: "tools/ 文件中不得直接 import asyncpg/qdrant_client；必须调用 storage/ 模块"
+    source: "ARCH-003 延伸"
+
+  - id: MCP-003
+    level: MUST
+    rule: "MCP Server 工具注册集中管理"
+    check: "所有 @mcp.tool() 必须在 tools/*.py 中定义，禁止在 main.py 中内联注册"
+    source: "§4 ORG-001"
+
+  - id: MCP-004
+    level: SHOULD
+    rule: "MCP Tool 响应格式统一"
+    check: "所有 Tool 返回值使用 dict，包含 count/data 字段，错误返回 {error: message}"
+    source: "§3 NAM 一致性"
+
+  - id: MCP-005
+    level: MUST_NOT
+    rule: "Write Tools 禁止对低信任级别开放"
+    check: "create_*/update_* 工具仅限 caller=agent:knowledge 调用，禁止 external/chat 身份写入"
+    source: "docs/design/mcp-access-control.md §3"
+
+  - id: MCP-006
+    level: MUST
+    rule: "MCP Tool 调用必须记录审计日志"
+    check: "每次 Tool 调用记录 caller/tool/params/duration/status 到 audit.mcp_access_log"
+    source: "docs/design/mcp-access-control.md §6"

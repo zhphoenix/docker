@@ -12,6 +12,7 @@ from fastmcp import FastMCP
 from server.config import settings
 from server.storage.postgres import pg_storage
 from server.storage.qdrant import qdrant_storage
+from server.storage.age import age_storage
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,8 +26,18 @@ async def lifespan(server):
     """生命周期管理：启动初始化 / 关闭释放"""
     logger.info("MCP Knowledge Server starting...")
     await pg_storage.connect()
-    logger.info("MCP Knowledge Server ready (port=%d)", settings.MCP_PORT)
+    # AGE 图存储（可选，失败不阻塞启动）
+    try:
+        await age_storage.connect()
+    except Exception as e:
+        logger.warning("AGE storage init failed (non-fatal): %s", e)
+    logger.info(
+        "MCP Knowledge Server ready (port=%d, age=%s)",
+        settings.MCP_PORT,
+        "available" if age_storage.available else "unavailable",
+    )
     yield
+    await age_storage.close()
     await pg_storage.close()
     await qdrant_storage.close()
     logger.info("MCP Knowledge Server stopped")
@@ -50,12 +61,14 @@ from server.tools.fact import register_fact_tools  # noqa: E402
 from server.tools.semantic import register_semantic_tools  # noqa: E402
 from server.tools.write import register_write_tools  # noqa: E402
 from server.tools.analysis import register_analysis_tools  # noqa: E402
+from server.tools.graph import register_graph_tools  # noqa: E402
 
 register_entity_tools(mcp)
 register_fact_tools(mcp)
 register_semantic_tools(mcp)
 register_write_tools(mcp)
 register_analysis_tools(mcp)
+register_graph_tools(mcp)
 
 
 # ──────────────────────────────────────────────

@@ -11,6 +11,7 @@ import asyncio
 from fastmcp import FastMCP
 
 from server.storage.postgres import pg_storage
+from server.storage.age import age_storage
 from server.cache import knowledge_cache
 from server.utils import serialize
 
@@ -107,6 +108,7 @@ def register_analysis_tools(mcp: FastMCP) -> None:
         """获取供应链分析
 
         查询实体的供应商、客户、依赖关系。
+        优先使用 AGE 多跳遍历（性能更优），AGE 不可用时降级为 PG 查询。
 
         Args:
             entity: 公司名称
@@ -114,7 +116,49 @@ def register_analysis_tools(mcp: FastMCP) -> None:
         Returns:
             {entity, suppliers: [...], customers: [...], dependencies: [...]}
         """
-        # 解析实体
+        # 尝试 AGE Cypher 多跳遍历
+        if age_storage.available:
+            try:
+                cypher = f"""
+                    MATCH (e:Entity)-[r]-(related:Entity)
+                    WHERE (e.name = '{age_storage._escape(entity)}'
+                           OR e.canonical_name = '{age_storage._escape(entity)}')
+                      AND type(r) IN ['supplier', 'customer', 'depends_on']
+                    RETURN related, type(r) AS rel_type, r.confidence AS confidence
+                    LIMIT 50
+                """
+                results = await age_storage.execute_cypher(
+                    cypher, ["related", "rel_type", "confidence"]
+                )
+                if results:
+                    suppliers, customers, dependencies = [], [], []
+                    for row in results:
+                        node = row.get("related", {})
+                        rel_type = row.get("rel_type", "")
+                        item = {
+                            "id": node.get("entity_id", "") if isinstance(node, dict) else "",
+                            "name": node.get("name", "") if isinstance(node, dict) else "",
+                            "type": node.get("entity_type", "") if isinstance(node, dict) else "",
+                            "relation": rel_type,
+                            "confidence": row.get("confidence"),
+                        }
+                        if rel_type == "supplier":
+                            suppliers.append(item)
+                        elif rel_type == "customer":
+                            customers.append(item)
+                        elif rel_type == "depends_on":
+                            dependencies.append(item)
+                    return {
+                        "entity": {"name": entity},
+                        "suppliers": suppliers,
+                        "customers": customers,
+                        "dependencies": dependencies,
+                        "source": "age",
+                    }
+            except Exception:
+                pass  # Fallback to PG
+
+        # Fallback: PostgreSQL 查询
         entities = await pg_storage.find_entity_by_name(entity, limit=1)
         if not entities:
             return {"error": f"Entity '{entity}' not found"}
@@ -151,6 +195,7 @@ def register_analysis_tools(mcp: FastMCP) -> None:
             "suppliers": suppliers,
             "customers": customers,
             "dependencies": dependencies,
+            "source": "postgres",
         }
 
     @mcp.tool()
