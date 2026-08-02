@@ -192,6 +192,131 @@ class PostgresStorage:
             uuid.UUID(entity_id), depth,
         )
 
+    async def find_path_between(
+        self, source_id: str, target_id: str, max_depth: int = 4, limit: int = 5
+    ) -> list[dict]:
+        """寻找两实体间的最短路径（双向，递归 CTE）
+
+        Args:
+            source_id: 起点实体 ID
+            target_id: 终点实体 ID
+            max_depth: 最大路径深度（双向，硬限 ≤ 6）
+            limit: 返回路径数（默认 5）
+
+        Returns:
+            [{path_id, path, relations, depth}]，按 depth 升序
+        """
+        max_depth = min(max_depth, 6)
+        src = uuid.UUID(source_id)
+        tgt = uuid.UUID(target_id)
+
+        # 双向遍历：每个边按无向读取（source↔target 均可扩展），避免单向漏路径
+        return await self.query(
+            """
+            WITH RECURSIVE path_search AS (
+                -- 双向起点：匹配 source 或 target 为起点的边
+                SELECT
+                    ARRAY[r.source_entity, r.target_entity] AS path_entities,
+                    ARRAY[r.id] AS path_relation_ids,
+                    1 AS depth,
+                    (r.target_entity = $2::uuid OR r.source_entity = $2::uuid) AS found
+                FROM core.relations r
+                WHERE r.status = 'active'
+                  AND (r.source_entity = $1::uuid OR r.target_entity = $1::uuid)
+
+                UNION ALL
+
+                SELECT
+                    CASE WHEN r.source_entity = p.path_entities[array_length(p.path_entities, 1)]
+                         THEN p.path_entities || r.target_entity
+                         ELSE p.path_entities || r.source_entity END,
+                    p.path_relation_ids || r.id,
+                    p.depth + 1,
+                    (r.target_entity = $2::uuid OR r.source_entity = $2::uuid)
+                FROM path_search p
+                JOIN core.relations r
+                  ON (r.source_entity = p.path_entities[array_length(p.path_entities, 1)]
+                      OR r.target_entity = p.path_entities[array_length(p.path_entities, 1)])
+                 AND r.status = 'active'
+                WHERE p.depth < $3
+                  -- 两端均跳过已访问节点，防止环与重复节点
+                  AND NOT (r.source_entity = ANY(p.path_entities))
+                  AND NOT (r.target_entity = ANY(p.path_entities))
+            )
+            SELECT path_entities, path_relation_ids, depth
+            FROM path_search
+            WHERE found
+            ORDER BY depth
+            LIMIT $4
+            """,
+            src, tgt, max_depth, limit,
+        )
+
+    async def find_related_companies(
+        self, entity_id: str, depth: int = 2, relation_types: list[str] | None = None,
+        limit: int = 50,
+    ) -> list[dict]:
+        """多跳关联公司检索（无向递归 CTE）
+
+        从起点实体出发沿无向边扩展多跳，`visited` 数组防环并去重，
+        保留关系方向语义（source→target）。递归每层已过滤 active。
+
+        Args:
+            entity_id: 起点公司 ID
+            depth: 最大跳数（硬限 ≤ 3）
+            relation_types: 关系类型过滤（如 supplier/customer/partner...）
+            limit: 返回数量
+
+        Returns:
+            [{source_entity, target_entity, relation_type, confidence, depth}]
+        """
+        depth = min(depth, 3)
+        eid = uuid.UUID(entity_id)
+
+        # 无向扩展 + visited 防环去重的递归 CTE 模板（当前节点 cur，向对端扩展）
+        cte = (
+            "WITH RECURSIVE graph AS (\n"
+            "    SELECT\n"
+            "        CASE WHEN r.source_entity = $1 THEN r.target_entity ELSE r.source_entity END AS cur,\n"
+            "        r.source_entity, r.target_entity, r.relation_type, r.confidence, \n"
+            "        1 AS depth,\n"
+            "        ARRAY[$1] AS visited\n"
+            "    FROM core.relations r\n"
+            "    WHERE (r.source_entity = $1 OR r.target_entity = $1)\n"
+            "      AND r.status = 'active'"
+            "    {rel_filter}\n\n"
+            "    UNION ALL\n\n"
+            "    SELECT\n"
+            "        CASE WHEN r.source_entity = g.cur THEN r.target_entity ELSE r.source_entity END AS cur,\n"
+            "        r.source_entity, r.target_entity, r.relation_type, r.confidence, \n"
+            "        g.depth + 1,\n"
+            "        g.visited || g.cur\n"
+            "    FROM graph g\n"
+            "    JOIN core.relations r\n"
+            "      ON (r.source_entity = g.cur OR r.target_entity = g.cur)\n"
+            "     AND r.status = 'active'"
+            "    {rel_filter}\n"
+            "    WHERE g.depth < $2\n"
+            "      AND NOT (r.source_entity = ANY(g.visited))\n"
+            "      AND NOT (r.target_entity = ANY(g.visited))\n"
+            ")\n"
+            "SELECT DISTINCT source_entity, target_entity, relation_type, confidence, depth\n"
+            "FROM graph\n"
+            "ORDER BY depth, confidence DESC NULLS LAST\n"
+            "LIMIT $3"
+        )
+
+        if relation_types:
+            return await self.query(
+                cte.format(rel_filter="AND r.relation_type = ANY($4)"),
+                eid, depth, limit, relation_types,
+            )
+
+        return await self.query(
+            cte.format(rel_filter=""),
+            eid, depth, limit,
+        )
+
     # ──────────────────────────────────────────────
     # Fact 查询
     # ──────────────────────────────────────────────
@@ -361,8 +486,9 @@ class PostgresStorage:
         await self.execute(
             """
             INSERT INTO core.relations
-                (id, source_entity, target_entity, relation_type, properties, confidence)
-            VALUES ($1, $2, $3, $4, $5::jsonb, $6)
+                (id, source_entity, target_entity, relation_type, properties,
+                 confidence, valid_from, valid_to)
+            VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7, $8)
             """,
             uuid.UUID(rid),
             uuid.UUID(relation["source_entity"]),
@@ -370,6 +496,8 @@ class PostgresStorage:
             relation["relation_type"],
             json.dumps(relation.get("properties", {}), ensure_ascii=False),
             relation.get("confidence"),
+            relation.get("valid_from"),
+            relation.get("valid_to"),
         )
         return rid
 

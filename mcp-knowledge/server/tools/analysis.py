@@ -16,7 +16,7 @@ from server.cache import knowledge_cache
 from server.utils import serialize
 
 # 供应链相关关系类型
-_SUPPLY_CHAIN_TYPES = ["supplier", "customer", "supplies", "depends_on"]
+_SUPPLY_CHAIN_TYPES = ["supplier", "customer", "depends_on"]
 
 
 def register_analysis_tools(mcp: FastMCP) -> None:
@@ -120,10 +120,10 @@ def register_analysis_tools(mcp: FastMCP) -> None:
         if age_storage.available:
             try:
                 cypher = f"""
-                    MATCH (e:Entity)-[r]-(related:Entity)
+                    MATCH (e)-[r]-(related)
                     WHERE (e.name = '{age_storage._escape(entity)}'
                            OR e.canonical_name = '{age_storage._escape(entity)}')
-                      AND type(r) IN ['supplier', 'customer', 'depends_on']
+                      AND type(r) IN {list(_SUPPLY_CHAIN_TYPES)}
                     RETURN related, type(r) AS rel_type, r.confidence AS confidence
                     LIMIT 50
                 """
@@ -183,7 +183,7 @@ def register_analysis_tools(mcp: FastMCP) -> None:
                 "relation": r["relation_type"],
                 "confidence": r.get("confidence"),
             }
-            if r["relation_type"] in ("supplier", "supplies"):
+            if r["relation_type"] == "supplier":
                 suppliers.append(item)
             elif r["relation_type"] == "customer":
                 customers.append(item)

@@ -50,10 +50,20 @@ async def knowledge_merger(state: dict) -> dict:
             embeddings = [[] for _ in entities]
             new_errors.append(f"Merger: embedding failed: {e}")
 
-    # 分离新实体和待合并实体
+    # 分离新实体和待合并实体（嵌入式消歧：名称精确 + 向量相似）
     new_entities: list[dict] = []
     merge_entities: list[dict] = []
+    merge_report: dict = {
+        "checked": 0,
+        "by_name": [],
+        "by_embedding": [],
+        "created_new": 0,
+    }
 
+    # 1. 名称精确消歧：一次批量查找全部候选新实体名
+    # 记录 (idx -> entity_record)，供后续向量消歧复用
+    candidates: dict[int, dict] = {}  # idx -> entity_record
+    candidate_names: set[str] = set()
     for i, entity in enumerate(entities):
         embedding = embeddings[i] if i < len(embeddings) else None
 
@@ -66,16 +76,77 @@ async def knowledge_merger(state: dict) -> dict:
             "canonical_name": entity.get("name"),
             "confidence": entity.get("confidence", 1.0),
             "embedding": str(embedding) if embedding else None,
+            "_embedding_vec": embedding,  # 内部用于向量消歧
         }
 
         if entity.get("existing_id"):
-            # 合并到已有实体
+            # 已由上游 Validator 识别的重复实体 → 直接合并到已有实体
             entity_record["id"] = entity["existing_id"]
             merge_entities.append(entity_record)
         else:
-            # 新实体
-            entity_record["id"] = str(uuid.uuid4())
-            new_entities.append(entity_record)
+            # 新实体候选：先消歧核对，命中则改为合并
+            candidates[i] = entity_record
+            candidate_names.add(entity["name"])
+
+    if candidates:
+        name_to_id: dict[str, str] = {}
+        try:
+            found = await knowledge_storage.find_entities_by_names(list(candidate_names))
+            for row in found:
+                nm = (row.get("name") or "").lower()
+                canonical = (row.get("canonical_name") or "").lower()
+                if nm and nm not in name_to_id:
+                    name_to_id[nm] = str(row["id"])
+                if canonical and canonical not in name_to_id:
+                    name_to_id[canonical] = str(row["id"])
+        except Exception as e:
+            logger.warning("Merger: name-resolution batch lookup failed: %s", e)
+
+        for i, record in candidates.items():
+            key = record["name"].lower()
+            existing_id = name_to_id.get(key)
+            if existing_id:
+                # 名称精确命中抽象实体（含 canonical_name）→ 合并
+                record.pop("_embedding_vec", None)
+                record["id"] = existing_id
+                merge_entities.append(record)
+                merge_report["by_name"].append({
+                    "name": record["name"],
+                    "kept_id": existing_id,
+                })
+                continue
+
+            # 2. 名称未命中 → 向量相似消歧（需有效 embedding）
+            vec = record.get("_embedding_vec")
+            if vec:
+                vec = [float(x) for x in vec] if not all(isinstance(x, float) for x in vec) else vec
+                try:
+                    sim_rows = await knowledge_storage.search_entity_by_embedding(
+                        vec, threshold=0.85, limit=1
+                    )
+                    if sim_rows:
+                        kept_id = str(sim_rows[0]["id"])
+                        record.pop("_embedding_vec", None)
+                        record["id"] = kept_id
+                        merge_entities.append(record)
+                        merge_report["by_embedding"].append({
+                            "name": record["name"],
+                            "kept_id": kept_id,
+                            "kept_name": sim_rows[0].get("name", ""),
+                            "similarity": round(float(sim_rows[0].get("similarity", 0)), 4),
+                        })
+                        continue
+                except Exception as e:
+                    logger.warning("Merger: embedding-resolution failed for '%s': %s",
+                                   record["name"], e)
+
+            # 3. 未命中 → 新建实体
+            record.pop("_embedding_vec", None)
+            record["id"] = str(uuid.uuid4())
+            new_entities.append(record)
+            merge_report["created_new"] += 1
+
+    merge_report["checked"] = len(candidates)
 
     # 批量 upsert（新 + 合并一起处理，ON CONFLICT 自动合并）
     all_entity_records = new_entities + merge_entities
@@ -93,12 +164,26 @@ async def knowledge_merger(state: dict) -> dict:
         target_id = name_to_id.get(rel.get("target", "").lower())
 
         if source_id and target_id:
+            # Temporal：从关系属性或顶层取 valid_from/valid_to
+            rel_props = rel.get("properties", {}) or {}
+            valid_from = (
+                rel.get("valid_from")
+                or rel_props.get("valid_from")
+                or rel_props.get("time_start")
+            )
+            valid_to = (
+                rel.get("valid_to")
+                or rel_props.get("valid_to")
+                or rel_props.get("time_end")
+            )
             relation_records.append({
                 "source_entity": source_id,
                 "target_entity": target_id,
                 "relation_type": rel["relation_type"],
                 "confidence": rel.get("confidence"),
-                "properties": rel.get("properties", {}),
+                "properties": rel_props,
+                "valid_from": valid_from or None,
+                "valid_to": valid_to or None,
             })
 
     if relation_records:
@@ -188,4 +273,5 @@ async def knowledge_merger(state: dict) -> dict:
         "stored_entity_ids": stored_entity_ids,
         "stored_fact_ids": stored_fact_ids,
         "errors": new_errors,
+        "merge_report": merge_report,
     }

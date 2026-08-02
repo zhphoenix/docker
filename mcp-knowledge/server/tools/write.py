@@ -110,15 +110,19 @@ def register_write_tools(mcp: FastMCP) -> None:
         relation_type: str,
         confidence: float = 1.0,
         properties: dict | None = None,
+        valid_from: str = "",
+        valid_to: str = "",
     ) -> dict:
         """创建实体关系
 
         Args:
             source_entity: 源实体 ID（UUID）
             target_entity: 目标实体 ID（UUID）
-            relation_type: 关系类型（supplier/customer/competitor/depends_on/owns/uses/invests_in/located_in/impacts/causes）
+            relation_type: 关系类型（supplier/customer/competitor/depends_on/owns/uses/invests_in/located_in/impacts/causes/partner/belongs_to）
             confidence: 置信度
             properties: 扩展属性
+            valid_from: 关系生效起始时间（YYYY-MM-DD）
+            valid_to: 关系失效时间（YYYY-MM-DD，空=仍有效）
 
         Returns:
             {id, relation_type, status: "created"}
@@ -129,6 +133,8 @@ def register_write_tools(mcp: FastMCP) -> None:
             "relation_type": relation_type,
             "confidence": confidence,
             "properties": properties or {},
+            "valid_from": valid_from or None,
+            "valid_to": valid_to or None,
         }
 
         rid = await pg_storage.create_relation(relation)

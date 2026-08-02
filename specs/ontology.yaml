@@ -80,11 +80,11 @@ entity_types:
     properties_hint: ["theme"]
 
 # ============================================================
-# Relation Types（10 种）
+# Relation Types（12 种）
 # ============================================================
-# 注意：Prompt 中使用动词形式（supplies, competes_with），
-#       代码存储使用名词形式（supplier, competitor）。
-#       本文件以代码存储形式为规范（canonical），Prompt 中需对齐。
+# 注意：prompt 与代码存储统一使用名词形式（supplier, competitor）。
+#       prompt_alias 仅记录历史动词别名（如 supplies）用于向后兼容识别，
+#       写入 AGE/PG 时均以名词 canonical 为准。
 relation_types:
 
   - id: supplier
@@ -158,6 +158,21 @@ relation_types:
     description: "A 导致 B（因果关系）"
     direction: "source → target"
     examples: ["AI Demand Growth → GPU Shortage"]
+
+  - id: partner
+    label: 合作
+    canonical: true
+    prompt_alias: "partners_with"
+    description: "A 与 B 建立合作关系"
+    direction: "bidirectional"
+    examples: ["NVIDIA ↔ TSMC (AI 芯片合作)"]
+
+  - id: belongs_to
+    label: 归属
+    canonical: true
+    description: "A 属于 B（如 Company → Industry）"
+    direction: "source → target"
+    examples: ["NVIDIA → AI Semiconductor"]
 
 # ============================================================
 # Event Types（9 种）
@@ -250,18 +265,18 @@ news_categories:
 
 known_issues:
 
-  - issue: "Prompt relation_extraction.md 使用动词形式（supplies, competes_with），代码使用名词形式（supplier, competitor）"
-    resolution: "以本文件 canonical 形式为准，Prompt 需同步更新"
+  - issue: "Prompt relation_extraction.md 已改为名词形式（supplier, competitor 等），与代码存储形式对齐"
+    resolution: "已解决（relation_extraction.md 现直接输出 canonical 名词形式）"
     affected_files:
-      - "langgraph/agent/prompts/knowledge/relation_extraction.md"
+      - "langgraph/agent/prompts/kb/relation_extraction.md"
       - "mcp-knowledge/server/tools/write.py"
 
-  - issue: "Prompt 缺少 customer 关系类型"
-    resolution: "在 relation_extraction.md 中补充 customer 类型"
+  - issue: "Prompt 已补充 customer 关系类型，并新增 partner / belongs_to"
+    resolution: "已解决（relation_extraction.md 与 AGE edge labels 同步）"
     affected_files:
-      - "langgraph/agent/prompts/knowledge/relation_extraction.md"
+      - "langgraph/agent/prompts/kb/relation_extraction.md"
 
   - issue: "设计文档 knowledge-graph-ingestion-agent.md v1.0 定义了不同的关系集（partners_with, manufactures, regulates, restricts）"
-    resolution: "v2.0 已对齐本文件，旧版仅供历史参考"
+    resolution: "v2.0 已对齐本文件（prompt_alias 记录 partners_with），旧版仅供历史参考"
     affected_files:
       - "docs/design/knowledge-graph-ingestion-agent.md"

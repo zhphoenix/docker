@@ -46,6 +46,7 @@ VALID_LABELS = {
 VALID_EDGE_LABELS = {
     "supplier", "customer", "competitor", "depends_on", "owns",
     "uses", "invests_in", "located_in", "impacts", "causes", "SUPERSEDES",
+    "partner", "belongs_to",
 }
 
 
@@ -159,7 +160,8 @@ async def sync_relations(conn: asyncpg.Connection, batch_size: int, dry_run: boo
     while offset < total:
         rows = await conn.fetch(
             """
-            SELECT id, source_entity, target_entity, relation_type, confidence
+            SELECT id, source_entity, target_entity, relation_type, confidence,
+                   valid_from, valid_to
             FROM core.relations
             WHERE status = 'active'
             ORDER BY id
@@ -174,18 +176,26 @@ async def sync_relations(conn: asyncpg.Connection, batch_size: int, dry_run: boo
             relation_type = row["relation_type"] or "depends_on"
             confidence = row["confidence"] if row["confidence"] is not None else 1.0
 
+            # Temporal：valid_from / valid_to（空值写成 NULL）
+            valid_from = escape_cypher(str(row["valid_from"])) if row["valid_from"] else None
+            valid_to = escape_cypher(str(row["valid_to"])) if row["valid_to"] else None
+            valid_from_cypher = f"'{valid_from}'" if valid_from else "NULL"
+            valid_to_cypher = f"'{valid_to}'" if valid_to else "NULL"
+
             # 确保 edge label 合法
             if relation_type not in VALID_EDGE_LABELS:
                 relation_type = "depends_on"
 
             cypher = f"""
-                MATCH (a:Entity {{entity_id: '{source_id}'}})
-                MATCH (b:Entity {{entity_id: '{target_id}'}})
+                MATCH (a {{entity_id: '{source_id}'}})
+                MATCH (b {{entity_id: '{target_id}'}})
                 MERGE (a)-[r:{relation_type}]->(b)
                 SET r.confidence = {confidence},
                     r.source_id = '{source_id}',
                     r.target_id = '{target_id}',
-                    r.relation_type = '{relation_type}'
+                    r.relation_type = '{relation_type}',
+                    r.valid_from = {valid_from_cypher},
+                    r.valid_to = {valid_to_cypher}
                 RETURN r
             """
 

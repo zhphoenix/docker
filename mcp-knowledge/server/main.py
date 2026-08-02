@@ -13,6 +13,7 @@ from server.config import settings
 from server.storage.postgres import pg_storage
 from server.storage.qdrant import qdrant_storage
 from server.storage.age import age_storage
+from server.llm import llm_client
 
 logging.basicConfig(
     level=logging.INFO,
@@ -40,6 +41,7 @@ async def lifespan(server):
     await age_storage.close()
     await pg_storage.close()
     await qdrant_storage.close()
+    await llm_client.close()
     logger.info("MCP Knowledge Server stopped")
 
 

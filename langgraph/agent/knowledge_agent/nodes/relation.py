@@ -15,6 +15,14 @@ from config.policy_loader import get_policy
 logger = logging.getLogger(__name__)
 
 
+# 合法的关系类型白名单（与 specs/ontology.yaml / AGE VALID_EDGE_LABELS 对齐）
+VALID_RELATION_TYPES = {
+    "supplier", "customer", "competitor", "depends_on", "owns",
+    "uses", "invests_in", "located_in", "impacts", "causes",
+    "partner", "belongs_to",
+}
+
+
 async def relation_extractor(state: dict) -> dict:
     """关系提取节点
 
@@ -120,6 +128,13 @@ def _parse_relations(text: str, valid_names: set[str]) -> list[dict]:
             # 校验：source/target 必须在已识别实体中
             if source and target and rtype:
                 if source.lower() in valid_names and target.lower() in valid_names:
+                    # 校验：relation_type 必须在白名单内（过滤动词残留等非法值）
+                    if rtype not in VALID_RELATION_TYPES:
+                        logger.warning(
+                            "RelationExtractor: skip invalid relation_type=%r (from %s → %s)",
+                            rtype, source, target,
+                        )
+                        continue
                     valid.append({
                         "source": source,
                         "target": target,

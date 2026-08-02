@@ -142,7 +142,7 @@ class AGEStorage:
         depth = min(max(depth, 1), 3)
 
         cypher = f"""
-            MATCH path = (e:Entity)-[*1..{depth}]-(related:Entity)
+            MATCH path = (e)-[*1..{depth}]-(related)
             WHERE e.name = '{self._escape(entity_name)}'
                OR e.canonical_name = '{self._escape(entity_name)}'
             UNWIND nodes(path) AS n
@@ -189,22 +189,41 @@ class AGEStorage:
 
         return {"nodes": nodes, "edges": edges}
 
-    async def trace_event_impact(self, event_name: str, depth: int = 3) -> dict:
-        """事件影响链追踪
+    async def trace_event_impact(
+        self, event_name: str, depth: int = 3, date_from: str = "", date_to: str = ""
+    ) -> dict:
+        """事件影响链追踪（支持按事件时间过滤）
 
         Event → impacted Entities → their relations → ...
+
+        Args:
+            date_from: 事件最早日期（含，ISO yyyy-MM-dd），空=不限
+            date_to: 事件最晚日期（含，ISO yyyy-MM-dd），空=不限
 
         Returns:
             {event, impact_chain: [{entity, entity_type, relation, depth}], total_impacted}
         """
         depth = min(max(depth, 1), 4)
 
+        # 时间过滤（按 ev.event_date，ISO 字符串比较）
+        time_conditions = []
+        if date_from:
+            time_conditions.append(
+                f"ev.event_date >= '{self._escape(date_from)}'"
+            )
+        if date_to:
+            time_conditions.append(
+                f"ev.event_date <= '{self._escape(date_to)}'"
+            )
+        time_filter = " AND " + " AND ".join(time_conditions) if time_conditions else ""
+
         cypher = f"""
-            MATCH (ev:Event)-[:impacts]->(e:Entity)
-            WHERE ev.name CONTAINS '{self._escape(event_name)}'
-               OR ev.title CONTAINS '{self._escape(event_name)}'
+            MATCH (ev:Event)-[:impacts]->(e)
+            WHERE (ev.name CONTAINS '{self._escape(event_name)}'
+               OR ev.title CONTAINS '{self._escape(event_name)}')
+            {time_filter}
             WITH ev, e
-            MATCH path = (e)-[*1..{depth}]-(impacted:Entity)
+            MATCH path = (e)-[*1..{depth}]-(impacted)
             UNWIND nodes(path) AS n
             WITH ev, collect(DISTINCT n) AS impacted_nodes,
                  collect(DISTINCT e) AS direct_entities
@@ -266,7 +285,7 @@ class AGEStorage:
             WHERE (ev.name CONTAINS '{self._escape(query)}'
                    OR ev.description CONTAINS '{self._escape(query)}')
                   {type_filter}
-            OPTIONAL MATCH (ev)-[:impacts]->(e:Entity)
+            OPTIONAL MATCH (ev)-[:impacts]->(e)
             WITH ev, collect(e.name) AS entities
             RETURN ev, entities
             LIMIT {limit}
@@ -339,22 +358,31 @@ class AGEStorage:
         relation_type = relation.get("relation_type", "depends_on")
         confidence = relation.get("confidence", 1.0) or 1.0
 
+        # Temporal：valid_from / valid_to（空值写成 NULL）
+        vf = self._escape(str(relation["valid_from"])) if relation.get("valid_from") else None
+        vt = self._escape(str(relation["valid_to"])) if relation.get("valid_to") else None
+        valid_from_cypher = f"'{vf}'" if vf else "NULL"
+        valid_to_cypher = f"'{vt}'" if vt else "NULL"
+
         # 确保 relation_type 是合法的 edge label
         valid_types = (
             "supplier", "customer", "competitor", "depends_on", "owns",
             "uses", "invests_in", "located_in", "impacts", "causes", "SUPERSEDES",
+            "partner", "belongs_to",
         )
         if relation_type not in valid_types:
             relation_type = "depends_on"
 
         cypher = f"""
-            MATCH (a:Entity {{entity_id: '{source_id}'}})
-            MATCH (b:Entity {{entity_id: '{target_id}'}})
+            MATCH (a {{entity_id: '{source_id}'}})
+            MATCH (b {{entity_id: '{target_id}'}})
             MERGE (a)-[r:{relation_type}]->(b)
             SET r.confidence = {confidence},
                 r.source_id = '{source_id}',
                 r.target_id = '{target_id}',
-                r.relation_type = '{relation_type}'
+                r.relation_type = '{relation_type}',
+                r.valid_from = {valid_from_cypher},
+                r.valid_to = {valid_to_cypher}
             RETURN r
         """
         await self.execute_cypher_write(cypher)

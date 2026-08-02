@@ -11,6 +11,7 @@
 
 import json
 import logging
+import re
 import uuid
 from typing import Any
 
@@ -280,6 +281,77 @@ class DocumentPipeline:
             doc_id,
         )
         return True
+
+    _ANNUAL_REPORT_RE = re.compile(
+        r"^(?P<market>[^/]+)/(?P<symbol>[^/]+)/annual_report/(?P<year>\d{4})/report\.(pdf|md)$"
+    )
+
+    async def register_pending_from_minio(
+        self, bucket: str = "documents", prefix: str = "", market: str = ""
+    ) -> dict[str, int]:
+        """扫描 MinIO 桶，把年报对象注册为 pending documents（幂等）
+
+        仅处理 /annual_report/{year}/report.{pdf|md} 形态的对象；
+        已存在（按 object_key 判重）或无法解析路径的对象跳过。
+
+        Returns:
+            {"added": N, "skipped": M, "found": K}
+        """
+        object_keys = await minio_tool.list_objects(bucket, prefix)
+        if market:
+            object_keys = [k for k in object_keys if k.startswith(f"{market}/")]
+
+        found = len(object_keys)
+        added = 0
+        skipped = 0
+
+        for key in object_keys:
+            m = self._ANNUAL_REPORT_RE.match(key)
+            if not m:
+                skipped += 1
+                continue
+
+            mkt = m.group("market")
+            symbol = m.group("symbol")
+            try:
+                year = int(m.group("year"))
+            except ValueError:
+                skipped += 1
+                continue
+            doc_type = "annual_report" if key.endswith(".pdf") else "markdown"
+
+            # 幂等：按 object_key 判重
+            exists = await postgres_tool.query(
+                "SELECT 1 FROM documents WHERE object_key = $1", key
+            )
+            if exists:
+                skipped += 1
+                continue
+
+            doc_id = str(uuid.uuid4())
+            await postgres_tool.execute(
+                """
+                INSERT INTO documents
+                    (id, market, symbol, company, year, document_type,
+                     status, parser, chunk_count, metadata, bucket, object_key)
+                VALUES ($1, $2, $3, '', $4, $5, 'pending', 'docling', 0,
+                        $6::jsonb, $7, $8)
+                """,
+                doc_id, mkt, symbol, year, doc_type,
+                json.dumps({"source": "minio", "object_key": key}),
+                bucket, key,
+            )
+            added += 1
+            logger.info(
+                "Registered pending doc | %s | %s/%s | year=%d",
+                doc_id[:8], mkt, symbol, year,
+            )
+
+        logger.info(
+            "MinIO pending registration done | bucket=%s prefix=%r | found=%d added=%d skipped=%d",
+            bucket, prefix, found, added, skipped,
+        )
+        return {"added": added, "skipped": skipped, "found": found}
 
 
 # 模块级单例

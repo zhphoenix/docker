@@ -114,13 +114,16 @@ class KnowledgePostgresStorage:
                     r["relation_type"],
                     json.dumps(r.get("properties", {}), ensure_ascii=False),
                     r.get("confidence"),
+                    r.get("valid_from"),
+                    r.get("valid_to"),
                 ))
 
             await postgres_tool.execute_many(
                 """
                 INSERT INTO core.relations
-                    (id, source_entity, target_entity, relation_type, properties, confidence)
-                VALUES ($1, $2, $3, $4, $5::jsonb, $6)
+                    (id, source_entity, target_entity, relation_type, properties,
+                     confidence, valid_from, valid_to)
+                VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7, $8)
                 """,
                 args_list,
             )

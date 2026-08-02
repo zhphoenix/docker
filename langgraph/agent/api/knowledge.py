@@ -12,9 +12,12 @@ from pydantic import BaseModel, Field
 
 from config.settings import settings
 from tools.postgres import postgres_tool
+from tools.llm import llm_tool
+from config.policy_loader import get_policy
 from knowledge_agent.storage.postgres import knowledge_storage
 from knowledge_agent.storage.qdrant import knowledge_qdrant
 from services.task_queue import task_queue
+from services.pipeline import doc_pipeline
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
@@ -274,6 +277,170 @@ async def hybrid_search(request: HybridSearchRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class GraphRAGRequest(BaseModel):
+    query: str = Field(..., min_length=1, description="自然语言查询")
+    entity_name: str = ""
+    limit: int = Field(10, ge=1, le=30)
+
+
+def _build_rag_context(
+    query: str,
+    graph_results: list[dict],
+    vector_results: dict,
+    entity_ids: list[str],
+) -> dict:
+    """组装 GraphRAG 上下文（图证据 + 向量证据）
+
+    Returns:
+        {"graph_evidence": [...], "vector_evidence": [...]}
+    """
+    # 图证据：关系边（含实体 id，供引用）
+    graph_evidence = [
+        {
+            "source_entity": str(r["source_entity"]),
+            "target_entity": str(r["target_entity"]),
+            "relation_type": r["relation_type"],
+            "depth": r["depth"],
+        }
+        for r in graph_results
+    ]
+
+    # 向量证据：实体描述 + 事实
+    vector_evidence: list[dict] = []
+    for ent in vector_results.get("entities", []):
+        payload = ent.get("payload", {}) or {}
+        vector_evidence.append({
+            "kind": "entity",
+            "name": payload.get("name", ""),
+            "entity_type": payload.get("entity_type", ""),
+            "description": (payload.get("description") or "")[:600],
+        })
+    for fact in vector_results.get("facts", []):
+        payload = fact.get("payload", {}) or {}
+        vector_evidence.append({
+            "kind": "fact",
+            "subject": payload.get("subject_name", ""),
+            "predicate": payload.get("predicate", ""),
+            "value": (payload.get("object_value") or "")[:400],
+            "time_start": payload.get("time_start", ""),
+        })
+
+    # 限制上下文量，避免超出模型 context
+    graph_evidence = graph_evidence[:30]
+    vector_evidence = vector_evidence[:30]
+
+    return {"graph_evidence": graph_evidence, "vector_evidence": vector_evidence}
+
+
+@router.post("/search/rag")
+async def graphrag_search(request: GraphRAGRequest):
+    """GraphRAG 增强检索：图遍历 + 向量检索 + LLM 融合推理
+
+    与 /search 的区别：在混合检索基础上叠加 LLM 推理，
+    产出带引用（图证据 + 向量证据）的可解释答案段落。
+    """
+    try:
+        # 1. 结构化图检索
+        graph_results = []
+        vector_results = []
+        entity_ids = []
+
+        if request.entity_name:
+            entities = await knowledge_storage.find_entity_by_name(
+                request.entity_name, limit=1
+            )
+            if entities:
+                entity_id = str(entities[0]["id"])
+                entity_ids = [entity_id]
+                graph_results = await knowledge_storage.get_entity_neighbors(
+                    entity_id, depth=2
+                )
+
+        # 2. 语义向量检索
+        vector_results = await knowledge_qdrant.hybrid_search(
+            query=request.query,
+            entity_ids=entity_ids if entity_ids else None,
+            limit=request.limit,
+        )
+
+        # 3. 组装推理上下文
+        context = _build_rag_context(
+            request.query, graph_results, vector_results, entity_ids
+        )
+
+        graph_txt = "\n".join(
+            f"- [{e['relation_type']}] {e['source_entity'][:8]} → {e['target_entity'][:8]} (depth={e['depth']})"
+            for e in context["graph_evidence"]
+        ) or "(无图证据)"
+        vec_txt = "\n".join(
+            f"- ({e['kind']}) "
+            + (
+                f"{e.get('name', '')}({e.get('entity_type', '')}): {e.get('description', '')}"
+                if e["kind"] == "entity"
+                else f"{e.get('subject', '')} - {e.get('predicate', '')}: {e.get('value', '')} @ {e.get('time_start', '')}"
+            )
+            for e in context["vector_evidence"]
+        ) or "(无向量证据)"
+
+        prompt = (
+            "你是投资研究知识问答助手，基于以下证据回答用户问题。\n"
+            "要求：\n"
+            "1. 只能基于给出的证据推理，不得编造；证据不足时明确说明。\n"
+            "2. 输出纯 JSON（不要 markdown 代码块）：{\"summary\": "
+            "\"一段完整、连贯的中文答案\", \"key_findings\": [{\"finding\": "
+            "\"结论要点\", \"cited_evidence\": [\"对应证据原文片段\"]}]}.\n\n"
+            f"## 用户问题\n{request.query}\n\n"
+            f"## 图证据（结构化关系，entity_id 唯一标识）\n{graph_txt}\n\n"
+            f"## 向量证据（实体/事实描述）\n{vec_txt}\n"
+            "## 输出\n"
+        )
+
+        messages = [
+            {"role": "system", "content": "你是严谨的投资知识图谱推理助手，支持证据引用，输出结构化 JSON。"},
+            {"role": "user", "content": prompt},
+        ]
+
+        temperature = get_policy("knowledge.rag.temperature", 0.1)
+
+        # 4. LLM 融合推理（失败时降级为原始检索结果）
+        fusion = {"summary": "", "key_findings": []}
+        try:
+            result = await llm_tool.chat(messages, temperature=temperature)
+            raw = (result.get("choices", [{}])[0].get("message", {}).get("content") or "").strip()
+            # 去除可能的代码围栏
+            if raw.startswith("```"):
+                raw = raw.strip("`").strip()
+                if raw.startswith("json"):
+                    raw = raw[4:].strip()
+            try:
+                import json as _json
+                parsed = _json.loads(raw)
+                if isinstance(parsed, dict):
+                    fusion = {
+                        "summary": str(parsed.get("summary", "")),
+                        "key_findings": parsed.get("key_findings", []) or [],
+                    }
+            except Exception:
+                fusion = {"summary": raw, "key_findings": []}
+        except Exception as e:
+            logger.warning("GraphRAG LLM fusion failed (degraded): %s", e)
+            fusion = {"summary": "", "key_findings": []}
+
+        return {
+            "query": request.query,
+            "fusion": fusion,
+            "entity_ids_used": entity_ids,
+            "evidence": {
+                "graph": context["graph_evidence"],
+                "vector": context["vector_evidence"],
+            },
+            "degraded": fusion["summary"] == "",
+        }
+    except Exception as e:
+        logger.exception("GraphRAG search failed")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ============================================================
 # 知识提取任务 API
 # ============================================================
@@ -364,6 +531,45 @@ async def browse_dirs(path: str = Query("/data/minio/documents", description="�
 # ============================================================
 # MD 文件手动导入 API
 # ============================================================
+
+
+class MinioIngestRequest(BaseModel):
+    bucket: str = Field("documents", description="MinIO bucket")
+    prefix: str = Field("", description="对象前缀，如 cn/000002")
+    market: str = Field("", description="市场过滤（cn/hk/us），空=全部")
+    trigger: bool = Field(False, description="注册后是否立即入队 doc_pipeline")
+
+
+@router.post("/ingest-minio")
+async def trigger_ingest_minio(req: MinioIngestRequest):
+    """从 MinIO 采集年报对象并注册为 pending documents
+
+    用 minio_tool 列出 bucket 下的对象，识别 /annual_report/{year}/report.{pdf|md}
+    形态的路径，写入 documents 表（幂等）。可选触发 doc_pipeline worker 处理。
+    """
+    try:
+        result = await doc_pipeline.register_pending_from_minio(
+            bucket=req.bucket, prefix=req.prefix, market=req.market
+        )
+    except Exception as e:
+        logger.exception("MinIO ingest failed")
+        raise HTTPException(status_code=500, detail=str(e))
+
+    task_id = None
+    if req.trigger and result.get("added", 0) > 0:
+        task_id = await task_queue.create_task(
+            task_type="doc_pipeline",
+            title=f"文档处理 Pipeline ({result['added']} docs, MinIO)",
+            params={"limit": result["added"]},
+            total_items=result["added"],
+            created_by="api",
+        )
+
+    return {
+        "status": "ok",
+        "registered": result,
+        "pipeline_task_id": task_id,
+    }
 
 
 class IngestRequest(BaseModel):

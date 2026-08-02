@@ -27,6 +27,7 @@ VALID_LABELS = {
 VALID_EDGE_LABELS = {
     "supplier", "customer", "competitor", "depends_on", "owns",
     "uses", "invests_in", "located_in", "impacts", "causes", "SUPERSEDES",
+    "partner", "belongs_to",
 }
 
 
@@ -134,17 +135,25 @@ class KnowledgeAGEStorage:
                 relation_type = rel.get("relation_type", "depends_on")
                 confidence = rel.get("confidence", 1.0) or 1.0
 
+                # Temporal：valid_from / valid_to（空值写成 NULL）
+                vf = _escape(str(rel["valid_from"])) if rel.get("valid_from") else None
+                vt = _escape(str(rel["valid_to"])) if rel.get("valid_to") else None
+                valid_from_cypher = f"'{vf}'" if vf else "NULL"
+                valid_to_cypher = f"'{vt}'" if vt else "NULL"
+
                 if relation_type not in VALID_EDGE_LABELS:
                     relation_type = "depends_on"
 
                 cypher = f"""
-                    MATCH (a:Entity {{entity_id: '{source_id}'}})
-                    MATCH (b:Entity {{entity_id: '{target_id}'}})
+                    MATCH (a {{entity_id: '{source_id}'}})
+                    MATCH (b {{entity_id: '{target_id}'}})
                     MERGE (a)-[r:{relation_type}]->(b)
                     SET r.confidence = {confidence},
                         r.source_id = '{source_id}',
                         r.target_id = '{target_id}',
-                        r.relation_type = '{relation_type}'
+                        r.relation_type = '{relation_type}',
+                        r.valid_from = {valid_from_cypher},
+                        r.valid_to = {valid_to_cypher}
                     RETURN r
                 """
                 sql = f"SELECT * FROM cypher('{GRAPH_NAME}', $${cypher}$$) AS (e agtype);"

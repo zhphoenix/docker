@@ -31,6 +31,13 @@ class MCPSettings(BaseSettings):
     CACHE_MAX_SIZE: int = 1024
     CACHE_ENABLED: bool = True
 
+    # LLM（GraphRAG 融合推理，OpenAI 兼容 API）
+    OPENAI_BASE_URL: str = "http://localhost:8080/v1"
+    OPENAI_API_KEY: str = "EMPTY"
+    MODEL_NAME: str = "qwen3"
+    LLM_TIMEOUT: float = 120.0
+    LLM_MAX_RETRIES: int = 3
+
     # MCP Server
     MCP_HOST: str = "0.0.0.0"
     MCP_PORT: int = 8200
