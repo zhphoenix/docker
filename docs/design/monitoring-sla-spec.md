@@ -2,7 +2,7 @@
 
 ## 1. 设计目标
 
-为 Knowledge Agent 和 Knowledge MCP Server 定义可量化的 SLA 指标、监控方案和告警规则。
+为 Knowledge Ingestion Agent 和 Knowledge MCP Server 定义可量化的 SLA 指标、监控方案和告警规则。
 
 > 本规范填补审查报告中 W8（监控告警缺失）的空白。
 
@@ -10,7 +10,7 @@
 
 ## 2. 核心 SLA 指标
 
-### 2.1 Knowledge Agent 节点级指标
+### 2.1 Knowledge Ingestion Agent 节点级指标
 
 | 节点 | 指标 | P50 目标 | P99 目标 | 告警阈值 |
 |---|---|---|---|---|
@@ -56,7 +56,7 @@ from prometheus_client import Histogram
 
 NODE_LATENCY = Histogram(
     "knowledge_agent_node_latency_seconds",
-    "Knowledge Agent node processing time",
+    "Knowledge Ingestion Agent node processing time",
     labelnames=["node_name"]
 )
 ```
@@ -66,7 +66,7 @@ NODE_LATENCY = Histogram(
 ```python
 TOOL_LATENCY = Histogram(
     "mcp_knowledge_tool_latency_seconds",
-    "MCP Knowledge Server tool execution time",
+    "Knowledge MCP Server tool execution time",
     labelnames=["tool_name", "module"]
 )
 ```
@@ -98,7 +98,7 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Knowledge Agent 端到端延迟超过 90s"
+          summary: "Knowledge Ingestion Agent 端到端延迟超过 90s"
 
       - alert: MCPToolHighLatency
         expr: histogram_quantile(0.95, mcp_knowledge_tool_latency_seconds) > 5
@@ -120,7 +120,7 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Knowledge Agent 错误率超过 10%"
+          summary: "Knowledge Ingestion Agent 错误率超过 10%"
 ```
 
 ### 4.3 质量告警
@@ -143,7 +143,7 @@ groups:
 
 | Dashboard | 核心面板 |
 |---|---|
-| Knowledge Agent Overview | 全链路延迟、节点耗时热力图、错误率趋势 |
+| Knowledge Ingestion Agent Overview | 全链路延迟、节点耗时热力图、错误率趋势 |
 | MCP Server Health | Tool 延迟分布、QPS、缓存命中率 |
 | Knowledge Quality | 实体/事实/关系提取数量趋势、置信度分布、冲突率 |
 | Storage Health | PostgreSQL 连接池、Qdrant Collection 大小、查询延迟 |

@@ -5,7 +5,7 @@ ARCH-002
 Knowledge Graph Schema (Apache AGE) — **已集成**（PG17 + AGE 1.5.0），参见 `specs/agent-registry.yaml` §5
 
 ARCH-003
-Knowledge Graph Ingestion Agent — 规范名称：**Knowledge Agent**，参见 `specs/agent-registry.yaml`
+Knowledge Graph Ingestion Agent — 规范名称：**Knowledge Ingestion Agent**，参见 `specs/agent-registry.yaml`
 
 ARCH-004
 Knowledge Maintenance Agent — **规划中**，参见 `specs/agent-registry.yaml` §3

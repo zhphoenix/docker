@@ -11,7 +11,6 @@ from rag_nodes.rerank import rerank
 from rag_nodes.reason import reason
 from rag_nodes.reflect import reflect
 from rag_nodes.finish import finish
-from rag_nodes.knowledge import knowledge
 from rag_nodes.query_rewrite import query_rewrite
 
 logger = logging.getLogger(__name__)
@@ -105,21 +104,19 @@ def build_chat_graph() -> StateGraph:
 def build_kb_graph() -> StateGraph:
     """构建 KB Agent（知识库）的 Workflow
 
-    Retrieve → Rerank → Reason → Knowledge (Vault 读写) → Finish → END
+    Retrieve → Rerank → Reason → Finish → END
     """
     graph = StateGraph(AgentState)
 
     graph.add_node("retrieve", retrieve)
     graph.add_node("rerank", rerank)
     graph.add_node("reason", reason)
-    graph.add_node("knowledge", knowledge)
     graph.add_node("finish", finish)
 
     graph.add_edge(START, "retrieve")
     graph.add_edge("retrieve", "rerank")
     graph.add_edge("rerank", "reason")
-    graph.add_edge("reason", "knowledge")
-    graph.add_edge("knowledge", "finish")
+    graph.add_edge("reason", "finish")
     graph.add_edge("finish", END)
 
     return graph.compile()

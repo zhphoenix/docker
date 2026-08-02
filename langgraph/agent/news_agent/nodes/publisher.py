@@ -2,13 +2,16 @@
 
 职责：
 - 批量存储文章、实体、事件、关系到 PostgreSQL（news schema）
+- 上传原始文章到 MinIO news-raw bucket（DLM Raw News Layer）
 - 高置信度实体/关系触发 Knowledge Agent 合并到 core schema
 - 更新文章状态（raw → indexed）
 
 遵循 ARCH-003：不直接 import asyncpg/httpx，通过 storage/ 层访问。
 """
 
+import json
 import logging
+from datetime import datetime, timezone
 
 from news_agent.storage.postgres import news_storage
 from config.policy_loader import get_policy
@@ -65,6 +68,7 @@ async def news_publisher(state: dict) -> dict:
             "importance_score": art.get("importance", 0.5),
             "published_at": art.get("published_at"),
             "content_hash": art.get("content_hash", ""),
+            "tier": art.get("tier", 3),
             "metadata": {
                 "importance": art.get("importance", 0.5),
                 "market": art.get("market", []),
@@ -78,6 +82,13 @@ async def news_publisher(state: dict) -> dict:
     except Exception as e:
         new_errors.append(f"Publisher: article storage failed: {e}")
         stored_article_ids = []
+
+    # ── 1b. 上传原始文章到 MinIO news-raw (DLM Raw News Layer) ──
+    if stored_article_ids:
+        try:
+            await _upload_raw_to_minio(articles, stored_article_ids)
+        except Exception as e:
+            logger.warning("Publisher: MinIO raw upload failed (non-blocking): %s", e)
 
     # ── 2. 存储实体 ──
     entity_records = []
@@ -165,7 +176,7 @@ async def news_publisher(state: dict) -> dict:
         except Exception as e:
             logger.warning("Publisher: status update failed: %s", e)
 
-    # ── 6. 触发 Knowledge Agent（高置信度实体合并到 core schema） ──
+    # ── 6. 触发 Knowledge Agent（高置信度实体合并到 core schema + AGE 同步） ──
     knowledge_triggered = False
     enable_merge = get_policy("news.publisher.enable_knowledge_merge", True)
 
@@ -184,6 +195,13 @@ async def news_publisher(state: dict) -> dict:
             except Exception as e:
                 logger.warning("Publisher: Knowledge Agent trigger failed: %s", e)
                 new_errors.append(f"Publisher: Knowledge Agent trigger failed: {e}")
+
+    # ── 7. AGE Event 同步（DLM §11: Event 永久保存在 Knowledge Graph） ──
+    if stored_event_ids and events:
+        try:
+            await _sync_events_to_age(events, stored_event_ids, entities)
+        except Exception as e:
+            logger.warning("Publisher: AGE event sync failed (non-blocking): %s", e)
 
     return {
         "stored_article_ids": stored_article_ids,
@@ -243,3 +261,72 @@ async def _trigger_knowledge_agent(entities: list[dict], relations: list[dict]) 
                 await knowledge_storage.bulk_insert_relations(core_relations)
             except Exception as e:
                 logger.warning("Publisher: relation merge to core failed: %s", e)
+
+
+async def _upload_raw_to_minio(articles: list[dict], stored_ids: list[str]) -> None:
+    """DLM Raw News Layer: 上传原始文章 JSON 到 MinIO news-raw bucket
+
+    路径规范: news-raw/{year}/{month}/{day}/article_{id_prefix}.json
+    失败不阻塞主流程。
+    """
+    from tools.minio import minio_tool
+
+    date_path = datetime.now(timezone.utc).strftime("%Y/%m/%d")
+    uploaded = 0
+
+    for i, art in enumerate(articles):
+        if i >= len(stored_ids):
+            break
+        minio_key = f"{date_path}/article_{stored_ids[i][:8]}.json"
+        payload = json.dumps(art, ensure_ascii=False, default=str).encode("utf-8")
+        try:
+            await minio_tool.upload("news-raw", minio_key, payload)
+            await news_storage.update_minio_key(stored_ids[i], minio_key)
+            uploaded += 1
+        except Exception as e:
+            logger.debug("MinIO upload failed for article %s: %s", stored_ids[i][:8], e)
+
+    if uploaded:
+        logger.info("Publisher: uploaded %d/%d raw articles to MinIO news-raw", uploaded, len(stored_ids))
+
+
+async def _sync_events_to_age(events: list[dict], stored_event_ids: list[str],
+                              entities: list[dict] | None = None) -> None:
+    """DLM §11: 同步新闻事件到 Apache AGE Knowledge Graph
+
+    通过 article_idx 关联同一文章的实体，创建 impacts 边。
+    失败不阻塞主流程。
+    """
+    from knowledge_agent.storage.age import knowledge_age
+
+    if not knowledge_age.available:
+        return
+
+    # 按 article_idx 分组实体名称
+    idx_to_entity_names: dict[int, list[str]] = {}
+    for ent in (entities or []):
+        art_idx = ent.get("article_idx", 0)
+        name = ent.get("name", "")
+        if name:
+            idx_to_entity_names.setdefault(art_idx, []).append(name)
+
+    # 构建带 ID 的事件列表
+    age_events = []
+    for i, evt in enumerate(events):
+        if i < len(stored_event_ids):
+            art_idx = evt.get("article_idx", 0)
+            age_events.append({
+                "id": stored_event_ids[i],
+                "title": evt.get("title", ""),
+                "event_type": evt.get("event_type", "macro_policy"),
+                "impact_score": evt.get("impact_score", 0.0),
+                "impact_direction": evt.get("impact_direction", "neutral"),
+                "confidence": evt.get("confidence", 0.8),
+                "event_time": evt.get("event_time", ""),
+                "entities": idx_to_entity_names.get(art_idx, []),
+            })
+
+    if age_events:
+        synced = await knowledge_age.sync_events(age_events)
+        if synced:
+            logger.info("Publisher: synced %d events to AGE", synced)

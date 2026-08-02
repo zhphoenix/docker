@@ -11,6 +11,7 @@ const KnowledgePage = lazy(() => import('@/app/pages/KnowledgePage'))
 const DocumentsPage = lazy(() => import('@/app/pages/DocumentsPage'))
 const WorkflowPage = lazy(() => import('@/app/pages/WorkflowPage'))
 const ResearchPage = lazy(() => import('@/app/pages/ResearchPage'))
+const NewsPage = lazy(() => import('@/app/pages/NewsPage'))
 const ModelsPage = lazy(() => import('@/app/pages/ModelsPage'))
 const VectorDbPage = lazy(() => import('@/app/pages/VectorDbPage'))
 
@@ -85,6 +86,14 @@ export const router = createBrowserRouter([
         element: (
           <SuspenseWrapper>
             <ResearchPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: '/news',
+        element: (
+          <SuspenseWrapper>
+            <NewsPage />
           </SuspenseWrapper>
         ),
       },

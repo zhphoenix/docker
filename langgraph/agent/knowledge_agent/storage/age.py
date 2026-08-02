@@ -160,6 +160,72 @@ class KnowledgeAGEStorage:
 
         return count
 
+    async def sync_events(self, events: list[dict]) -> int:
+        """同步新闻事件到 AGE（Event vertex + impacts edge）
+
+        DLM §11: Event 永久保存在 Knowledge Graph 中。
+        每个事件创建 Event 节点，并通过 impacts 边关联受影响实体。
+        """
+        if not self.available or not events:
+            return 0
+
+        count = 0
+        async with self.pool.acquire() as conn:
+            await conn.execute("LOAD 'age';")
+            for evt in events:
+                event_id = str(evt.get("id", ""))
+                title = _escape(evt.get("title", ""))
+                event_type = _escape(evt.get("event_type", "macro_policy"))
+                impact_score = evt.get("impact_score", 0.0) or 0.0
+                impact_direction = _escape(evt.get("impact_direction", "neutral"))
+                confidence = evt.get("confidence", 0.8) or 0.8
+                event_time = _escape(str(evt.get("event_time", ""))) if evt.get("event_time") else ""
+
+                if not title:
+                    continue
+
+                # MERGE Event 节点
+                cypher = f"""
+                    MERGE (e:Event {{event_id: '{event_id}'}})
+                    SET e.title = '{title}',
+                        e.event_type = '{event_type}',
+                        e.impact_score = {impact_score},
+                        e.impact_direction = '{impact_direction}',
+                        e.confidence = {confidence},
+                        e.event_time = '{event_time}'
+                    RETURN e
+                """
+                sql = f"SELECT * FROM cypher('{GRAPH_NAME}', $${cypher}$$) AS (v agtype);"
+
+                try:
+                    await conn.execute(sql)
+                    count += 1
+                except Exception as e:
+                    logger.debug("AGE sync_event '%s' failed: %s", title[:40], e)
+                    continue
+
+                # 关联受影响实体（impacts edge）
+                entity_names = evt.get("entities", [])
+                for ent_name in entity_names[:5]:  # 最多关联 5 个实体
+                    ent_escaped = _escape(str(ent_name))
+                    cypher_edge = f"""
+                        MATCH (ev:Event {{event_id: '{event_id}'}})
+                        MATCH (n) WHERE n.name = '{ent_escaped}'
+                        MERGE (ev)-[r:impacts]->(n)
+                        SET r.impact_direction = '{impact_direction}',
+                            r.impact_score = {impact_score}
+                        RETURN r
+                    """
+                    sql_edge = f"SELECT * FROM cypher('{GRAPH_NAME}', $${cypher_edge}$$) AS (e agtype);"
+                    try:
+                        await conn.execute(sql_edge)
+                    except Exception as e:
+                        logger.debug("AGE impacts edge failed for '%s': %s", ent_name, e)
+
+        if count:
+            logger.info("AGE: synced %d events", count)
+        return count
+
 
 # 模块级单例
 knowledge_age = KnowledgeAGEStorage()

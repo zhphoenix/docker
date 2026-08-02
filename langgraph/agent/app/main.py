@@ -15,13 +15,13 @@ from api.health import router as health_router
 from api.providers import router as providers_router
 from api.tasks import router as tasks_router
 from api.approvals import router as approvals_router
-from api.vault import router as vault_router
 from api.agents import router as agents_router
 from api.documents import router as documents_router
 from api.research import router as research_router
 from api.reports import router as reports_router
 from api.knowledge import router as knowledge_router
 from api.vector import router as vector_router
+from api.news import news_router
 from tools.postgres import postgres_tool
 
 # 配置日志
@@ -76,12 +76,10 @@ async def lifespan(app: FastAPI):
     from tools.llm import llm_tool
     from tools.embedding import embedding_tool
     from tools.reranker import reranker_tool
-    from tools.obsidian import obsidian_tool
     from tools.docling import docling_tool
     await llm_tool.close()
     await embedding_tool.close()
     await reranker_tool.close()
-    await obsidian_tool.close()
     await docling_tool.close()
     await postgres_tool.close()
     from knowledge_agent.storage.age import knowledge_age
@@ -150,10 +148,10 @@ app.include_router(chat_router)
 app.include_router(providers_router)
 app.include_router(tasks_router)
 app.include_router(approvals_router)
-app.include_router(vault_router)
 app.include_router(agents_router)
 app.include_router(documents_router)
 app.include_router(research_router)
 app.include_router(reports_router)
 app.include_router(knowledge_router)
 app.include_router(vector_router)
+app.include_router(news_router)

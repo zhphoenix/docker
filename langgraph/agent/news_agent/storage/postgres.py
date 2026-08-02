@@ -84,15 +84,16 @@ class NewsPostgresStorage:
                     published_at,
                     art.get("content_hash", ""),
                     json.dumps(metadata, ensure_ascii=False),
+                    art.get("tier", 3),
                 ))
 
         if new_args:
             sql = """
                 INSERT INTO news.articles
                     (id, source_id, title, content, url, language, category,
-                     importance_score, published_at, content_hash, metadata, status)
+                     importance_score, published_at, content_hash, metadata, tier, status)
                 VALUES
-                    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'raw')
+                    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'raw')
                 ON CONFLICT (url) DO NOTHING
             """
             await postgres_tool.execute_many(sql, new_args)
@@ -165,7 +166,9 @@ class NewsPostgresStorage:
     # ──────────────────────────────────────────────
 
     async def bulk_insert_events(self, events: list[dict]) -> list[str]:
-        """批量插入事件
+        """批量插入事件（含 DLM Event-centric 合并）
+
+        合并策略：同类型 + 标题相似 + 7天窗口内 → 合并为同一事件（source_count + 1）
 
         Args:
             events: [{"article_id", "event_type", "title", "summary",
@@ -179,16 +182,8 @@ class NewsPostgresStorage:
             return []
 
         ids = [str(uuid.uuid4()) for _ in events]
+        merge_window_days = 7  # DLM 事件合并窗口
 
-        sql = """
-            INSERT INTO news.events
-                (id, article_id, event_type, title, summary, event_time,
-                 impact_score, impact_direction, market, sector, confidence)
-            VALUES
-                ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        """
-
-        args_list = []
         for i, evt in enumerate(events):
             article_id = evt.get("article_id")
             event_time = evt.get("event_time")
@@ -198,22 +193,63 @@ class NewsPostgresStorage:
                 except (ValueError, TypeError):
                     event_time = None
 
-            args_list.append((
-                uuid.UUID(ids[i]),
-                uuid.UUID(article_id) if article_id else None,
-                evt.get("event_type", "technology"),
-                evt.get("title", ""),
-                evt.get("summary", ""),
-                event_time,
-                evt.get("impact_score", 0.0),
-                evt.get("impact_direction", "neutral"),
-                evt.get("market", []),
-                evt.get("sector", []),
-                evt.get("confidence", 0.8),
-            ))
+            event_type = evt.get("event_type", "technology")
+            title = evt.get("title", "")
 
-        await postgres_tool.execute_many(sql, args_list)
-        logger.debug("Inserted %d events", len(ids))
+            # DLM Event-centric 合并：查询近期同类事件
+            merged = False
+            if title and len(title) > 5:
+                try:
+                    # 提取标题关键词（前 20 字符）用于模糊匹配
+                    title_keyword = title[:20]
+                    existing = await postgres_tool.query(
+                        """
+                        SELECT id, source_count FROM news.events
+                        WHERE event_type = $1
+                          AND created_at > NOW() - ($2 || ' days')::interval
+                          AND title ILIKE '%' || $3 || '%'
+                        LIMIT 1
+                        """,
+                        event_type, str(merge_window_days), title_keyword,
+                    )
+                    if existing:
+                        # 合并：更新 source_count
+                        existing_id = existing[0]["id"]
+                        await postgres_tool.execute(
+                            "UPDATE news.events SET source_count = COALESCE(source_count, 1) + 1 WHERE id = $1",
+                            existing_id,
+                        )
+                        ids[i] = str(existing_id)
+                        merged = True
+                        logger.debug("Event merged into existing: '%s'", title[:40])
+                except Exception as e:
+                    logger.debug("Event merge check failed: %s", e)
+
+            if not merged:
+                # 新事件：直接插入
+                sql = """
+                    INSERT INTO news.events
+                        (id, article_id, event_type, title, summary, event_time,
+                         impact_score, impact_direction, market, sector, confidence, source_count)
+                    VALUES
+                        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 1)
+                """
+                await postgres_tool.execute(
+                    sql,
+                    uuid.UUID(ids[i]),
+                    uuid.UUID(article_id) if article_id else None,
+                    event_type,
+                    title,
+                    evt.get("summary", ""),
+                    event_time,
+                    evt.get("impact_score", 0.0),
+                    evt.get("impact_direction", "neutral"),
+                    evt.get("market", []),
+                    evt.get("sector", []),
+                    evt.get("confidence", 0.8),
+                )
+
+        logger.debug("Processed %d events (merge window=%dd)", len(ids), merge_window_days)
         return ids
 
     # ──────────────────────────────────────────────

@@ -9,7 +9,7 @@
 |---|---|---|---|---|
 | **Chat Agent** | `langgraph/agent/agents/` | `chat_agent.py` | Chat Agent | 通用对话交互 |
 | **Investment Agent** | `langgraph/agent/agents/` | `investment_agent.py` | Chat Agent | 投资研究推理 |
-| **KB Agent** | `langgraph/agent/agents/` | `kb_agent.py` | Chat Agent | 知识库管理（Obsidian Vault 读写 + RAG 检索） |
+| **KB Agent** | `langgraph/agent/agents/` | `kb_agent.py` | Chat Agent | 知识库管理（RAG 检索） |
 | **Research Agent** | `langgraph/agent/agents/` | `research_agent.py` | Chat Agent | 投资研究报告生成 |
 | **Knowledge Ingestion Agent** | `langgraph/agent/knowledge_agent/` | `graph.py` | Pipeline Agent | 文档 → 结构化知识提取（6 节点 fan-out/fan-in） |
 | **News Intelligence Agent** | `langgraph/agent/news_agent/` | `graph.py` | Pipeline Agent | 新闻采集 → 清洗 → 去重 → 分类 → 实体/事件提取 → 影响分析（7 节点 fan-out/fan-in） |

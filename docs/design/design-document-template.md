@@ -75,7 +75,7 @@
 - ❌ "news_ingestion_agent"（代码目录名风格）
 
 **正确**：
-- ✅ "**Knowledge Agent**"（规范名称）
+- ✅ "**Knowledge Ingestion Agent**"（规范名称）
 - ✅ "`knowledge_agent/`"（代码目录名引用时使用 backtick）
 
 ### 3.2 存储引用
@@ -105,8 +105,8 @@
 
 ```mermaid
 graph TB
-    A[News Sources] --> B[News Collector]
-    B --> C[Knowledge Agent]
+    A[News Sources] --> B[News Intelligence Agent]
+    B --> C[Knowledge Ingestion Agent]
     C --> D[(PostgreSQL)]
     C --> E[(Qdrant)]
     D --> F[Knowledge MCP Server]

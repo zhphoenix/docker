@@ -25,6 +25,20 @@ VALID_CATEGORIES = {"macro", "stock", "company", "geopolitics", "policy", "techn
 MAX_BATCH_SIZE = 50
 
 
+def _score_to_tier(score: float) -> int:
+    """DLM 分级策略：根据 importance_score 映射 Tier
+
+    Tier 1: 永久保存 + 进入 Knowledge Graph（美联储/政策/战争/并购/财报/技术突破）
+    Tier 2: 长期保存 3-5 年（公司新闻/行业新闻/分析文章）
+    Tier 3: 短期保存 30-90 天（市场快讯/重复报道/转载）
+    """
+    if score >= 0.8:
+        return 1
+    if score >= 0.5:
+        return 2
+    return 3
+
+
 async def news_classifier(state: dict) -> dict:
     """新闻分类节点
 
@@ -103,6 +117,10 @@ async def news_classifier(state: dict) -> dict:
             results.append(r)
 
     logger.info("Classifier: %d articles classified", len(results))
+
+    # DLM Tier 分级：根据 importance 映射 tier
+    for art in results:
+        art["tier"] = _score_to_tier(art.get("importance", 0.5))
 
     # C-3 修复：重编号 article_idx 为 classified_articles 中的位置索引
     # 去重后原始 article_idx 已失效，下游节点(entity/event/publisher)依赖此索引

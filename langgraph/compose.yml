@@ -26,13 +26,12 @@ services:
       DOCLING_URL: http://docling:5001
       CRAWL4AI_URL: http://crawl4ai:11235
       LLM_BASE_URL: http://sisyphus:8080/v1/chat/completions
-      OBSIDIAN_URL: https://obsidian:27124
       PG_HOST: postgres
-      VAULT_ROOT: /vault
       REPORT_SOURCE_DIR: /data/analysis_reports
     volumes:
       - ./agent:/app
-      - /mnt/e/ai-platform/data/obsidian_vault:/vault
+      - ../registry:/registry:ro
+      - /mnt/d/minio/data:/data/minio:ro
       - /mnt/e/ai-platform/data/reports:/data/analysis_reports:ro
       - /mnt/e/ai-platform/data/stock_a:/data/stock_a:ro
       - /mnt/e/ai-platform/data/stock_h:/data/stock_h:ro

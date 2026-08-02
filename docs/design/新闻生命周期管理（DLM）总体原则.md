@@ -466,7 +466,7 @@ Event 永久保存。
 
          |
 
-    News Collector
+    News Collection（采集服务）
 
          |
 

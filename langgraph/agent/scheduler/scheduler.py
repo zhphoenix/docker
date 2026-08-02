@@ -221,6 +221,21 @@ async def _job_news_collect(priority: str = "high"):
         logger.error("[Scheduler] News collection failed | %s", e)
 
 
+async def _job_news_lifecycle():
+    """DLM 新闻生命周期维护任务
+
+    每日凌晨 3:30 执行：去重检测、重要性重评分、归档、AGE 图清理、Embedding 清理。
+    """
+    from services.lifecycle import news_lifecycle
+
+    logger.info("[Scheduler] News lifecycle maintenance triggered")
+    try:
+        results = await news_lifecycle.run_all()
+        logger.info("[Scheduler] News lifecycle done | %s", results)
+    except Exception as e:
+        logger.error("[Scheduler] News lifecycle failed | %s", e)
+
+
 def start_scheduler() -> None:
     """启动调度器（在 FastAPI lifespan 中调用）"""
     global _scheduler
@@ -294,6 +309,15 @@ def start_scheduler() -> None:
         args=["low"],
         id="news_collect_low",
         name="News Collection (Low Priority)",
+        replace_existing=True,
+    )
+
+    # ── DLM 新闻生命周期维护（每日 3:30） ──
+    _scheduler.add_job(
+        _job_news_lifecycle,
+        trigger=CronTrigger(hour=3, minute=30),
+        id="news_lifecycle",
+        name="News Lifecycle Maintenance",
         replace_existing=True,
     )
 

@@ -31,7 +31,6 @@ import httpx
 
 from skills.base_skill import BaseSkill
 from tools.llm import llm_tool
-from tools.obsidian import obsidian_tool
 from tools.postgres import postgres_tool
 
 logger = logging.getLogger(__name__)
@@ -427,23 +426,5 @@ class WebArticleSummarySkill(BaseSkill):
         except Exception as e:
             logger.warning("PG 写入失败: %s -> %s", url, e)
 
-        # 2. Obsidian Vault: 写入摘要笔记
-        try:
-            safe_title = re.sub(r'[\\/:*?"<>|]', "_", title)[:60]
-            note_path = f"queries/qiushi/{safe_title}.md"
-            note_content = (
-                f"---\n"
-                f"source: \"{url}\"\n"
-                f"domain: \"{domain}\"\n"
-                f"date: {datetime.now().strftime('%Y-%m-%d')}\n"
-                f"tags: [policy, qiushi, summary]\n"
-                f"---\n\n"
-                f"# {title}\n\n"
-                f"{summary}\n\n"
-                f"---\n"
-                f"*原文链接: {url}*\n"
-                f"*由 AI Platform 自动生成*\n"
-            )
-            await obsidian_tool.write_note(note_path, note_content)
-        except Exception as e:
-            logger.warning("Obsidian 写入失败: %s -> %s", title[:30], e)
+        # 2. 摘要已写入 PG，Vault 写入已移除
+        logger.debug("Summary generated for: %s", title[:50])

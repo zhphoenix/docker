@@ -84,7 +84,7 @@ dependency_rules:
   - id: DEP-004
     level: MUST
     rule: "services/ 为平台级服务层"
-    check: "services/ 包含 router/pipeline/task_queue/approval/batch_embed/vault_generator/web_pipeline/checkpoint；api/ 和 scheduler/ 通过 services/ 调用平台服务"
+    check: "services/ 包含 router/pipeline/task_queue/approval/batch_embed/web_pipeline/checkpoint；api/ 和 scheduler/ 通过 services/ 调用平台服务"
     source: "§5 扩展"
 
 # ============================================================

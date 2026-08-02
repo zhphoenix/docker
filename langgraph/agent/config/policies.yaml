@@ -47,7 +47,7 @@ routing:
     - pattern: "估值|投资|买入|DCF|护城河|大师"
       agent: "investment"
       priority: 20
-    - pattern: "笔记|记录|写入|Obsidian|vault"
+    - pattern: "笔记|记录|写入"
       agent: "kb"
       priority: 15
 
@@ -93,7 +93,6 @@ approval:
   content_threshold: 2000   # 超过此字符数的内容需审批
   enabled: true
   triggers:
-    - "vault_write"
     - "report_publish"
   timeout_hours: 24
   auto_approve_after_timeout: false

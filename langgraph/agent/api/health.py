@@ -50,13 +50,6 @@ async def health_check():
     except Exception:
         services["minio"] = "down"
 
-    # Obsidian
-    try:
-        from tools.obsidian import obsidian_tool
-        services["obsidian"] = "up" if await obsidian_tool.health_check() else "down"
-    except Exception:
-        services["obsidian"] = "down"
-
     core_services = ["qdrant", "postgres"]
     core_up = all(services.get(s) == "up" for s in core_services)
 

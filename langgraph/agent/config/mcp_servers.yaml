@@ -2,21 +2,6 @@
 # 定义平台可用的 MCP (Model Context Protocol) 服务器
 
 servers:
-  obsidian-vault:
-    description: "Obsidian 知识库读写"
-    transport: stdio
-    command: "npx"
-    args: ["-y", "@anthropic/obsidian-mcp"]
-    env:
-      OBSIDIAN_VAULT_PATH: "/mnt/e/ai-platform/data/obsidian_vault"
-    enabled: true
-    tools:
-      - obsidian_get_note
-      - obsidian_list_notes
-      - obsidian_search_notes
-      - obsidian_write_note
-      - obsidian_append_to_note
-
   filesystem:
     description: "本地文件系统访问（预留）"
     transport: stdio

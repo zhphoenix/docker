@@ -1,7 +1,16 @@
 #!/bin/sh
 # MinIO Bucket 初始化脚本
-# 基于 24_数据底座规范.md 第二章
+# 基于 24_数据底座规范.md 第二章 + DLM（新闻数据生命周期管理）总体原则
 # 在 MinIO 服务就绪后运行
+#
+# Bucket 定位（DLM 数据分层）:
+#   documents   - MD 源文件（年报/公告解析后），长期保存
+#   knowledge   - 报告文件（Research Agent 输出），永久保存
+#   news-raw    - 新闻原始 HTML/JSON，90-180 天自动清理
+#   news-images - 新闻图片，90 天
+#   artifacts   - Agent 输出（markdown/ppt），长期保存
+#   staging     - 临时处理，30 天自动清理
+#   datasets    - 结构化数据集（TuShare/AKShare），长期保存
 
 set -e
 
@@ -71,7 +80,7 @@ for source in tushare akshare wind macro industry; do
 done
 
 # artifacts: {type}/
-for type in research markdown pdf ppt obsidian; do
+for type in research markdown pdf ppt; do
   mc cp --recursive /dev/null local/artifacts/${type}/ 2>/dev/null || true
 done
 
@@ -88,13 +97,13 @@ mc cp --recursive /dev/null local/news-images/2026/08/ 2>/dev/null || true
 
 echo "Bucket initialization complete."
 echo ""
-echo "  documents  - 原始文档（版本控制已启用）"
-echo "  knowledge  - AI知识资产（版本控制已启用）"
-echo "  datasets   - 数据集"
-echo "  artifacts  - Agent输出（版本控制已启用）"
-echo "  staging    - 临时处理（30天自动清理）"
-echo "  news-raw   - 新闻原始文件（90天自动清理）"
-echo "  news-images - 新闻图片"
+echo "  documents   - MD源文件（年报/公告解析后），长期保存（版本控制已启用）"
+echo "  knowledge   - 报告文件（Research Agent输出），永久保存（版本控制已启用）"
+echo "  datasets    - 结构化数据集（TuShare/AKShare），长期保存"
+echo "  artifacts   - Agent输出（markdown/ppt），长期保存（版本控制已启用）"
+echo "  staging     - 临时处理（30天自动清理）"
+echo "  news-raw    - 新闻原始HTML/JSON（90天自动清理，DLM Raw News Layer）"
+echo "  news-images - 新闻图片（90天）"
 echo ""
 echo "目录规范:"
 echo "  documents/{market}/{symbol}/{doc_type}/{year}/"

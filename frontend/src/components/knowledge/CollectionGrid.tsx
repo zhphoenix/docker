@@ -1,13 +1,16 @@
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { BookOpen, Database, Layers, RefreshCw } from 'lucide-react'
+import { BookOpen, Database, Layers, RefreshCw, FolderInput, CheckCircle2, XCircle, Folder, ChevronRight, ArrowUp, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Progress } from '@/components/ui/progress'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { EmptyState } from '@/components/common/EmptyState'
-import { fetchKnowledgeCollections } from '@/services/knowledge'
+import { fetchKnowledgeCollections, triggerIngest, fetchBrowseDirs } from '@/services/knowledge'
 import { cn } from '@/lib/utils'
 
 const container = {
@@ -25,16 +28,172 @@ function formatNumber(n: number): string {
 }
 
 export function CollectionGrid() {
+  const [ingestPath, setIngestPath] = useState('')
+  const [ingestFeedback, setIngestFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
+  const [dirDialogOpen, setDirDialogOpen] = useState(false)
+  const [browsePath, setBrowsePath] = useState('/data/minio/documents')
+  const queryClient = useQueryClient()
+
   const collectionsQuery = useQuery({
     queryKey: ['knowledge-collections'],
     queryFn: fetchKnowledgeCollections,
     retry: 1,
   })
 
+  const browseQuery = useQuery({
+    queryKey: ['browse-dirs', browsePath],
+    queryFn: () => fetchBrowseDirs(browsePath),
+    enabled: dirDialogOpen,
+  })
+
+  const ingestMutation = useMutation({
+    mutationFn: (path: string) => triggerIngest(path),
+    onSuccess: (res) => {
+      setIngestFeedback({ type: 'success', msg: res.message })
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['knowledge-collections'] })
+      }, 5000)
+    },
+    onError: (err: Error) => {
+      setIngestFeedback({ type: 'error', msg: err.message || '导入触发失败' })
+    },
+  })
+
+  const handleIngest = () => {
+    if (!ingestPath.trim()) return
+    setIngestFeedback(null)
+    ingestMutation.mutate(ingestPath.trim())
+  }
+
+  const handleSelectDir = (path: string) => {
+    setIngestPath(path)
+    setDirDialogOpen(false)
+  }
+
   const collections = collectionsQuery.data?.collections ?? []
 
   return (
     <div className="space-y-4">
+      {/* Ingest trigger */}
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-dashed p-3">
+        <FolderInput className="size-4 shrink-0 text-primary" />
+        <div className="relative flex-1 min-w-[240px]">
+          <Input
+            placeholder="选择或输入目录路径，如 /data/minio/documents/cn/000001/"
+            value={ingestPath}
+            onChange={(e) => setIngestPath(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleIngest()}
+          />
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setDirDialogOpen(true)}
+          className="gap-1.5"
+        >
+          <Folder className="size-3.5" />
+          选择目录
+        </Button>
+        <Button
+          size="sm"
+          onClick={handleIngest}
+          disabled={ingestMutation.isPending || !ingestPath.trim()}
+          className="gap-1.5"
+        >
+          {ingestMutation.isPending ? (
+            <RefreshCw className="size-3.5 animate-spin" />
+          ) : (
+            <FolderInput className="size-3.5" />
+          )}
+          处理
+        </Button>
+        {ingestFeedback && (
+          <span
+            className={cn(
+              'flex items-center gap-1 text-xs',
+              ingestFeedback.type === 'success' ? 'text-green-600' : 'text-destructive'
+            )}
+          >
+            {ingestFeedback.type === 'success' ? (
+              <CheckCircle2 className="size-3" />
+            ) : (
+              <XCircle className="size-3" />
+            )}
+            {ingestFeedback.msg}
+          </span>
+        )}
+      </div>
+
+      {/* Directory Browser Dialog */}
+      <Dialog open={dirDialogOpen} onOpenChange={setDirDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>选择目录</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {/* Current path */}
+            <div className="flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm">
+              <Folder className="size-4 shrink-0 text-muted-foreground" />
+              <span className="truncate font-mono text-xs">{browseQuery.data?.current_path ?? browsePath}</span>
+            </div>
+
+            {/* Navigation */}
+            <div className="flex gap-2">
+              {browseQuery.data?.can_go_up && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => setBrowsePath(browseQuery.data!.parent_path!)}
+                >
+                  <ArrowUp className="size-3.5" />
+                  上级
+                </Button>
+              )}
+              <Button
+                variant="default"
+                size="sm"
+                className="ml-auto gap-1.5"
+                onClick={() => handleSelectDir(browseQuery.data?.current_path ?? browsePath)}
+              >
+                选择当前目录
+              </Button>
+            </div>
+
+            {/* Directory list */}
+            <div className="max-h-[300px] overflow-y-auto rounded-md border">
+              {browseQuery.isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="size-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : browseQuery.isError ? (
+                <div className="py-8 text-center text-sm text-destructive">
+                  加载失败，请检查路径是否有效
+                </div>
+              ) : browseQuery.data?.directories.length === 0 ? (
+                <div className="py-8 text-center text-sm text-muted-foreground">
+                  无子目录
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {browseQuery.data?.directories.map((dir) => (
+                    <button
+                      key={dir.path}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted/50 transition-colors"
+                      onClick={() => setBrowsePath(dir.path)}
+                    >
+                      <Folder className="size-4 shrink-0 text-primary" />
+                      <span className="flex-1 truncate">{dir.name}</span>
+                      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Toolbar */}
       <div className="flex justify-end">
         <Button

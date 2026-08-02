@@ -22,7 +22,7 @@
 | 调用方 | 身份标识 | 信任级别 | 说明 |
 |---|---|---|---|
 | **Research Agent** | `agent:research` | 高 | 内部 Agent，只读查询 |
-| **Knowledge Agent** | `agent:knowledge` | 高 | 内部 Agent，读写（通过 Merger 节点） |
+| **Knowledge Ingestion Agent** | `agent:knowledge` | 高 | 内部 Agent，读写（通过 Merger 节点） |
 | **Investment Agent** | `agent:investment` | 高 | 内部 Agent，只读查询 |
 | **Chat Agent** | `agent:chat` | 中 | 内部 Agent，受限只读 |
 | **Frontend API** | `api:frontend` | 中 | 通过 langgraph API 层转发 |
@@ -51,7 +51,7 @@
 | `get_risk_factors` | Analysis | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 
 **原则**：
-- Write Tools 仅限 `knowledge` 身份（Knowledge Agent 的 Merger 节点）
+- Write Tools 仅限 `knowledge` 身份（Knowledge Ingestion Agent 的 Merger 节点）
 - 图遍历和分析类 Tools 不对低信任级别开放
 - Chat Agent 仅开放基础搜索（防止 prompt injection 触发复杂查询）
 

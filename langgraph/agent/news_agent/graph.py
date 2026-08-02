@@ -1,7 +1,8 @@
 """News Intelligence Agent Graph - LangGraph StateGraph 定义
 
-流水线: Cleaner → Deduplicator → Classifier → [Entity || Event] → Impact → Publisher → END
+流水线: Cleaner → Deduplicator → EmbeddingDedup → Classifier → [Entity || Event] → Impact → Publisher → END
 性能优化: Classifier 完成后 Entity/Event 并行执行（fan-out/fan-in）
+DLM: EmbeddingDedup 实现跨批次语义去重（similarity > 0.92）
 """
 
 import logging
@@ -13,6 +14,7 @@ from langgraph.graph import StateGraph, START, END
 from news_agent.state import NewsState
 from news_agent.nodes.cleaner import news_cleaner
 from news_agent.nodes.deduplicator import news_deduplicator
+from news_agent.nodes.embedding_dedup import embedding_dedup
 from news_agent.nodes.classifier import news_classifier
 from news_agent.nodes.entity import news_entity_extractor
 from news_agent.nodes.event import news_event_extractor
@@ -55,16 +57,18 @@ def build_news_intelligence_graph():
     # 添加节点（带计时）
     graph.add_node("cleaner", _timed("cleaner")(news_cleaner))
     graph.add_node("deduplicator", _timed("deduplicator")(news_deduplicator))
+    graph.add_node("embedding_dedup", _timed("embedding_dedup")(embedding_dedup))
     graph.add_node("classifier", _timed("classifier")(news_classifier))
     graph.add_node("entity_extractor", _timed("entity_extractor")(news_entity_extractor))
     graph.add_node("event_extractor", _timed("event_extractor")(news_event_extractor))
     graph.add_node("impact_analyzer", _timed("impact_analyzer")(news_impact_analyzer))
     graph.add_node("publisher", _timed("publisher")(news_publisher))
 
-    # 边：入口 → Cleaner → Deduplicator → Classifier
+    # 边：入口 → Cleaner → Deduplicator → EmbeddingDedup → Classifier
     graph.add_edge(START, "cleaner")
     graph.add_edge("cleaner", "deduplicator")
-    graph.add_edge("deduplicator", "classifier")
+    graph.add_edge("deduplicator", "embedding_dedup")
+    graph.add_edge("embedding_dedup", "classifier")
 
     # Fan-out: Classifier 完成后，Entity 和 Event 并行执行
     graph.add_edge("classifier", "entity_extractor")

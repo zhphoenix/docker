@@ -178,20 +178,3 @@ async def list_pending_approvals(limit: int = 20) -> list[dict]:
         })
     return results
 
-
-# ============================================================
-# 默认回调：Vault 写入
-# ============================================================
-async def _vault_write_callback(params: dict) -> None:
-    """审批通过后写入 Obsidian Vault"""
-    from tools.obsidian import obsidian_tool
-
-    filepath = params.get("filepath", "")
-    content = params.get("content", "")
-    if filepath and content:
-        await obsidian_tool.append_to_note(filepath, content)
-        logger.info("Vault write executed | %s", filepath)
-
-
-# 注册默认回调
-register_approval_callback("vault_write", _vault_write_callback)

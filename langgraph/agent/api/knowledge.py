@@ -1,10 +1,14 @@
 """Knowledge API - 知识库管理（Collection 统计 + 知识图谱查询 + Hybrid 检索）"""
 
+import asyncio
 import logging
+import os
+import uuid as uuid_mod
+from pathlib import Path
 
 import httpx
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from config.settings import settings
 from tools.postgres import postgres_tool
@@ -304,3 +308,215 @@ async def trigger_extraction(request: ExtractRequest):
     except Exception as e:
         logger.exception("Failed to create extraction task")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================
+# 目录浏览 API
+# ============================================================
+
+
+# 允许浏览的根路径白名单（安全限制）
+ALLOWED_BROWSE_ROOTS = ["/data", "/app"]
+
+
+@router.get("/browse-dirs")
+async def browse_dirs(path: str = Query("/data/minio/documents", description="要浏览的目录路径")):
+    """浏览服务器目录结构（仅返回目录，用于目录选择器）"""
+    target = Path(path).resolve()
+
+    # 安全检查：路径必须在允许的根目录下
+    if not any(str(target).startswith(root) for root in ALLOWED_BROWSE_ROOTS):
+        raise HTTPException(
+            status_code=403,
+            detail=f"路径不在允许范围内，允许的根路径: {', '.join(ALLOWED_BROWSE_ROOTS)}"
+        )
+
+    if not target.exists():
+        raise HTTPException(status_code=404, detail=f"路径不存在: {path}")
+    if not target.is_dir():
+        raise HTTPException(status_code=400, detail=f"不是目录: {path}")
+
+    # 获取子目录列表
+    subdirs = []
+    try:
+        for item in sorted(target.iterdir()):
+            if item.is_dir() and not item.name.startswith("."):
+                subdirs.append({
+                    "name": item.name,
+                    "path": str(item),
+                })
+    except PermissionError:
+        raise HTTPException(status_code=403, detail=f"无权限访问: {path}")
+
+    # 计算父级路径
+    parent = target.parent
+    can_go_up = any(str(parent).startswith(root) for root in ALLOWED_BROWSE_ROOTS) and parent != target
+
+    return {
+        "current_path": str(target),
+        "parent_path": str(parent) if can_go_up else None,
+        "can_go_up": can_go_up,
+        "directories": subdirs,
+        "total": len(subdirs),
+    }
+
+
+# ============================================================
+# MD 文件手动导入 API
+# ============================================================
+
+
+class IngestRequest(BaseModel):
+    path: str = Field(..., min_length=1, description="文件或目录路径")
+    collection: str = Field("documents_cn", description="目标 Qdrant collection")
+
+
+async def _run_ingest(path: str, collection: str) -> None:
+    """后台执行 MD 文件导入处理管线"""
+    from tools.chunker import chunk_markdown
+    from tools.embedding import embedding_tool
+    from tools.qdrant import qdrant_tool
+
+    logger.info("[Ingest] Start | path=%s | collection=%s", path, collection)
+    try:
+        target = Path(path)
+        md_files: list[Path] = []
+
+        if target.is_file() and target.suffix == ".md":
+            md_files = [target]
+        elif target.is_dir():
+            md_files = sorted(target.rglob("*.md"))
+        else:
+            logger.warning("[Ingest] Invalid path: %s", path)
+            return
+
+        if not md_files:
+            logger.info("[Ingest] No .md files found at %s", path)
+            return
+
+        total_files = 0
+        total_chunks = 0
+        embed_batch_size = 16
+
+        for md_file in md_files:
+            try:
+                content = md_file.read_text(encoding="utf-8")
+                if not content.strip():
+                    continue
+
+                # Chunking
+                chunks = chunk_markdown(content)
+                if not chunks:
+                    continue
+
+                # 创建 document 记录
+                doc_id = str(uuid_mod.uuid4())
+                file_name = md_file.stem
+                await postgres_tool.execute(
+                    """
+                    INSERT INTO documents (id, market, symbol, company, year,
+                                           document_type, status, parser,
+                                           chunk_count, metadata)
+                    VALUES ($1, 'cn', $2, '', 0, 'markdown', 'indexing',
+                            'direct', $3, $4::jsonb)
+                    """,
+                    doc_id, file_name, len(chunks),
+                    f'{{"source_path": "{md_file}", "ingest": "manual"}}',
+                )
+
+                # Embedding（分批）
+                all_vectors: list[list[float]] = []
+                for batch_start in range(0, len(chunks), embed_batch_size):
+                    batch = chunks[batch_start:batch_start + embed_batch_size]
+                    texts = [c["content"][:2000] for c in batch]
+                    vectors = await embedding_tool.embed(texts)
+                    all_vectors.extend(vectors)
+
+                # 写入 Qdrant + PostgreSQL chunks
+                points = []
+                for i, (chunk, vector) in enumerate(zip(chunks, all_vectors)):
+                    point_id = str(uuid_mod.uuid4())
+                    points.append({
+                        "id": point_id,
+                        "vector": vector,
+                        "payload": {
+                            "content": chunk["content"],
+                            "heading": chunk.get("heading", ""),
+                            "symbol": file_name,
+                            "market": "cn",
+                            "document_type": "markdown",
+                            "document_id": doc_id,
+                            "chunk_index": i,
+                            "source_path": str(md_file),
+                        },
+                    })
+                    await postgres_tool.execute(
+                        """
+                        INSERT INTO chunks (document_id, chunk_index, content,
+                                            heading, collection_name, qdrant_point_id)
+                        VALUES ($1, $2, $3, $4, $5, $6)
+                        ON CONFLICT (document_id, chunk_index) DO NOTHING
+                        """,
+                        doc_id, i, chunk["content"],
+                        chunk.get("heading", ""), collection, point_id,
+                    )
+
+                # Upsert Qdrant
+                for batch_start in range(0, len(points), 100):
+                    batch = points[batch_start:batch_start + 100]
+                    await qdrant_tool.upsert(collection, batch)
+
+                # 更新文档状态
+                await postgres_tool.execute(
+                    "UPDATE documents SET status = 'indexed' WHERE id = $1",
+                    doc_id,
+                )
+
+                total_files += 1
+                total_chunks += len(chunks)
+                logger.info(
+                    "[Ingest] Processed | %s | chunks=%d", md_file.name, len(chunks)
+                )
+
+            except Exception as e:
+                logger.error("[Ingest] File failed | %s | %s", md_file, e)
+
+        logger.info(
+            "[Ingest] Complete | files=%d | chunks=%d | collection=%s",
+            total_files, total_chunks, collection,
+        )
+
+    except Exception as e:
+        logger.error("[Ingest] Fatal error: %s", e)
+
+
+@router.post("/ingest")
+async def trigger_ingest(req: IngestRequest):
+    """手动导入 MD 文件并执行处理管线（异步执行，立即返回）"""
+    # 基本路径验证
+    target = Path(req.path)
+    if not target.exists():
+        raise HTTPException(status_code=400, detail=f"路径不存在: {req.path}")
+
+    # 只接受目录路径
+    if not target.is_dir():
+        raise HTTPException(status_code=400, detail="请选择目录，而不是单个文件")
+
+    # 快速检测是否存在 .md 文件（避免大目录全量递归扫描）
+    file_count = 0
+    for _ in target.rglob("*.md"):
+        file_count += 1
+        if file_count >= 9999:
+            break
+
+    if file_count == 0:
+        raise HTTPException(status_code=400, detail=f"目录下无 .md 文件: {req.path}")
+
+    asyncio.create_task(_run_ingest(req.path, req.collection))
+    count_label = f"{file_count}+" if file_count >= 9999 else str(file_count)
+    return {
+        "status": "accepted",
+        "message": f"导入任务已启动（{count_label} 个文件 → {req.collection}）",
+        "file_count": file_count,
+        "collection": req.collection,
+    }

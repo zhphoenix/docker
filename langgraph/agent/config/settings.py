@@ -60,11 +60,6 @@ class Settings(BaseSettings):
     # Docling
     DOCLING_URL: str = "http://docling:5001"
 
-    # Obsidian Local REST API
-    # 容器化部署（obsidian-remote），挂载 data/obsidian_vault，经 ai-platform 网络以容器名访问
-    # 插件提供 HTTPS :27124（自签证书，obsidian.py 已设 verify=False），绑定 0.0.0.0，与 MCP 配置一致
-    OBSIDIAN_URL: str = "https://obsidian:27124"
-    OBSIDIAN_API_KEY: str = ""
 
     # LangGraph
     LANGGRAPH_PORT: int = 8100

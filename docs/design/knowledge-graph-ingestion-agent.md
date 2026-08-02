@@ -1,9 +1,9 @@
-# Knowledge Agent 设计
+# Knowledge Ingestion Agent 设计
 
 > **ARCH 编号**：ARCH-003
 > **状态**：Approved（已实现）
 > **最后更新**：2026-08-01
-> **规范名称**：Knowledge Agent（参见 `specs/agent-registry.yaml`）
+> **规范名称**：Knowledge Ingestion Agent（参见 `specs/agent-registry.yaml`）
 
 ---
 
@@ -37,8 +37,8 @@ graph LR
 
 ```mermaid
 graph TB
-    A[News Sources] --> B[News Collector]
-    B --> C[Knowledge Agent]
+    A[News Sources] --> B[News Intelligence Agent]
+    B --> C[Knowledge Ingestion Agent]
     C --> D[(PostgreSQL)]
     C --> E[(Qdrant)]
     D --> F[Knowledge MCP Server]
@@ -49,11 +49,11 @@ graph TB
 
 | 上游 | 本模块 | 下游 |
 |---|---|---|
-| News Collector / 文档输入 | **Knowledge Agent** | Knowledge MCP Server → Research Agent |
+| News Intelligence Agent / 文档输入 | **Knowledge Ingestion Agent** | Knowledge MCP Server → Research Agent |
 
 ---
 
-## 3. 为什么需要独立 Knowledge Agent？
+## 3. 为什么需要独立 Knowledge Ingestion Agent？
 
 **不要：** 新闻 → 直接写 Graph
 
@@ -401,7 +401,7 @@ langgraph/agent/
 
 ## 9. 与 Knowledge MCP Server 集成
 
-Knowledge Agent 写入后，MCP Server 提供 15 个 Tools 供 Research Agent 查询：
+Knowledge Ingestion Agent 写入后，MCP Server 提供 15 个 Tools 供 Research Agent 查询：
 
 | 模块 | Tools | 说明 |
 |---|---|---|
@@ -489,7 +489,7 @@ Event1 —SUPERSEDES→ Event2
 | **Knowledge Graph** | 理解世界 |
 | **Research Agent** | 做投资判断 |
 
-> **Knowledge Agent** 是连接 **文档输入 → PostgreSQL/Qdrant → MCP Knowledge Server → Research Agent** 的核心生产管线。
+> **Knowledge Ingestion Agent** 是连接 **文档输入 → PostgreSQL/Qdrant → Knowledge MCP Server → Research Agent** 的核心生产管线。
 
 ---
 

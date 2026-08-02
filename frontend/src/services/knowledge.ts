@@ -135,3 +135,39 @@ export function searchKnowledge(params: {
     body: JSON.stringify(params),
   })
 }
+
+// ─── Ingest ─────────────────────────────────────────────
+
+export interface IngestResponse {
+  status: string
+  message: string
+  file_count: number
+  collection: string
+}
+
+export function triggerIngest(
+  path: string,
+  collection?: string
+): Promise<IngestResponse> {
+  return apiFetch<IngestResponse>('/api/knowledge/ingest', {
+    method: 'POST',
+    body: JSON.stringify({ path, collection: collection || 'documents_cn' }),
+  })
+}
+
+// ─── Directory Browse ──────────────────────────────────
+
+export interface BrowseDirsResponse {
+  current_path: string
+  parent_path: string | null
+  can_go_up: boolean
+  directories: Array<{ name: string; path: string }>
+  total: number
+}
+
+export function fetchBrowseDirs(path?: string): Promise<BrowseDirsResponse> {
+  const searchParams = new URLSearchParams()
+  if (path) searchParams.set('path', path)
+  const qs = searchParams.toString()
+  return apiFetch<BrowseDirsResponse>(`/api/knowledge/browse-dirs${qs ? `?${qs}` : ''}`)
+}
