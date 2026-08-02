@@ -2,7 +2,8 @@
 -- Knowledge Database — 多 Schema 架构（幂等）
 -- 基于 31_Knowledge_Database设计规范.md
 --
--- 5-schema: core / document / vector / audit / taxonomy
+-- 4-schema: core / document / audit / taxonomy
+-- 注: vector schema 已废弃（向量检索由 Qdrant 承担）
 -- 兼容: knowledge schema 保留视图
 --
 -- 场景覆盖:
@@ -15,7 +16,6 @@
 CREATE SCHEMA IF NOT EXISTS knowledge;
 CREATE SCHEMA IF NOT EXISTS core;
 CREATE SCHEMA IF NOT EXISTS document;
-CREATE SCHEMA IF NOT EXISTS vector;
 CREATE SCHEMA IF NOT EXISTS audit;
 CREATE SCHEMA IF NOT EXISTS taxonomy;
 
@@ -226,15 +226,9 @@ CREATE TABLE IF NOT EXISTS document.chunks (
 );
 CREATE INDEX IF NOT EXISTS idx_kg_chunks_doc ON document.chunks(document_id);
 
--- ── 8. entity_embeddings（§十二） ──
--- 注: 2560维超过pgvector HNSW 2000维限制, 不建HNSW索引
--- 主向量检索由Qdrant knowledge_entities collection承担
-CREATE TABLE IF NOT EXISTS vector.entity_embeddings (
-    entity_id   UUID PRIMARY KEY REFERENCES core.entities(id) ON DELETE CASCADE,
-    embedding   VECTOR(2560),
-    model       TEXT DEFAULT 'qwen3-embedding-4b',
-    created_at  TIMESTAMPTZ DEFAULT NOW()
-);
+-- ── 8. entity_embeddings — 已废弃 ──
+-- 向量检索由 Qdrant knowledge_entities collection 承担
+-- 原 vector.entity_embeddings 表不再创建（2560维超 pgvector HNSW 限制，无实际使用）
 
 -- ── 9. knowledge_versions（§十三） ──
 CREATE TABLE IF NOT EXISTS audit.knowledge_versions (

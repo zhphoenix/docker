@@ -87,6 +87,51 @@
 
 ---
 
+## 文档状态索引
+
+> 更新于 2026-08-01。状态说明：✅ 当前有效 | ⚠️ 需更新 | 📦 历史参考
+
+| 编号 | 文档 | 状态 | 备注 |
+|------|------|------|------|
+| 01 | 总体架构 | ⚠️ | 缺少 Pipeline Agent、services/ 层说明 |
+| 02 | 系统组件 | ⚠️ | 缺少 News MCP Server、Crawl4AI 组件 |
+| 03 | 项目目录设计 | ⚠️ | 目录已重构（graph/ → services/、nodes/ → rag_nodes/、src/ 删除） |
+| 04 | Docker部署 | ✅ | |
+| 05 | FastAPI设计 | ✅ | |
+| 06 | LangGraph设计 | ⚠️ | 仅适用 Chat Agent，缺 Pipeline Agent 说明 |
+| 07 | State设计 | ⚠️ | 仅适用 Chat Agent，Pipeline Agent 有独立 State |
+| 08 | Node设计 | ⚠️ | 仅适用 Chat Agent RAG 节点，缺 Pipeline 节点 |
+| 08a | RerankNode设计规范 | ✅ | |
+| 09 | Tool设计 | ✅ | |
+| 09a | EmbeddingTool设计规范 | ✅ | |
+| 10 | Memory设计 | ✅ | |
+| 11 | RAG设计 | ✅ | |
+| 12 | 数据库设计 | ⚠️ | 缺 news schema、web_pages/web_chunks 表 |
+| 13 | MCP设计 | ✅ | |
+| 14 | OpenAI兼容API | ✅ | |
+| 15 | 配置体系设计 | ✅ | |
+| 16 | 开发规范 | ✅ | architecture.yaml 的解释源 |
+| 17 | 日志监控 | ✅ | |
+| 18 | 测试规范 | ✅ | |
+| 19 | 部署流程 | ✅ | |
+| 20 | 开发计划 | 📦 | 早期规划，实际进度已超越 |
+| 21 | Coding Guidelines | ✅ | |
+| 22 | API Reference | ✅ | |
+| 23 | Agent Development Guide | ⚠️ | 缺 Pipeline Agent 开发指南 |
+| 24 | 数据底座规范 | ✅ | |
+| 25 | UI设计规范 | ✅ | |
+| 26 | Crawl4AI集成设计规范 | ✅ | |
+| 27 | 数据访问层设计规范 | ✅ | |
+| 28 | 图工程架构设计规范 | ✅ | Apache AGE 已集成 |
+| 29 | 文件生命周期管理规范 | ✅ | |
+| 30 | Knowledge Schema设计规范 | ✅ | |
+| 31 | Knowledge Database设计规范 | ✅ | |
+| 32 | Knowledge Agent接口规范 | ✅ | |
+| 33 | Knowledge Agent代码架构 | ✅ | |
+| 34 | Knowledge System工程化增强 | ✅ | |
+
+---
+
 ## 文档治理规范
 
 - **命名**：`{编号}_{中文标题}.md`，子文档用 `XXa_` 后缀

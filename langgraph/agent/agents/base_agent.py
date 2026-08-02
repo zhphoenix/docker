@@ -118,9 +118,9 @@ class BaseAgent:
             SSE 格式的 JSON chunk
         """
         from tools.llm import llm_tool
-        from nodes.planner import planner
-        from nodes.retrieve import retrieve
-        from nodes.rerank import rerank
+        from rag_nodes.planner import planner
+        from rag_nodes.retrieve import retrieve
+        from rag_nodes.rerank import rerank
         from prompts.loader import load_prompt
 
         initial_state = self._build_initial_state(request)

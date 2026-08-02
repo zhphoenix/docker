@@ -6,7 +6,7 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse, JSONResponse
 
 from schemas.chat import ChatRequest
-from graph.router import dispatch_agent
+from services.router import dispatch_agent
 
 logger = logging.getLogger(__name__)
 

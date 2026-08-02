@@ -4,8 +4,8 @@ import logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from graph.task_queue import task_queue
-from graph.pipeline import doc_pipeline
+from services.task_queue import task_queue
+from services.pipeline import doc_pipeline
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])

@@ -4,7 +4,7 @@ import logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from graph.approval import list_pending_approvals, approve, reject
+from services.approval import list_pending_approvals, approve, reject
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/approvals", tags=["approvals"])

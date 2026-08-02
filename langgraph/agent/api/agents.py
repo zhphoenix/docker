@@ -5,7 +5,7 @@ import logging
 
 from fastapi import APIRouter
 
-from graph.router import AGENT_REGISTRY
+from services.router import AGENT_REGISTRY
 from tools.postgres import postgres_tool
 
 logger = logging.getLogger(__name__)

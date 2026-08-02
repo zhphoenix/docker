@@ -5,7 +5,7 @@ import logging
 from typing import Optional
 
 from qdrant_client import QdrantClient
-from qdrant_client.models import PointStruct, Filter
+from qdrant_client.models import PointStruct, Filter, FieldCondition, MatchValue, Range  # noqa: F401 (re-export for rag_nodes)
 
 from config.settings import settings
 

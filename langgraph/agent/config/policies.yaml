@@ -48,7 +48,7 @@ routing:
       agent: "investment"
       priority: 20
     - pattern: "笔记|记录|写入|Obsidian|vault"
-      agent: "knowledge"
+      agent: "kb"
       priority: 15
 
 # 文档处理 Pipeline

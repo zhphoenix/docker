@@ -1,11 +1,11 @@
-"""Knowledge Agent - 知识管理（Obsidian Vault 读写 + RAG 检索）"""
+"""KB Agent - 知识库管理（Obsidian Vault 读写 + RAG 检索）"""
 
 from agents.base_agent import BaseAgent
-from graph.builder import get_knowledge_graph
+from graph.builder import get_kb_graph
 
 
-class KnowledgeAgent(BaseAgent):
-    """知识管理 Agent
+class KBAgent(BaseAgent):
+    """知识库 Agent
 
     Workflow: Retrieve → Rerank → Reason → Knowledge → Finish
 
@@ -17,6 +17,6 @@ class KnowledgeAgent(BaseAgent):
 
     def __init__(self):
         super().__init__(
-            graph=get_knowledge_graph(),
-            agent_name="knowledge",
+            graph=get_kb_graph(),
+            agent_name="kb",
         )

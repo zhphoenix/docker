@@ -8,7 +8,7 @@
 #   SHOULD   - 推荐，偏离需说明理由
 
 meta:
-  version: "1.1.0"
+  version: "1.2.0"
   source_doc: "AI-Platform-System-Design/16_开发规范.md"
   last_updated: "2026-08-01"
   scope:
@@ -40,9 +40,9 @@ layer_rules:
 
   - id: ARCH-003
     level: MUST_NOT
-    layer: nodes/
+    layer: rag_nodes/
     rule: "Node 不直接访问基础设施"
-    check: "nodes/ 文件中不得 import asyncpg, qdrant_client, minio, httpx；必须通过 tools/ 访问"
+    check: "rag_nodes/ 文件中不得 import asyncpg, qdrant_client, minio, httpx；必须通过 tools/ 访问"
     source: "§2.1, §2.2"
 
   - id: ARCH-004
@@ -59,21 +59,33 @@ dependency_rules:
 
   - id: DEP-001
     level: MUST
-    rule: "依赖方向单向：api → agents → graph → nodes → tools → config"
+    rule: "依赖方向单向：api → agents → graph → rag_nodes → tools → config"
     check: "import 语句只允许引用同层或下层模块"
     source: "§5"
+
+  - id: DEP-001b
+    level: MUST
+    rule: "Pipeline Agent 依赖方向：{agent}/graph → {agent}/nodes → {agent}/storage + tools/"
+    check: "knowledge_agent/ 和 news_agent/ 内部遵循独立分层，不反向依赖外层 api/ 或 agents/"
+    source: "§5 扩展"
 
   - id: DEP-002
     level: MUST_NOT
     rule: "禁止反向依赖"
-    check: "tools/ 不得 import nodes/; nodes/ 不得 import graph/; graph/ 不得 import agents/; agents/ 不得 import api/"
+    check: "tools/ 不得 import rag_nodes/; rag_nodes/ 不得 import graph/; graph/ 不得 import agents/; agents/ 不得 import api/"
     source: "§5"
 
   - id: DEP-003
     level: MUST
     rule: "Node 通过 Tool 访问外部服务"
-    check: "nodes/ 中的外部服务调用必须经由 tools/ 模块的封装类"
+    check: "rag_nodes/ 中的外部服务调用必须经由 tools/ 模块的封装类"
     source: "§2.2"
+
+  - id: DEP-004
+    level: MUST
+    rule: "services/ 为平台级服务层"
+    check: "services/ 包含 router/pipeline/task_queue/approval/batch_embed/vault_generator/web_pipeline/checkpoint；api/ 和 scheduler/ 通过 services/ 调用平台服务"
+    source: "§5 扩展"
 
 # ============================================================
 # Prompt 管理约束 (§2.4)
@@ -146,8 +158,8 @@ organization_rules:
 
   - id: ORG-002
     level: MUST
-    rule: "类型定义放在 schemas/"
-    check: "Pydantic Model、TypedDict、dataclass 等数据结构定义在 schemas/ 目录"
+    rule: "类型定义放在 schemas/ 或 Pipeline Agent 自身目录"
+    check: "Chat Agent 的 Pydantic Model/TypedDict 定义在 schemas/；Pipeline Agent（knowledge_agent/、news_agent/）可在自身目录内定义 State（如 state.py）"
     source: "§4"
 
   - id: ORG-003

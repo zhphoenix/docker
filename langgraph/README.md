@@ -245,7 +245,7 @@ curl http://localhost:8100/health
 | `QDRANT_HOST` | `qdrant` | 向量数据库 |
 | `MINIO_ENDPOINT` | `minio:9000` | 对象存储 |
 | `OPENAI_API_KEY` | `sk-placeholder` | API Key（占位） |
-| `MODEL_NAME` | `qwen3` | 默认模型名 |
+| `MODEL_NAME` | `sisyphus` | 默认模型名 |
 
 > **注意**：`.env` 中的 `localhost` 地址仅供宿主机调试使用，容器化部署时由 `compose.yml` 的 `environment` 覆盖为容器名。
 

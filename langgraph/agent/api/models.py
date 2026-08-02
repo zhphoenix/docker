@@ -5,7 +5,7 @@ import time
 from fastapi import APIRouter
 
 from schemas.chat import ModelsResponse, ModelInfo
-from graph.router import AGENT_REGISTRY
+from services.router import AGENT_REGISTRY
 
 router = APIRouter()
 

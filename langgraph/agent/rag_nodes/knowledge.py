@@ -52,13 +52,13 @@ async def knowledge(state: AgentState) -> dict:
     if len(answer) >= approval_threshold:
         # 长内容 → 创建审批请求
         try:
-            from graph.approval import create_approval
+            from services.approval import create_approval
             approval_id = await create_approval(
                 title=f"Vault 写入: {filename}",
                 action_type="vault_write",
                 params={"filepath": vault_path, "content": note_content},
                 content_preview=answer[:500],
-                created_by="knowledge_agent",
+                created_by="kb_agent",
             )
             logger.info("Knowledge: approval created | %s | %s", approval_id[:8], vault_path)
             return {"metadata": {

@@ -10,7 +10,7 @@ from config.settings import settings
 from tools.postgres import postgres_tool
 from knowledge_agent.storage.postgres import knowledge_storage
 from knowledge_agent.storage.qdrant import knowledge_qdrant
-from graph.task_queue import task_queue
+from services.task_queue import task_queue
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])

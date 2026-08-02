@@ -13,7 +13,7 @@ from schemas.chat import ChatRequest
 from agents.base_agent import BaseAgent
 from agents.chat_agent import ChatAgent
 from agents.research_agent import ResearchAgent
-from agents.knowledge_agent import KnowledgeAgent
+from agents.kb_agent import KBAgent
 from agents.investment_agent import InvestmentAgent
 from config.policy_loader import get_routing_rules, get_policy
 
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 AGENT_REGISTRY: dict[str, type[BaseAgent]] = {
     "chat": ChatAgent,
     "research": ResearchAgent,
-    "knowledge": KnowledgeAgent,
+    "kb": KBAgent,
     "investment": InvestmentAgent,
 }
 

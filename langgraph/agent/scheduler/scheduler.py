@@ -26,7 +26,7 @@ _scheduler: AsyncIOScheduler | None = None
 
 async def _job_daily_pipeline():
     """每日文档处理 Pipeline"""
-    from graph.pipeline import doc_pipeline
+    from services.pipeline import doc_pipeline
 
     logger.info("[Scheduler] Daily pipeline triggered")
     try:
@@ -39,7 +39,7 @@ async def _job_daily_pipeline():
 
 async def _job_task_retry():
     """定期重试失败任务（指数退避）"""
-    from graph.task_queue import task_queue
+    from services.task_queue import task_queue
     from tools.postgres import postgres_tool
 
     try:

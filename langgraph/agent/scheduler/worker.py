@@ -12,7 +12,7 @@ import json
 import logging
 from typing import Callable, Coroutine, Any
 
-from graph.task_queue import task_queue
+from services.task_queue import task_queue
 from config.policy_loader import get_policy
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ def register_handler(task_type: str, handler: Callable[..., Coroutine[Any, Any, 
 
 async def _handle_doc_pipeline(task: dict) -> None:
     """处理 doc_pipeline 类型任务"""
-    from graph.pipeline import doc_pipeline
+    from services.pipeline import doc_pipeline
 
     params = task.get("params", {}) or {}
     if isinstance(params, str):
@@ -47,7 +47,7 @@ async def _handle_doc_pipeline(task: dict) -> None:
 
 async def _handle_reindex(task: dict) -> None:
     """处理 reindex 类型任务（重新索引单个文档）"""
-    from graph.pipeline import doc_pipeline
+    from services.pipeline import doc_pipeline
 
     params = task.get("params", {}) or {}
     if isinstance(params, str):
@@ -59,7 +59,7 @@ async def _handle_reindex(task: dict) -> None:
 
 async def _handle_batch_embed(task: dict) -> None:
     """处理 batch_embed 类型任务（批量向量化）"""
-    from graph.batch_embed import run_batch_embed
+    from services.batch_embed import run_batch_embed
 
     params = task.get("params", {}) or {}
     if isinstance(params, str):

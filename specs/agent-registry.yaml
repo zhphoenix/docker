@@ -7,34 +7,35 @@
 
 | 规范名称 | 代码目录 | 入口文件 | 类型 | 职责 |
 |---|---|---|---|---|
-| **Chat Agent** | `langgraph/agent/agents/` | `chat_agent.py` | Agent | 通用对话交互 |
-| **Investment Agent** | `langgraph/agent/agents/` | `investment_agent.py` | Agent | 投资研究推理 |
-| **Knowledge Agent** | `langgraph/agent/agents/` + `knowledge_agent/` | `knowledge_agent.py` → `graph.py` | Agent + SubGraph | 文档 → 结构化知识提取（6 节点 fan-out/fan-in） |
-| **News Intelligence Agent** | `langgraph/agent/news_agent/` | `graph.py` | Agent + SubGraph | 新闻采集 → 清洗 → 去重 → 分类 → 实体/事件提取 → 影响分析（7 节点 fan-out/fan-in） |
-| **Research Agent** | `langgraph/agent/agents/` | `research_agent.py` | Agent | 投资研究报告生成 |
+| **Chat Agent** | `langgraph/agent/agents/` | `chat_agent.py` | Chat Agent | 通用对话交互 |
+| **Investment Agent** | `langgraph/agent/agents/` | `investment_agent.py` | Chat Agent | 投资研究推理 |
+| **KB Agent** | `langgraph/agent/agents/` | `kb_agent.py` | Chat Agent | 知识库管理（Obsidian Vault 读写 + RAG 检索） |
+| **Research Agent** | `langgraph/agent/agents/` | `research_agent.py` | Chat Agent | 投资研究报告生成 |
+| **Knowledge Ingestion Agent** | `langgraph/agent/knowledge_agent/` | `graph.py` | Pipeline Agent | 文档 → 结构化知识提取（6 节点 fan-out/fan-in） |
+| **News Intelligence Agent** | `langgraph/agent/news_agent/` | `graph.py` | Pipeline Agent | 新闻采集 → 清洗 → 去重 → 分类 → 实体/事件提取 → 影响分析（7 节点 fan-out/fan-in） |
 
-### Knowledge Agent 内部节点
+### Knowledge Ingestion Agent 内部节点
 
 | 节点名 | 文件 | 职责 |
 |---|---|---|
-| `parser` | `nodes/parser.py` | 文档清洗、分段 |
-| `entity_extractor` | `nodes/entity.py` | 实体识别 |
-| `relation_extractor` | `nodes/relation.py` | 关系抽取 |
-| `fact_extractor` | `nodes/fact.py` | 事实抽取 |
-| `validator` | `nodes/validator.py` | 知识验证 |
-| `merger` | `nodes/merger.py` | 知识合并写入 |
+| `parser` | `knowledge_agent/nodes/parser.py` | 文档清洗、分段 |
+| `entity_extractor` | `knowledge_agent/nodes/entity.py` | 实体识别 |
+| `relation_extractor` | `knowledge_agent/nodes/relation.py` | 关系抽取 |
+| `fact_extractor` | `knowledge_agent/nodes/fact.py` | 事实抽取 |
+| `validator` | `knowledge_agent/nodes/validator.py` | 知识验证 |
+| `merger` | `knowledge_agent/nodes/merger.py` | 知识合并写入 |
 
 ### News Intelligence Agent 内部节点
 
 | 节点名 | 文件 | 职责 |
 |---|---|---|
-| `cleaner` | `nodes/cleaner.py` | 语言检测 + 清洗 + 标准化 |
-| `deduplicator` | `nodes/deduplicator.py` | 标题相似 + Hash 去重 |
-| `classifier` | `nodes/classifier.py` | 分类 + 重要性评分 |
-| `entity_extractor` | `nodes/entity.py` | 新闻实体识别 |
-| `event_extractor` | `nodes/event.py` | 事件抽取 |
-| `impact_analyzer` | `nodes/impact.py` | 投资影响分析 |
-| `publisher` | `nodes/publisher.py` | 存储 + 触发 Knowledge Agent |
+| `cleaner` | `news_agent/nodes/cleaner.py` | 语言检测 + 清洗 + 标准化 |
+| `deduplicator` | `news_agent/nodes/deduplicator.py` | 标题相似 + Hash 去重 |
+| `classifier` | `news_agent/nodes/classifier.py` | 分类 + 重要性评分 |
+| `entity_extractor` | `news_agent/nodes/entity.py` | 新闻实体识别 |
+| `event_extractor` | `news_agent/nodes/event.py` | 事件抽取 |
+| `impact_analyzer` | `news_agent/nodes/impact.py` | 投资影响分析 |
+| `publisher` | `news_agent/nodes/publisher.py` | 存储 + 触发 Knowledge Ingestion Agent |
 
 ## 2. 已实现服务
 
@@ -65,12 +66,13 @@
 
 | 历史名称（设计文档中） | 规范名称 | 所在文档 |
 |---|---|---|
-| Knowledge Graph Ingestion Agent | **Knowledge Agent** | `knowledge-graph-ingestion-agent.md` |
-| knowledge_graph_agent | **Knowledge Agent** | `新闻生命周期管理（DLM）总体原则.md` §15 |
-| news_ingestion_agent | **News Intelligence Agent**（规划） | `新闻生命周期管理（DLM）总体原则.md` §15 |
+| Knowledge Graph Ingestion Agent | **Knowledge Ingestion Agent** | `knowledge-graph-ingestion-agent.md` |
+| knowledge_graph_agent | **Knowledge Ingestion Agent** | `新闻生命周期管理（DLM）总体原则.md` §15 |
+| Knowledge Agent (chat) | **KB Agent** | 重命名（解决命名冲突） |
+| news_ingestion_agent | **News Intelligence Agent** | `新闻生命周期管理（DLM）总体原则.md` §15 |
 | knowledge_maintenance_agent | **Knowledge Maintenance Agent**（规划） | `新闻生命周期管理（DLM）总体原则.md` §15 |
-| News Intelligence Agent | **News Intelligence Agent**（规划） | `新闻生命周期管理（DLM）总体原则.md` §16 |
-| Knowledge Organization Agent | **Knowledge Agent** | `新闻智能管线规范.md` §2 架构图 |
+| News Intelligence Agent | **News Intelligence Agent** | `新闻生命周期管理（DLM）总体原则.md` §16 |
+| Knowledge Organization Agent | **Knowledge Ingestion Agent** | `新闻智能管线规范.md` §2 架构图 |
 | Lifecycle Agent | **Knowledge Maintenance Agent**（规划） | `新闻生命周期管理（DLM）总体原则.md` §14 |
 | Intent Agent | **Research Agent**（查询意图子模块） | `apache-age-cypher-query-library.md` |
 | Query Planner Agent | **Research Agent**（查询规划子模块） | `apache-age-cypher-query-library.md` |

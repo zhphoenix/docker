@@ -5,14 +5,14 @@ import logging
 from langgraph.graph import StateGraph, START, END
 
 from graph.state import AgentState
-from nodes.planner import planner
-from nodes.retrieve import retrieve
-from nodes.rerank import rerank
-from nodes.reason import reason
-from nodes.reflect import reflect
-from nodes.finish import finish
-from nodes.knowledge import knowledge
-from nodes.query_rewrite import query_rewrite
+from rag_nodes.planner import planner
+from rag_nodes.retrieve import retrieve
+from rag_nodes.rerank import rerank
+from rag_nodes.reason import reason
+from rag_nodes.reflect import reflect
+from rag_nodes.finish import finish
+from rag_nodes.knowledge import knowledge
+from rag_nodes.query_rewrite import query_rewrite
 
 logger = logging.getLogger(__name__)
 
@@ -102,8 +102,8 @@ def build_chat_graph() -> StateGraph:
     return graph.compile()
 
 
-def build_knowledge_graph() -> StateGraph:
-    """构建 Knowledge Agent 的 Workflow
+def build_kb_graph() -> StateGraph:
+    """构建 KB Agent（知识库）的 Workflow
 
     Retrieve → Rerank → Reason → Knowledge (Vault 读写) → Finish → END
     """

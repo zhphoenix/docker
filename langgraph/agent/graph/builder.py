@@ -2,14 +2,14 @@
 
 import logging
 
-from graph.graph import build_research_graph, build_chat_graph, build_knowledge_graph
+from graph.graph import build_research_graph, build_chat_graph, build_kb_graph
 
 logger = logging.getLogger(__name__)
 
 # 缓存编译后的 Graph
 _research_graph = None
 _chat_graph = None
-_knowledge_graph = None
+_kb_graph = None
 
 
 def get_research_graph():
@@ -30,10 +30,10 @@ def get_chat_graph():
     return _chat_graph
 
 
-def get_knowledge_graph():
-    """获取 Knowledge Agent Graph"""
-    global _knowledge_graph
-    if _knowledge_graph is None:
-        _knowledge_graph = build_knowledge_graph()
-        logger.info("Knowledge graph compiled")
-    return _knowledge_graph
+def get_kb_graph():
+    """获取 KB Agent Graph"""
+    global _kb_graph
+    if _kb_graph is None:
+        _kb_graph = build_kb_graph()
+        logger.info("KB graph compiled")
+    return _kb_graph

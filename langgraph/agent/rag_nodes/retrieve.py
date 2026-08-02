@@ -6,8 +6,7 @@ import re
 from schemas.state import AgentState
 from schemas.authority import get_authority_level
 from tools.embedding import embedding_tool
-from tools.qdrant import qdrant_tool
-from qdrant_client.models import Filter, FieldCondition, MatchValue, Range
+from tools.qdrant import qdrant_tool, Filter, FieldCondition, MatchValue, Range
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +79,7 @@ async def retrieve(state: AgentState) -> dict:
             query_filter=None,
         )
 
-    # 4. 格式化文档 + 权威度标注
+    # 6. 格式化文档 + 权威度标注
     documents = [
         {
             "content": r["payload"].get("content", ""),

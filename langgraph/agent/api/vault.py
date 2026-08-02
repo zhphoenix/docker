@@ -4,7 +4,7 @@ import logging
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from graph.vault_generator import (
+from services.vault_generator import (
     generate_company_notes,
     generate_research_notes,
     sync_analysis_reports,

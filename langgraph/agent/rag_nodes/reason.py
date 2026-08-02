@@ -30,7 +30,7 @@ async def reason(state: AgentState) -> dict:
     prompt_map = {
         "investment": "investment/system",
         "chat": "chat/system",
-        "knowledge": "chat/system",
+        "kb": "kb/system",
     }
     prompt_name = prompt_map.get(agent_name, "reason")
 

@@ -1,19 +1,12 @@
 """Web Collector — Crawl4AI 网页新闻采集
 
-复用 src/providers/web/crawl4ai_provider.py（Crawl4AI HTTP API）。
+复用 providers/web/crawl4ai_provider.py（Crawl4AI HTTP API）。
 支持列表页 → 文章链接提取 → 逐篇抓取。
 """
 
 import logging
 import os
-import sys
 from datetime import datetime, timezone
-
-# 添加 src 到路径（复用 Crawl4AI Provider）
-_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-_SRC_PATH = os.path.join(_PROJECT_ROOT, "src")
-if _SRC_PATH not in sys.path:
-    sys.path.insert(0, _SRC_PATH)
 
 logger = logging.getLogger(__name__)
 

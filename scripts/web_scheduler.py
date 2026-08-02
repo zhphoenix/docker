@@ -41,14 +41,14 @@ import sys
 import time
 from datetime import datetime, timezone
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "langgraph", "agent"))
 
 import asyncpg
 import yaml
 from minio import Minio
 
 from providers.web.crawl4ai_provider import Crawl4AIProvider
-from pipelines.web_pipeline import WebPipeline
+from services.web_pipeline import WebPipeline
 
 # ──────────────────────────────────────────────
 # 配置
