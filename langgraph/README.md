@@ -11,76 +11,81 @@
 
 ## 二、项目结构
 
+采用职责分层的扁平包结构（以本目录为导入根，无 `agent/` 中间层）。
+
 ```
 langgraph/
-├── compose.yml                 # Docker Compose 编排
-├── Dockerfile                  # 构建镜像（python:3.11-slim）
+├── main.py                     # 入口：启动 uvicorn (api.server:app)
+├── pyproject.toml              # 项目元数据与工具配置（非可安装包）
 ├── requirements.txt            # Python 依赖
-├── .env.example                # 环境变量示例
+├── compose.yml                 # Docker Compose 编排（开发，代码挂载 .:/app）
+├── compose.prod.yml            # 生产编排（镜像固化）
+├── Dockerfile / Dockerfile.dev # 构建镜像
 │
-└── agent/                      # 应用根目录（COPY 到 /app）
-    ├── main.py                 # 入口：启动 uvicorn
-    │
-    ├── app/
-    │   └── main.py             # FastAPI 实例、中间件、生命周期
-    │
-    ├── api/                    # API 层（HTTP 路由）
-    │   ├── chat.py             #   POST /v1/chat/completions
-    │   ├── health.py           #   GET  /health
-    │   └── models.py           #   GET  /v1/models
-    │
-    ├── agents/                 # Agent 层（业务编排）
-    │   ├── base_agent.py       #   基类：run() / stream_run()
-    │   ├── chat_agent.py       #   简单问答 Agent（RAG）
-    │   └── research_agent.py   #   研究分析 Agent（Planner + RAG + Reflect）
-    │
-    ├── graph/                  # LangGraph 图定义
-    │   ├── graph.py            #   StateGraph 构建（Research/Chat 两种图）
-    │   ├── builder.py          #   图编译工厂
-    │   ├── router.py           #   Agent 路由分发（关键词匹配）
-    │   ├── checkpoint.py       #   PostgreSQL Checkpoint 持久化
-    │   └── state.py            #   AgentState TypedDict 定义
-    │
-    ├── nodes/                  # 图节点（Workflow 步骤）
-    │   ├── planner.py          #   理解问题 → 生成执行计划
-    │   ├── retrieve.py         #   Embedding → Qdrant 语义检索
-    │   ├── rerank.py           #   Reranker 重排序
-    │   ├── reason.py           #   LLM 推理生成回答
-    │   ├── reflect.py          #   LLM 评估答案质量
-    │   ├── writer.py           #   （预留）长文写作
-    │   └── finish.py           #   收尾：写入 answer
-    │
-    ├── tools/                  # 基础设施工具层
-    │   ├── llm.py              #   LLM 调用（httpx 连接池复用）
-    │   ├── embedding.py        #   Embedding 向量化
-    │   ├── reranker.py         #   Reranker 重排序
-    │   ├── qdrant.py           #   Qdrant 向量检索（asyncio.to_thread）
-    │   ├── postgres.py         #   PostgreSQL 连接池
-    │   ├── minio.py            #   MinIO 对象存储
-    │   ├── obsidian.py         #   Obsidian Vault 读写（Local REST API）
-    │   ├── docling.py          #   Docling 文档解析
-    │   ├── search.py           #   （预留）Web 搜索
-    │   └── filesystem.py       #   （预留）文件系统
-    │
-    ├── schemas/                # 数据模型
-    │   ├── chat.py             #   OpenAI 兼容请求/响应模型
-    │   └── state.py            #   AgentState 状态定义
-    │
-    ├── prompts/                # Prompt 模板
-    │   ├── loader.py           #   模板加载器（变量替换）
-    │   ├── planner.md          #   Planner 节点 prompt
-    │   ├── reason.md           #   Reason 节点 prompt
-    │   ├── reflect.md          #   Reflect 节点 prompt
-    │   └── writer.md           #   Writer 节点 prompt
-    │
-    ├── config/
-    │   └── settings.py         #   Pydantic Settings（从 .env 加载）
-    │
-    └── tests/                  # 测试
-        ├── unit/               #   单元测试
-        ├── api/                #   API 测试
-        └── integration/        #   集成测试
+├── api/                        # API 层（FastAPI 路由）
+│   ├── server.py               #   FastAPI 实例、中间件、生命周期
+│   ├── chat.py                 #   POST /v1/chat/completions
+│   ├── health.py               #   GET /health
+│   ├── models.py               #   GET /v1/models
+│   └── ...                     #   documents/research/reports/knowledge/vector/news/tasks/...
+│
+├── graphs/                     # LangGraph 工作流定义（编译缓存由 workflows.yaml 驱动）
+│   ├── __init__.py             #   Graph 注册表 + 缓存入口 (get_*_graph)
+│   ├── research_graph.py       #   投资研究主流程 (Research/Chat/KB)
+│   ├── news_analysis_graph.py  #   新闻分析流程
+│   ├── knowledge_graph.py      #   知识整理流程
+│   └── document_graph.py       #   文档处理流程（委托 pipelines）
+│
+├── nodes/                      # Graph Node 实现
+│   ├── research/               #   planner/retrieve/rerank/reason/reflect/finish/query_rewrite/writer
+│   ├── news/                   #   cleaner/deduplicator/classifier/entity/event/impact/publisher/...
+│   └── knowledge/              #   parser/entity/relation/fact/validator/merger
+│
+├── state/                      # LangGraph State 定义
+│   ├── research_state.py       #   AgentState
+│   ├── news_state.py           #   NewsState
+│   ├── knowledge_state.py      #   KnowledgeState
+│   └── document_state.py       #   DocumentState
+│
+├── agents/                     # Agent 角色定义（业务编排）
+│   ├── base_agent.py           #   基类：run() / stream_run()
+│   ├── chat_agent.py           #   简单问答 Agent
+│   ├── research_agent.py       #   研究分析 Agent
+│   ├── kb_agent.py             #   知识库 Agent
+│   └── investment_agent.py     #   价值投资 Agent
+│
+├── tools/                      # 基础设施工具层
+│   ├── llm.py / embedding.py / reranker.py
+│   ├── qdrant.py / postgres.py / minio.py / docling.py / chunker.py
+│   ├── market_tools.py         #   金融数据（AKShare/yfinance，原 financial_data）
+│   ├── knowledge_tools.py      #   MCP Knowledge Server 调用
+│   ├── search_tools.py         #   检索+重排序组合
+│   └── document_tools.py       #   文档解析/存储/分片组合
+│
+├── pipelines/                  # 数据流水线
+│   ├── document_pipeline.py    #   文档处理全链路
+│   ├── web_pipeline.py         #   网页抓取数据流
+│   └── web/                    #   chunker/diff_detector/rate_limiter/retry/...
+│
+├── storage/                    # 持久化层
+│   ├── news/postgres.py
+│   └── knowledge/{postgres,qdrant,age}.py
+│
+├── collectors/                 # 新闻采集器（rss/web/source_registry）
+├── skills/                     # 技能（RAG/大师分析/投研/网页摘要）
+├── services/                   # 业务服务（router/approval/lifecycle/batch_embed/...）
+├── runtime/                    # 运行时（executor/queue/scheduler/worker）
+├── memory/                     # 记忆（memory_store/checkpoint/thread_manager）
+├── prompts/                    # Prompt 模板（loader.py + *.md）
+├── schemas/                    # 数据模型（chat/financial/authority）
+├── config/                     # 配置（settings/policy_loader + agents/workflows/policies yaml）
+├── providers/                  # 外部数据源 Provider（crawl4ai）
+├── scripts/                    # 运维/调试脚本
+└── tests/                      # 测试（unit/api/integration）
 ```
+
+> 声明式注册表：`config/agents.yaml` 定义 Agent 注册表，`config/workflows.yaml` 定义工作流注册表。
+> `services/router.py` 与 `graphs/__init__.py` 分别依据这两个文件动态加载。
 
 ---
 
