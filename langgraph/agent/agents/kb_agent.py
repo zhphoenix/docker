@@ -1,7 +1,7 @@
 """KB Agent - 知识库管理（RAG 检索）"""
 
 from agents.base_agent import BaseAgent
-from graph.builder import get_kb_graph
+from graphs import get_kb_graph
 
 
 class KBAgent(BaseAgent):

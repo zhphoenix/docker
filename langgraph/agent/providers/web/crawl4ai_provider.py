@@ -33,8 +33,8 @@ from urllib.parse import urlparse
 import httpx
 import yaml
 
-from ingestion.web.rate_limiter import RateLimiter
-from ingestion.web.retry import RetryPolicy
+from pipelines.web.rate_limiter import RateLimiter
+from pipelines.web.retry import RetryPolicy
 
 logger = logging.getLogger(__name__)
 

@@ -12,7 +12,7 @@ import json
 import logging
 from typing import Callable, Coroutine, Any
 
-from services.task_queue import task_queue
+from runtime.queue import task_queue
 from config.policy_loader import get_policy
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ def register_handler(task_type: str, handler: Callable[..., Coroutine[Any, Any, 
 
 async def _handle_doc_pipeline(task: dict) -> None:
     """处理 doc_pipeline 类型任务"""
-    from services.pipeline import doc_pipeline
+    from pipelines.document_pipeline import doc_pipeline
 
     params = task.get("params", {}) or {}
     if isinstance(params, str):
@@ -67,7 +67,7 @@ async def _handle_doc_pipeline(task: dict) -> None:
 
 async def _handle_reindex(task: dict) -> None:
     """处理 reindex 类型任务（重新索引单个文档）"""
-    from services.pipeline import doc_pipeline
+    from pipelines.document_pipeline import doc_pipeline
 
     params = task.get("params", {}) or {}
     if isinstance(params, str):
@@ -96,7 +96,7 @@ async def _handle_batch_embed(task: dict) -> None:
 
 async def _handle_knowledge_extraction(task: dict) -> None:
     """处理 knowledge_extraction 类型任务（知识提取流水线）"""
-    from knowledge_agent.graph import build_knowledge_organization_graph
+    from graphs.knowledge_graph import build_knowledge_organization_graph
     from tools.postgres import postgres_tool
 
     params = task.get("params", {}) or {}

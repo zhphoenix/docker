@@ -4,8 +4,8 @@ import logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from services.task_queue import task_queue
-from services.pipeline import doc_pipeline
+from runtime.queue import task_queue
+from pipelines.document_pipeline import doc_pipeline
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
@@ -123,14 +123,14 @@ async def reindex_document(req: ReindexRequest):
 @router.get("/workers")
 async def worker_status():
     """获取 Worker 运行状态（in-process 内存态）"""
-    from scheduler.worker import get_worker_status
+    from runtime.worker import get_worker_status
     return get_worker_status()
 
 
 @router.get("/schedule")
 async def schedule_list():
     """获取 APScheduler 已注册任务列表（只读）"""
-    from scheduler import get_scheduler_jobs
+    from runtime.scheduler import get_scheduler_jobs
     return {"jobs": get_scheduler_jobs()}
 
 

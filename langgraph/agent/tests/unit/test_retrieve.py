@@ -7,8 +7,8 @@ from unittest.mock import AsyncMock, patch
 @pytest.mark.asyncio
 async def test_retrieve_returns_documents():
     """测试 Retrieve 返回文档列表"""
-    with patch("rag_nodes.retrieve.embedding_tool") as mock_emb, \
-         patch("rag_nodes.retrieve.qdrant_tool") as mock_qdrant:
+    with patch("nodes.research.retrieve.embedding_tool") as mock_emb, \
+         patch("nodes.research.retrieve.qdrant_tool") as mock_qdrant:
 
         mock_emb.embed = AsyncMock(return_value=[[0.1] * 2560])
         mock_qdrant.search = AsyncMock(return_value=[
@@ -25,7 +25,7 @@ async def test_retrieve_returns_documents():
             }
         ])
 
-        from rag_nodes.retrieve import retrieve
+        from nodes.research.retrieve import retrieve
 
         state = {
             "question": "分析贵州茅台",
@@ -48,13 +48,13 @@ async def test_retrieve_returns_documents():
 @pytest.mark.asyncio
 async def test_retrieve_empty_results():
     """测试 Retrieve 无结果时返回空列表"""
-    with patch("rag_nodes.retrieve.embedding_tool") as mock_emb, \
-         patch("rag_nodes.retrieve.qdrant_tool") as mock_qdrant:
+    with patch("nodes.research.retrieve.embedding_tool") as mock_emb, \
+         patch("nodes.research.retrieve.qdrant_tool") as mock_qdrant:
 
         mock_emb.embed = AsyncMock(return_value=[[0.1] * 2560])
         mock_qdrant.search = AsyncMock(return_value=[])
 
-        from rag_nodes.retrieve import retrieve
+        from nodes.research.retrieve import retrieve
 
         state = {
             "question": "不存在的内容",

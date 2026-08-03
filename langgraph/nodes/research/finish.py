@@ -4,7 +4,7 @@ import logging
 
 from langchain_core.messages import AIMessage
 
-from schemas.state import AgentState
+from state.research_state import AgentState
 
 logger = logging.getLogger(__name__)
 

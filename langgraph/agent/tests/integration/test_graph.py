@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 @pytest.mark.asyncio
 async def test_chat_graph_builds():
     """测试 Chat Graph 可以正常构建"""
-    from graph.graph import build_chat_graph
+    from graphs.research_graph import build_chat_graph
 
     graph = build_chat_graph()
     assert graph is not None
@@ -19,7 +19,7 @@ async def test_chat_graph_builds():
 @pytest.mark.asyncio
 async def test_research_graph_builds():
     """测试 Research Graph 可以正常构建"""
-    from graph.graph import build_research_graph
+    from graphs.research_graph import build_research_graph
 
     graph = build_research_graph()
     assert graph is not None
@@ -28,7 +28,7 @@ async def test_research_graph_builds():
 @pytest.mark.asyncio
 async def test_should_continue_good():
     """测试条件路由：quality=good → finish"""
-    from graph.graph import should_continue
+    from graphs.research_graph import should_continue
 
     state = {
         "reflect": {"quality": "good", "retry_count": 0},
@@ -40,7 +40,7 @@ async def test_should_continue_good():
 @pytest.mark.asyncio
 async def test_should_continue_bad_retry():
     """测试条件路由：quality=bad → retrieve"""
-    from graph.graph import should_continue
+    from graphs.research_graph import should_continue
 
     state = {
         "reflect": {"quality": "bad", "retry_count": 0},
@@ -52,7 +52,7 @@ async def test_should_continue_bad_retry():
 @pytest.mark.asyncio
 async def test_should_continue_force_finish():
     """测试条件路由：retry_count >= 2 → finish（强制结束）"""
-    from graph.graph import should_continue
+    from graphs.research_graph import should_continue
 
     state = {
         "reflect": {"quality": "bad", "retry_count": 2},

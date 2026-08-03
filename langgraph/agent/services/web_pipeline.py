@@ -35,8 +35,8 @@ from urllib.parse import urlparse
 import httpx
 import yaml
 
-from ingestion.web.chunker import WebChunker
-from ingestion.web.diff_detector import ChangeStatus, DiffDetector
+from pipelines.web.chunker import WebChunker
+from pipelines.web.diff_detector import ChangeStatus, DiffDetector
 
 logger = logging.getLogger(__name__)
 

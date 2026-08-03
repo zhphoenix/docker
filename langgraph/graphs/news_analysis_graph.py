@@ -11,15 +11,15 @@ from functools import wraps
 
 from langgraph.graph import StateGraph, START, END
 
-from news_agent.state import NewsState
-from news_agent.nodes.cleaner import news_cleaner
-from news_agent.nodes.deduplicator import news_deduplicator
-from news_agent.nodes.embedding_dedup import embedding_dedup
-from news_agent.nodes.classifier import news_classifier
-from news_agent.nodes.entity import news_entity_extractor
-from news_agent.nodes.event import news_event_extractor
-from news_agent.nodes.impact import news_impact_analyzer
-from news_agent.nodes.publisher import news_publisher
+from state.news_state import NewsState
+from nodes.news.cleaner import news_cleaner
+from nodes.news.deduplicator import news_deduplicator
+from nodes.news.embedding_dedup import embedding_dedup
+from nodes.news.classifier import news_classifier
+from nodes.news.entity import news_entity_extractor
+from nodes.news.event import news_event_extractor
+from nodes.news.impact import news_impact_analyzer
+from nodes.news.publisher import news_publisher
 
 logger = logging.getLogger(__name__)
 

@@ -3,7 +3,7 @@
 import logging
 import re
 
-from schemas.state import AgentState
+from state.research_state import AgentState
 from schemas.authority import get_authority_level
 from tools.embedding import embedding_tool
 from tools.qdrant import qdrant_tool, Filter, FieldCondition, MatchValue, Range

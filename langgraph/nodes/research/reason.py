@@ -2,7 +2,7 @@
 
 import logging
 
-from schemas.state import AgentState
+from state.research_state import AgentState
 from tools.llm import llm_tool
 from prompts.loader import load_prompt
 

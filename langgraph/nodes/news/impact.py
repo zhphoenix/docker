@@ -16,7 +16,7 @@ import logging
 from tools.llm import llm_tool
 from prompts.loader import load_prompt
 from config.policy_loader import get_policy
-from news_agent.utils import extract_json_array
+from nodes.news.utils import extract_json_array
 
 logger = logging.getLogger(__name__)
 

@@ -16,7 +16,7 @@ from typing import Any
 from tools.postgres import postgres_tool
 from tools.embedding import embedding_tool
 from tools.qdrant import qdrant_tool
-from services.task_queue import task_queue
+from runtime.queue import task_queue
 from config.policy_loader import get_policy
 
 logger = logging.getLogger(__name__)

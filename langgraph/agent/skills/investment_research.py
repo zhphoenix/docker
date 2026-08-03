@@ -18,7 +18,7 @@ from typing import Any
 
 from skills.base_skill import BaseSkill
 from skills.rag_search import RAGSearchSkill
-from tools.financial_data import financial_data_tool
+from tools.market_tools import financial_data_tool
 from schemas.financial import StockPriceCard, ExchangeRateCard
 
 logger = logging.getLogger(__name__)

@@ -7,10 +7,10 @@ from unittest.mock import AsyncMock, patch
 @pytest.mark.asyncio
 async def test_planner_generates_plan():
     """测试 Planner 生成执行计划"""
-    with patch("rag_nodes.planner.llm_tool") as mock_llm:
+    with patch("nodes.research.planner.llm_tool") as mock_llm:
         mock_llm.chat = AsyncMock(return_value='{"steps": ["step1"], "tools": ["qdrant"]}')
 
-        from rag_nodes.planner import planner
+        from nodes.research.planner import planner
 
         state = {
             "question": "分析宁德时代",
@@ -33,10 +33,10 @@ async def test_planner_generates_plan():
 @pytest.mark.asyncio
 async def test_planner_handles_invalid_json():
     """测试 Planner 处理无效 JSON 输出"""
-    with patch("rag_nodes.planner.llm_tool") as mock_llm:
+    with patch("nodes.research.planner.llm_tool") as mock_llm:
         mock_llm.chat = AsyncMock(return_value="这不是 JSON")
 
-        from rag_nodes.planner import planner
+        from nodes.research.planner import planner
 
         state = {
             "question": "你好",

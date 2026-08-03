@@ -21,7 +21,7 @@ from tools.docling import docling_tool, DoclingError
 from tools.chunker import chunk_markdown
 from tools.embedding import embedding_tool
 from tools.qdrant import qdrant_tool
-from services.task_queue import task_queue
+from runtime.queue import task_queue
 from config.policy_loader import get_policy
 
 logger = logging.getLogger(__name__)

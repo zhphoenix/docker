@@ -1,7 +1,7 @@
 """Chat Agent - 简单问答 + RAG"""
 
 from agents.base_agent import BaseAgent
-from graph.builder import get_chat_graph
+from graphs import get_chat_graph
 
 
 class ChatAgent(BaseAgent):

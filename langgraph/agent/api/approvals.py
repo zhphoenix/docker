@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from services.approval import list_pending_approvals, approve, reject, register_approval_callback
 from tools.postgres import postgres_tool
-from knowledge_agent.storage.postgres import knowledge_storage
+from storage.knowledge.postgres import knowledge_storage
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/approvals", tags=["approvals"])

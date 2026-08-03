@@ -115,7 +115,7 @@ class NewsLifecycleService:
         删除 confidence < 0.3 且无任何边连接的节点。
         """
         try:
-            from knowledge_agent.storage.age import knowledge_age
+            from storage.knowledge.age import knowledge_age
 
             if not knowledge_age.available:
                 return {"skipped": "AGE unavailable"}

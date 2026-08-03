@@ -9,7 +9,7 @@
 import logging
 import time
 
-from schemas.state import AgentState
+from state.research_state import AgentState
 from tools.reranker import reranker_tool
 
 logger = logging.getLogger(__name__)

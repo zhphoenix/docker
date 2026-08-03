@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
     logger.info("PostgreSQL connection pool ready")
 
     # Apache AGE 图存储（可选，失败不阻塞）
-    from knowledge_agent.storage.age import knowledge_age
+    from storage.knowledge.age import knowledge_age
     try:
         await knowledge_age.connect()
     except Exception as e:
@@ -58,20 +58,20 @@ async def lifespan(app: FastAPI):
     logger.info("Skills registered")
 
     # 启动 Scheduler
-    from scheduler import start_scheduler
+    from runtime.scheduler import start_scheduler
     start_scheduler()
 
     # 启动 Task Worker
-    from scheduler.worker import start_worker
+    from runtime.worker import start_worker
     start_worker()
 
     yield
 
     # 关闭时
     logger.info("Shutting down AI Platform Agent Service...")
-    from scheduler.worker import stop_worker
+    from runtime.worker import stop_worker
     stop_worker()
-    from scheduler import stop_scheduler
+    from runtime.scheduler import stop_scheduler
     stop_scheduler()
     from tools.llm import llm_tool
     from tools.embedding import embedding_tool
@@ -82,7 +82,7 @@ async def lifespan(app: FastAPI):
     await reranker_tool.close()
     await docling_tool.close()
     await postgres_tool.close()
-    from knowledge_agent.storage.age import knowledge_age
+    from storage.knowledge.age import knowledge_age
     await knowledge_age.close()
 
 

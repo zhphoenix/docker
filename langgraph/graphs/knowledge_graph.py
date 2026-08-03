@@ -10,13 +10,13 @@ from functools import wraps
 
 from langgraph.graph import StateGraph, START, END
 
-from knowledge_agent.state import KnowledgeState
-from knowledge_agent.nodes.parser import document_parser
-from knowledge_agent.nodes.entity import entity_extractor
-from knowledge_agent.nodes.relation import relation_extractor
-from knowledge_agent.nodes.fact import fact_extractor
-from knowledge_agent.nodes.validator import knowledge_validator
-from knowledge_agent.nodes.merger import knowledge_merger
+from state.knowledge_state import KnowledgeState
+from nodes.knowledge.parser import document_parser
+from nodes.knowledge.entity import entity_extractor
+from nodes.knowledge.relation import relation_extractor
+from nodes.knowledge.fact import fact_extractor
+from nodes.knowledge.validator import knowledge_validator
+from nodes.knowledge.merger import knowledge_merger
 
 logger = logging.getLogger(__name__)
 

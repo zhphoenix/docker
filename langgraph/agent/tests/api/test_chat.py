@@ -18,7 +18,7 @@ def test_app_imports():
     os.environ.setdefault("MINIO_ROOT_USER", "minioadmin")
     os.environ.setdefault("MINIO_ROOT_PASSWORD", "minioadmin")
 
-    from app.main import app
+    from api.server import app
     assert app is not None
     assert app.title == "AI Platform Agent Service"
 

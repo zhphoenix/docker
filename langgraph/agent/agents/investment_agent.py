@@ -1,7 +1,7 @@
 """Investment Agent - 价值投资分析（大师方法论）"""
 
 from agents.base_agent import BaseAgent
-from graph.builder import get_research_graph
+from graphs import get_research_graph
 
 
 class InvestmentAgent(BaseAgent):

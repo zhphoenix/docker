@@ -26,7 +26,7 @@ _scheduler: AsyncIOScheduler | None = None
 
 async def _job_daily_pipeline():
     """每日文档处理 Pipeline"""
-    from services.pipeline import doc_pipeline
+    from pipelines.document_pipeline import doc_pipeline
 
     logger.info("[Scheduler] Daily pipeline triggered")
     try:
@@ -39,7 +39,7 @@ async def _job_daily_pipeline():
 
 async def _job_task_retry():
     """定期重试失败任务（指数退避）"""
-    from services.task_queue import task_queue
+    from runtime.queue import task_queue
     from tools.postgres import postgres_tool
 
     try:
@@ -160,10 +160,10 @@ async def _job_news_collect(priority: str = "high"):
 
     按优先级采集新闻源，触发 News Intelligence Agent 处理管线。
     """
-    from news_agent.collector.source_registry import source_registry
-    from news_agent.collector.rss_collector import collect_rss
-    from news_agent.collector.web_collector import collect_web
-    from news_agent.graph import get_news_graph
+    from collectors.source_registry import source_registry
+    from collectors.rss_collector import collect_rss
+    from collectors.web_collector import collect_web
+    from graphs.news_analysis_graph import get_news_graph
 
     logger.info("[Scheduler] News collection triggered | priority=%s", priority)
     try:

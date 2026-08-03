@@ -1,4 +1,4 @@
-"""Memory System - 三层记忆架构
+"""Memory System - 三层记忆架构 + Checkpoint + Thread 管理
 
 Usage:
     from memory import memory_manager
@@ -9,6 +9,6 @@ Usage:
     history = await memory_manager.recall_episodes(symbol="00700")
 """
 
-from memory.memory import memory_manager, MemoryManager
+from memory.memory_store import memory_manager, MemoryManager
 
 __all__ = ["memory_manager", "MemoryManager"]

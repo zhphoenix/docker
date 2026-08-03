@@ -5,7 +5,7 @@ import traceback
 async def main():
     print("== code load check ==", flush=True)
     try:
-        from services.pipeline import doc_pipeline  # noqa
+        from pipelines.document_pipeline import doc_pipeline  # noqa
         print("import doc_pipeline: OK", flush=True)
     except Exception:
         print("IMPORT FAIL", flush=True)

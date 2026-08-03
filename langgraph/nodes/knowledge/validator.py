@@ -12,8 +12,8 @@ import logging
 
 from tools.embedding import embedding_tool
 from config.policy_loader import get_policy
-from knowledge_agent.storage.postgres import knowledge_storage
-from knowledge_agent.storage.qdrant import knowledge_qdrant
+from storage.knowledge.postgres import knowledge_storage
+from storage.knowledge.qdrant import knowledge_qdrant
 
 logger = logging.getLogger(__name__)
 

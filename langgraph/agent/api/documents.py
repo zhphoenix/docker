@@ -8,7 +8,7 @@ from pathlib import Path, PurePosixPath
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from api.path_utils import normalize_path
-from services.pipeline import doc_pipeline
+from pipelines.document_pipeline import doc_pipeline
 from tools.minio import minio_tool
 from tools.postgres import postgres_tool
 
@@ -348,7 +348,7 @@ async def upload_document(
 
     task_id = None
     if trigger and result.get("added", 0) > 0:
-        from services.task_queue import task_queue
+        from runtime.queue import task_queue
         task_id = await task_queue.create_task(
             task_type="doc_pipeline",
             title=f"文档处理 Pipeline (1 doc, {market}/{symbol}/{year})",
@@ -505,7 +505,7 @@ async def upload_folder_pdfs(
     # 可选：触发 Pipeline
     task_id = None
     if trigger and stats["added"] > 0:
-        from services.task_queue import task_queue
+        from runtime.queue import task_queue
         task_id = await task_queue.create_task(
             task_type="doc_pipeline",
             title=f"文档处理 Pipeline ({stats['added']} docs from {target.name})",

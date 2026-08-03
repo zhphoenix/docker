@@ -2,7 +2,7 @@
 
 import logging
 
-from schemas.state import AgentState
+from state.research_state import AgentState
 
 logger = logging.getLogger(__name__)
 

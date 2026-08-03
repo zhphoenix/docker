@@ -13,7 +13,7 @@ import json
 import logging
 from datetime import datetime, timezone
 
-from news_agent.storage.postgres import news_storage
+from storage.news.postgres import news_storage
 from config.policy_loader import get_policy
 
 logger = logging.getLogger(__name__)
@@ -217,7 +217,7 @@ async def _trigger_knowledge_agent(entities: list[dict], relations: list[dict]) 
     调用 knowledge_agent.storage.postgres 的 bulk_upsert_entities + bulk_insert_relations，
     将新闻实体合并到 core.entities（知识图谱）。
     """
-    from knowledge_agent.storage.postgres import knowledge_storage
+    from storage.knowledge.postgres import knowledge_storage
 
     # 转换为 Knowledge Agent 期望的格式
     core_entities = []
@@ -297,7 +297,7 @@ async def _sync_events_to_age(events: list[dict], stored_event_ids: list[str],
     通过 article_idx 关联同一文章的实体，创建 impacts 边。
     失败不阻塞主流程。
     """
-    from knowledge_agent.storage.age import knowledge_age
+    from storage.knowledge.age import knowledge_age
 
     if not knowledge_age.available:
         return

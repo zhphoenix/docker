@@ -8,9 +8,9 @@ import logging
 import uuid
 
 from tools.embedding import embedding_tool
-from knowledge_agent.storage.postgres import knowledge_storage
-from knowledge_agent.storage.qdrant import knowledge_qdrant
-from knowledge_agent.storage.age import knowledge_age
+from storage.knowledge.postgres import knowledge_storage
+from storage.knowledge.qdrant import knowledge_qdrant
+from storage.knowledge.age import knowledge_age
 from config.policy_loader import get_policy
 from services.approval import create_approval
 

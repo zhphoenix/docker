@@ -15,10 +15,10 @@ from config.settings import settings
 from tools.postgres import postgres_tool
 from tools.llm import llm_tool
 from config.policy_loader import get_policy
-from knowledge_agent.storage.postgres import knowledge_storage
-from knowledge_agent.storage.qdrant import knowledge_qdrant
-from services.task_queue import task_queue
-from services.pipeline import doc_pipeline
+from storage.knowledge.postgres import knowledge_storage
+from storage.knowledge.qdrant import knowledge_qdrant
+from runtime.queue import task_queue
+from pipelines.document_pipeline import doc_pipeline
 from api.path_utils import normalize_path, get_volume_mapping_info
 
 logger = logging.getLogger(__name__)

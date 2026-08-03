@@ -61,7 +61,7 @@ async def collect_web(source) -> list[dict]:
             return []
 
         # Step 2: 提取文章链接
-        from ingestion.web.link_extractor import LinkExtractor
+        from pipelines.web.link_extractor import LinkExtractor
 
         include_patterns = source.config.get("include_patterns", [])
         exclude_patterns = source.config.get("exclude_patterns", [r"javascript:", r"#"])
@@ -80,7 +80,7 @@ async def collect_web(source) -> list[dict]:
             return []
 
         # Step 3: 逐篇抓取正文
-        from ingestion.web.chunker import clean_markdown
+        from pipelines.web.chunker import clean_markdown
 
         articles = []
         for link in article_links[:max_articles]:

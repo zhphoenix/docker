@@ -170,10 +170,10 @@ class CollectRequest(BaseModel):
 
 async def _run_collection(keyword: str, priority: str) -> None:
     """后台执行新闻采集任务（不阻塞请求）"""
-    from news_agent.collector.source_registry import source_registry
-    from news_agent.collector.rss_collector import collect_rss
-    from news_agent.collector.web_collector import collect_web
-    from news_agent.graph import get_news_graph
+    from collectors.source_registry import source_registry
+    from collectors.rss_collector import collect_rss
+    from collectors.web_collector import collect_web
+    from graphs.news_analysis_graph import get_news_graph
 
     logger.info("[Collect] Manual trigger | keyword=%r | priority=%s", keyword, priority)
     try:
