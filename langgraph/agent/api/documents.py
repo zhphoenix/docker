@@ -1,11 +1,13 @@
 """Documents API - 文档列表、统计、详情、分块、实体与生命周期管理"""
 
 import logging
+import re
 import uuid
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
+from api.path_utils import normalize_path
 from services.pipeline import doc_pipeline
 from tools.minio import minio_tool
 from tools.postgres import postgres_tool
@@ -359,5 +361,164 @@ async def upload_document(
         "status": "ok",
         "object_key": object_key,
         "registered": result,
+        "pipeline_task_id": task_id,
+    }
+
+
+# ─── 文件名解析 ───────────────────────────────────────────
+
+# 匹配: 000001_平安银行_2023年年度报告.pdf 或 300313__ST天山_2023年年度报告.pdf
+_FILENAME_RE = re.compile(
+    r"^(?P<symbol>[A-Za-z0-9]+)"
+    r"[_\-]+"
+    r"(?P<company>[^_\-]+?)"
+    r"[_\-]+"
+    r"(?P<year>20\d{2})"
+)
+
+# 文件夹名 → 市场代码映射
+_DIR_MARKET_MAP = {
+    "stock_a": "cn",
+    "stock_h": "hk",
+    "stock_us": "us",
+}
+
+
+def _infer_market_from_path(folder_path: Path) -> str:
+    """从文件夹路径推断市场代码"""
+    for part in folder_path.parts:
+        if part in _DIR_MARKET_MAP:
+            return _DIR_MARKET_MAP[part]
+    return "cn"
+
+
+def _parse_pdf_filename(filename: str) -> dict | None:
+    """从 PDF 文件名解析 symbol 和 year
+
+    支持格式:
+    - 000001_平安银行_2023年年度报告.pdf
+    - 00700_騰訊控股_2025年年度报告.pdf
+    - AAPL_大师分析报告_2024.pdf
+    """
+    stem = filename.rsplit(".", 1)[0] if "." in filename else filename
+    m = _FILENAME_RE.match(stem)
+    if not m:
+        return None
+    return {
+        "symbol": m.group("symbol").upper(),
+        "year": int(m.group("year")),
+    }
+
+
+@router.post("/upload-folder")
+async def upload_folder_pdfs(
+    folder_path: str = Form(..., description="服务器上的文件夹路径"),
+    market: str = Form("", description="市场代码（空则从路径自动推断）"),
+    bucket: str = Form(DEFAULT_BUCKET),
+    trigger: bool = Form(False),
+):
+    """批量上传文件夹内所有 PDF 到 MinIO 并注册文档
+
+    递归扫描文件夹内所有 .pdf 文件，从文件名解析 symbol/year，
+    上传到 MinIO 规范路径并注册为 pending 文档。
+    返回 found/added/skipped 统计。
+    """
+    # 路径转换：Windows/WSL → 容器路径
+    folder_path = normalize_path(folder_path)
+    target = Path(folder_path).resolve()
+
+    if not target.exists():
+        raise HTTPException(status_code=404, detail=f"路径不存在: {folder_path}（已转换为容器路径）")
+    if not target.is_dir():
+        raise HTTPException(status_code=400, detail=f"不是目录: {folder_path}")
+
+    # 推断市场
+    market = market.strip().lower() or _infer_market_from_path(target)
+
+    # 递归查找所有 PDF
+    pdf_files = sorted(target.rglob("*.pdf"))
+    pdf_files = [f for f in pdf_files if not f.name.startswith(".")]
+
+    stats = {"found": len(pdf_files), "added": 0, "skipped": 0, "failed": 0}
+    results = []
+
+    if not pdf_files:
+        return {
+            "status": "ok",
+            "folder": str(target),
+            "market": market,
+            "stats": stats,
+            "results": results,
+        }
+
+    for pdf_file in pdf_files:
+        parsed = _parse_pdf_filename(pdf_file.name)
+        if not parsed:
+            logger.warning("[UploadFolder] Skip unparseable filename: %s", pdf_file.name)
+            stats["skipped"] += 1
+            results.append({"file": pdf_file.name, "status": "skipped", "reason": "filename_not_match"})
+            continue
+
+        symbol = parsed["symbol"]
+        year = parsed["year"]
+        object_key = f"{market}/{symbol}/annual_report/{year}/report.pdf"
+
+        # 检查是否已存在
+        try:
+            existing = await postgres_tool.query(
+                "SELECT 1 FROM documents WHERE object_key = $1", object_key
+            )
+            if existing:
+                stats["skipped"] += 1
+                results.append({"file": pdf_file.name, "status": "skipped", "reason": "already_exists", "object_key": object_key})
+                continue
+        except Exception as e:
+            logger.warning("[UploadFolder] Dedup check failed for %s: %s", pdf_file.name, e)
+
+        # 上传到 MinIO
+        try:
+            data = pdf_file.read_bytes()
+            await minio_tool.upload(bucket, object_key, data)
+        except Exception as e:
+            logger.exception("[UploadFolder] MinIO upload failed: %s", pdf_file.name)
+            stats["failed"] += 1
+            results.append({"file": pdf_file.name, "status": "failed", "reason": str(e)})
+            continue
+
+        # 注册为 pending 文档
+        try:
+            reg_result = await doc_pipeline.register_pending_from_minio(
+                bucket=bucket,
+                prefix=f"{market}/{symbol}/annual_report/{year}",
+                market=market,
+            )
+            if reg_result.get("added", 0) > 0:
+                stats["added"] += 1
+            else:
+                stats["skipped"] += 1
+            results.append({"file": pdf_file.name, "status": "ok", "object_key": object_key, "symbol": symbol, "year": year})
+        except Exception as e:
+            logger.exception("[UploadFolder] Register failed: %s", pdf_file.name)
+            stats["failed"] += 1
+            results.append({"file": pdf_file.name, "status": "failed", "reason": str(e)})
+
+    # 可选：触发 Pipeline
+    task_id = None
+    if trigger and stats["added"] > 0:
+        from services.task_queue import task_queue
+        task_id = await task_queue.create_task(
+            task_type="doc_pipeline",
+            title=f"文档处理 Pipeline ({stats['added']} docs from {target.name})",
+            params={"limit": stats["added"]},
+            total_items=stats["added"],
+            created_by="api",
+        )
+
+    return {
+        "status": "ok",
+        "folder": str(target),
+        "market": market,
+        "stats": stats,
+        "results": results,
         "pipeline_task_id": task_id,
     }

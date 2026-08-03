@@ -382,8 +382,8 @@ export function KnowledgeTasksPanel({ focusTaskId }: KnowledgeTasksPanelProps) {
                       className="cursor-pointer"
                       onClick={() => setSelectedId(task.id)}
                     >
-                      <TableCell className="max-w-[260px]">
-                        <div className="truncate font-medium text-foreground">
+                      <TableCell className="min-w-0 max-w-[260px]">
+                        <div className="truncate font-medium text-foreground" title={task.title}>
                           {task.title}
                         </div>
                       </TableCell>

@@ -60,9 +60,10 @@ import {
   fetchDocumentEntities,
   deleteDocument,
   uploadDocumentPdf,
+  uploadFolderPdf,
   DOCUMENT_STATUS_LABELS,
 } from '@/services/documents'
-import type { DocumentStatus, DocumentInfo } from '@/services/documents'
+import type { DocumentStatus, DocumentInfo, UploadFolderResponse } from '@/services/documents'
 import {
   fetchTasks,
   retryTask,
@@ -70,7 +71,7 @@ import {
   triggerBatchEmbed,
   reindexDocument,
 } from '@/services/tasks'
-import { fetchKnowledgeStats, triggerIngestMinio, triggerIngest, fetchBrowseDirs } from '@/services/knowledge'
+import { fetchKnowledgeStats, triggerIngestMinio, triggerIngest, fetchBrowseDirs, fetchPathMapping } from '@/services/knowledge'
 import { cn } from '@/lib/utils'
 
 const PAGE_SIZE = 50
@@ -162,27 +163,38 @@ function ImportPanel() {
     setTimeout(() => setMsg(null), 6000)
   }
 
-  // Upload PDF
-  const [upFile, setUpFile] = useState<File | null>(null)
-  const [upMarket, setUpMarket] = useState('a')
-  const [upSymbol, setUpSymbol] = useState('')
-  const [upYear, setUpYear] = useState(2026)
+  // Upload PDF (folder mode)
+  const [upFolderPath, setUpFolderPath] = useState('/data/stock_a')
+  const [upMarket, setUpMarket] = useState('')
   const [upTrigger, setUpTrigger] = useState(true)
+  const [upFolderResult, setUpFolderResult] = useState<UploadFolderResponse | null>(null)
+
+  const uploadBrowseQuery = useQuery({
+    queryKey: ['browse-dirs-upload', upFolderPath],
+    queryFn: () => fetchBrowseDirs(upFolderPath),
+    enabled: uploadOpen,
+    retry: 1,
+  })
+
+  const pathMappingQuery = useQuery({
+    queryKey: ['path-mapping'],
+    queryFn: () => fetchPathMapping(),
+    enabled: uploadOpen,
+    retry: 0,
+    staleTime: 10 * 60 * 1000,
+  })
 
   const uploadMutation = useMutation({
     mutationFn: () =>
-      uploadDocumentPdf({
-        file: upFile!,
-        market: upMarket,
-        symbol: upSymbol,
-        year: upYear,
+      uploadFolderPdf({
+        folder_path: upFolderPath,
+        market: upMarket || undefined,
         trigger: upTrigger,
       }),
     onSuccess: (res) => {
-      flash('success', `上传成功：${res.object_key}，新增 ${res.registered.added} 个文档`)
-      setUploadOpen(false)
-      setUpFile(null)
-      setUpSymbol('')
+      setUpFolderResult(res)
+      const s = res.stats
+      flash('success', `批量上传完成：发现 ${s.found}，新增 ${s.added}，跳过 ${s.skipped}，失败 ${s.failed}`)
       queryClient.invalidateQueries({ queryKey: ['documents'] })
       queryClient.invalidateQueries({ queryKey: ['document-stats'] })
       queryClient.invalidateQueries({ queryKey: ['doc-tasks'] })
@@ -218,6 +230,11 @@ function ImportPanel() {
   // Sync Folder
   const [syncPath, setSyncPath] = useState('/data')
   const [syncCollection, setSyncCollection] = useState('documents_cn')
+  const [syncResult, setSyncResult] = useState<{
+    found: number
+    task_id: string
+    collection: string
+  } | null>(null)
 
   const browseQuery = useQuery({
     queryKey: ['browse-dirs', syncPath],
@@ -229,10 +246,13 @@ function ImportPanel() {
   const syncMutation = useMutation({
     mutationFn: () => triggerIngest(syncPath, syncCollection),
     onSuccess: (res) => {
-      flash('success', `目录同步完成：${res.file_count} 个文件，collection=${res.collection}`)
+      setSyncResult({ found: res.found, task_id: res.task_id ?? '', collection: res.collection })
+      flash('success', `目录同步任务已启动：发现 ${res.found} 个文件 → ${res.collection}`)
       setSyncOpen(false)
       queryClient.invalidateQueries({ queryKey: ['documents'] })
-      queryClient.invalidateQueries({ queryKey: ['knowledge-tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['document-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['doc-tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['doc-tasks-running'] })
     },
     onError: (err: Error) => flash('error', err.message || '目录同步失败'),
   })
@@ -329,30 +349,81 @@ function ImportPanel() {
 
       <Feedback msg={msg} />
 
-      {/* ── Upload PDF Dialog ── */}
-      <Dialog open={uploadOpen} onOpenChange={(o) => !o && setUploadOpen(false)}>
-        <DialogContent className="max-w-md">
+      {/* ── Upload PDF Dialog (folder mode) ── */}
+      <Dialog open={uploadOpen} onOpenChange={(o) => { if (!o) { setUploadOpen(false); setUpFolderResult(null); } }}>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>上传 PDF</DialogTitle>
-            <DialogDescription>上传年报 PDF 到 MinIO，并按规范路径注册文档</DialogDescription>
+            <DialogTitle>批量上传 PDF</DialogTitle>
+            <DialogDescription>指定服务器文件夹路径，自动递归扫描所有 PDF 并上传到 MinIO（从文件名解析 symbol/year，内置去重）</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-3">
+            {/* 路径输入 + 浏览 */}
             <div>
-              <div className="mb-1 text-xs font-medium text-muted-foreground">PDF 文件</div>
-              <Input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => setUpFile(e.target.files?.[0] ?? null)}
-              />
+              <div className="mb-1 text-xs font-medium text-muted-foreground">文件夹路径</div>
+              <div className="flex gap-2">
+                <Input
+                  value={upFolderPath}
+                  onChange={(e) => setUpFolderPath(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && uploadBrowseQuery.refetch()}
+                  placeholder="如 /data/stock_a（也支持 E:\\... 或 /mnt/e/... 格式）"
+                />
+                <Button variant="outline" size="icon" onClick={() => uploadBrowseQuery.refetch()}>
+                  <Search className="size-4" />
+                </Button>
+              </div>
+              {/* 路径格式提示 */}
+              {pathMappingQuery.data && (
+                <div className="mt-1.5 rounded-md bg-muted/60 px-2.5 py-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                  <span className="font-medium text-foreground">路径格式：</span>
+                  容器 <code className="rounded bg-background px-1 py-0.5 text-[10px]">{pathMappingQuery.data.examples.container}</code>
+                  {' = '}
+                  WSL <code className="rounded bg-background px-1 py-0.5 text-[10px]">{pathMappingQuery.data.examples.wsl}</code>
+                  {' = '}
+                  Win <code className="rounded bg-background px-1 py-0.5 text-[10px]">{pathMappingQuery.data.examples.windows}</code>
+                  <span className="ml-2 text-amber-500">三种格式均可自动识别</span>
+                </div>
+              )}
             </div>
+
+            {/* 目录浏览器 */}
+            {uploadBrowseQuery.isLoading ? (
+              <Skeleton className="h-24 w-full" />
+            ) : uploadBrowseQuery.data ? (
+              <div className="max-h-40 overflow-y-auto rounded-lg border">
+                {uploadBrowseQuery.data.can_go_up && (
+                  <button
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-muted-foreground hover:bg-muted"
+                    onClick={() => setUpFolderPath(uploadBrowseQuery.data!.parent_path!)}
+                  >
+                    <ChevronLeft className="size-3.5" /> 上级目录
+                  </button>
+                )}
+                {uploadBrowseQuery.data.directories.map((d) => (
+                  <button
+                    key={d.path}
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-foreground hover:bg-muted"
+                    onClick={() => setUpFolderPath(d.path)}
+                  >
+                    <FolderSync className="size-3.5 text-primary" />
+                    {d.name}
+                  </button>
+                ))}
+                {uploadBrowseQuery.data.directories.length === 0 && (
+                  <div className="p-3 text-xs text-muted-foreground">当前目录下没有子目录</div>
+                )}
+              </div>
+            ) : null}
+
+            {/* 市场 + 立即处理 */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <div className="mb-1 text-xs font-medium text-muted-foreground">市场</div>
+                <div className="mb-1 text-xs font-medium text-muted-foreground">市场（可选，留空自动推断）</div>
                 <Select value={upMarket} onValueChange={(v) => setUpMarket(v ?? '')}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="自动推断" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="">自动推断</SelectItem>
                     {MARKET_OPTIONS.map((m) => (
                       <SelectItem key={m.value} value={m.value}>
                         {m.label}
@@ -360,24 +431,6 @@ function ImportPanel() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div>
-                <div className="mb-1 text-xs font-medium text-muted-foreground">股票代码</div>
-                <Input
-                  placeholder="如 000001"
-                  value={upSymbol}
-                  onChange={(e) => setUpSymbol(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <div className="mb-1 text-xs font-medium text-muted-foreground">年份</div>
-                <Input
-                  type="number"
-                  value={upYear}
-                  onChange={(e) => setUpYear(Number(e.target.value))}
-                />
               </div>
               <div className="flex items-end pb-1">
                 <label className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -390,12 +443,51 @@ function ImportPanel() {
                 </label>
               </div>
             </div>
+
+            {/* 上传结果反馈 */}
+            {upFolderResult && (
+              <div className="rounded-lg border bg-muted/50 p-3">
+                <div className="mb-2 text-xs font-medium text-foreground">上传结果</div>
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  <div>
+                    <div className="text-lg font-bold text-foreground">{upFolderResult.stats.found}</div>
+                    <div className="text-[11px] text-muted-foreground">发现</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-green-500">{upFolderResult.stats.added}</div>
+                    <div className="text-[11px] text-muted-foreground">新增</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-amber-500">{upFolderResult.stats.skipped}</div>
+                    <div className="text-[11px] text-muted-foreground">跳过</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-red-500">{upFolderResult.stats.failed}</div>
+                    <div className="text-[11px] text-muted-foreground">失败</div>
+                  </div>
+                </div>
+                {upFolderResult.results.length > 0 && (
+                  <ScrollArea className="mt-2 max-h-32">
+                    <div className="space-y-1">
+                      {upFolderResult.results.map((r, i) => (
+                        <div key={i} className="flex items-center justify-between text-[11px]">
+                          <span className="truncate text-muted-foreground" title={r.file}>{r.file}</span>
+                          <Badge variant={r.status === 'ok' ? 'default' : r.status === 'skipped' ? 'secondary' : 'destructive'} className="ml-2 shrink-0 text-[10px]">
+                            {r.status === 'ok' ? '成功' : r.status === 'skipped' ? '跳过' : '失败'}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button
               variant="default"
               className="gap-1.5"
-              disabled={!upFile || !upSymbol.trim() || uploadMutation.isPending}
+              disabled={!upFolderPath.trim() || uploadMutation.isPending}
               onClick={() => uploadMutation.mutate()}
             >
               {uploadMutation.isPending ? (
@@ -403,7 +495,7 @@ function ImportPanel() {
               ) : (
                 <Upload className="size-3.5" />
               )}
-              {uploadMutation.isPending ? '上传中...' : '上传并注册'}
+              {uploadMutation.isPending ? '上传中...' : '扫描并上传'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -476,23 +568,27 @@ function ImportPanel() {
       </Dialog>
 
       {/* ── Sync Folder Dialog ── */}
-      <Dialog open={syncOpen} onOpenChange={(o) => !o && setSyncOpen(false)}>
+      <Dialog open={syncOpen} onOpenChange={(o) => { if (!o) { setSyncOpen(false); setSyncResult(null); } }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>同步目录</DialogTitle>
-            <DialogDescription>浏览并选择服务器目录，将其中的文件导入知识库</DialogDescription>
+            <DialogDescription>浏览并选择服务器目录，将其中的 .md 文件批量导入知识库（内置去重）</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
+            {/* 路径输入 */}
             <div className="flex gap-2">
               <Input
                 value={syncPath}
                 onChange={(e) => setSyncPath(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && browseQuery.refetch()}
+                placeholder="输入目录路径或点击下方浏览器选择"
               />
               <Button variant="outline" size="icon" onClick={() => browseQuery.refetch()}>
                 <Search className="size-4" />
               </Button>
             </div>
+
+            {/* 目录浏览器 */}
             {browseQuery.isLoading ? (
               <Skeleton className="h-24 w-full" />
             ) : browseQuery.data ? (
@@ -526,6 +622,24 @@ function ImportPanel() {
                 action={{ label: '重试', onClick: () => browseQuery.refetch() }}
               />
             )}
+
+            {/* 选择当前目录按钮 */}
+            {browseQuery.data && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-2"
+                onClick={() => {
+                  // 当前路径已经是 syncPath，只需给用户一个确认反馈
+                  flash('success', `已选择目录：${syncPath}`)
+                }}
+              >
+                <FolderSync className="size-3.5" />
+                选择当前目录：{syncPath}
+              </Button>
+            )}
+
+            {/* Collection 输入 */}
             <div>
               <div className="mb-1 text-xs font-medium text-muted-foreground">Collection</div>
               <Input
@@ -533,6 +647,30 @@ function ImportPanel() {
                 onChange={(e) => setSyncCollection(e.target.value)}
               />
             </div>
+
+            {/* 导入结果反馈 */}
+            {syncResult && (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+                <div className="mb-2 text-xs font-medium text-primary">导入任务已启动</div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <div className="text-lg font-bold tabular-nums text-foreground">{syncResult.found}</div>
+                    <div className="text-[10px] text-muted-foreground">发现文件</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold tabular-nums text-emerald-600">—</div>
+                    <div className="text-[10px] text-muted-foreground">新增（处理中）</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold tabular-nums text-amber-600">—</div>
+                    <div className="text-[10px] text-muted-foreground">跳过（处理中）</div>
+                  </div>
+                </div>
+                <div className="mt-2 text-[10px] text-muted-foreground">
+                  任务 ID：{syncResult.task_id} · 请在上方「Running Tasks」面板查看进度
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button

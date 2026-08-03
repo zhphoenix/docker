@@ -135,6 +135,22 @@ export interface UploadResponse {
   pipeline_task_id: string | null
 }
 
+export interface UploadFolderResponse {
+  status: string
+  folder: string
+  market: string
+  stats: { found: number; added: number; skipped: number; failed: number }
+  results: Array<{
+    file: string
+    status: 'ok' | 'skipped' | 'failed'
+    reason?: string
+    object_key?: string
+    symbol?: string
+    year?: number
+  }>
+  pipeline_task_id: string | null
+}
+
 export function fetchDocumentDetail(documentId: string): Promise<DocumentDetailResponse> {
   return apiFetch<DocumentDetailResponse>(`/api/documents/${documentId}`)
 }
@@ -174,6 +190,22 @@ export function uploadDocumentPdf(params: {
   form.append('trigger', String(params.trigger ?? false))
 
   return apiFetch<UploadResponse>('/api/documents/upload', {
+    method: 'POST',
+    body: form,
+  })
+}
+
+export function uploadFolderPdf(params: {
+  folder_path: string
+  market?: string
+  trigger?: boolean
+}): Promise<UploadFolderResponse> {
+  const form = new FormData()
+  form.append('folder_path', params.folder_path)
+  if (params.market) form.append('market', params.market)
+  form.append('trigger', String(params.trigger ?? false))
+
+  return apiFetch<UploadFolderResponse>('/api/documents/upload-folder', {
     method: 'POST',
     body: form,
   })

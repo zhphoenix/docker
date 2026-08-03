@@ -1,6 +1,7 @@
 """Knowledge API - 知识库管理（Collection 统计 + 知识图谱查询 + Hybrid 检索）"""
 
 import asyncio
+import json
 import logging
 import os
 import uuid as uuid_mod
@@ -18,6 +19,7 @@ from knowledge_agent.storage.postgres import knowledge_storage
 from knowledge_agent.storage.qdrant import knowledge_qdrant
 from services.task_queue import task_queue
 from services.pipeline import doc_pipeline
+from api.path_utils import normalize_path, get_volume_mapping_info
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
@@ -631,8 +633,13 @@ ALLOWED_BROWSE_ROOTS = ["/data", "/app"]
 
 
 @router.get("/browse-dirs")
-async def browse_dirs(path: str = Query("/data/minio/documents", description="要浏览的目录路径")):
-    """浏览服务器目录结构（仅返回目录，用于目录选择器）"""
+async def browse_dirs(path: str = Query("/data/minio/documents", description="要浏览的目录路径（支持 Windows/WSL/容器格式）")):
+    """浏览服务器目录结构（仅返回目录，用于目录选择器）
+
+    自动转换 Windows (E:\\...) 和 WSL (/mnt/e/...) 路径为容器路径。
+    """
+    # 路径转换：Windows/WSL → 容器路径
+    path = normalize_path(path)
     target = Path(path).resolve()
 
     # 安全检查：路径必须在允许的根目录下
@@ -669,6 +676,21 @@ async def browse_dirs(path: str = Query("/data/minio/documents", description="�
         "can_go_up": can_go_up,
         "directories": subdirs,
         "total": len(subdirs),
+    }
+
+
+@router.get("/path-mapping")
+async def path_mapping():
+    """返回卷映射信息，帮助前端用户理解路径转换关系"""
+    return {
+        "description": "路径映射关系：Windows → WSL → 容器",
+        "examples": {
+            "windows": "E:\\ai-platform\\data\\stock_a",
+            "wsl": "/mnt/e/ai-platform/data/stock_a",
+            "container": "/data/stock_a",
+        },
+        "volume_mounts": get_volume_mapping_info(),
+        "tip": "建议使用目录浏览器选择路径，或手动输入容器路径（/data/... 格式）",
     }
 
 
@@ -721,8 +743,12 @@ class IngestRequest(BaseModel):
     collection: str = Field("documents_cn", description="目标 Qdrant collection")
 
 
-async def _run_ingest(path: str, collection: str, task_id: str = "") -> None:
-    """后台执行 MD 文件导入处理管线（task_id 非空时同步更新任务队列进度）"""
+async def _run_ingest(path: str, collection: str, task_id: str = "") -> dict[str, int]:
+    """后台执行 MD 文件导入处理管线（task_id 非空时同步更新任务队列进度）
+
+    Returns:
+        {"found": N, "added": M, "skipped": K}
+    """
     from tools.chunker import chunk_markdown
     from tools.embedding import embedding_tool
     from tools.qdrant import qdrant_tool
@@ -730,6 +756,9 @@ async def _run_ingest(path: str, collection: str, task_id: str = "") -> None:
     logger.info("[Ingest] Start | path=%s | collection=%s", path, collection)
     if task_id:
         await task_queue.start_task(task_id)
+
+    stats = {"found": 0, "added": 0, "skipped": 0}
+
     try:
         target = Path(path)
         md_files: list[Path] = []
@@ -742,27 +771,40 @@ async def _run_ingest(path: str, collection: str, task_id: str = "") -> None:
             logger.warning("[Ingest] Invalid path: %s", path)
             if task_id:
                 await task_queue.fail_task(task_id, f"Invalid path: {path}")
-            return
+            return stats
+
+        stats["found"] = len(md_files)
 
         if not md_files:
             logger.info("[Ingest] No .md files found at %s", path)
             if task_id:
                 await task_queue.fail_task(task_id, f"No .md files found at {path}")
-            return
+            return stats
 
-        total_files = 0
-        total_chunks = 0
         embed_batch_size = 16
 
         for md_file in md_files:
             try:
                 content = md_file.read_text(encoding="utf-8")
                 if not content.strip():
+                    stats["skipped"] += 1
+                    continue
+
+                # 去重检查：基于 source_path
+                source_path_str = str(md_file)
+                exists = await postgres_tool.query(
+                    "SELECT 1 FROM documents WHERE metadata->>'source_path' = $1",
+                    source_path_str,
+                )
+                if exists:
+                    logger.info("[Ingest] Skip duplicate | %s", md_file.name)
+                    stats["skipped"] += 1
                     continue
 
                 # Chunking
                 chunks = chunk_markdown(content)
                 if not chunks:
+                    stats["skipped"] += 1
                     continue
 
                 # 创建 document 记录
@@ -777,7 +819,7 @@ async def _run_ingest(path: str, collection: str, task_id: str = "") -> None:
                             'direct', $3, $4::jsonb)
                     """,
                     doc_id, file_name, len(chunks),
-                    f'{{"source_path": "{md_file}", "ingest": "manual"}}',
+                    json.dumps({"source_path": source_path_str, "ingest": "manual"}),
                 )
 
                 # Embedding（分批）
@@ -803,7 +845,7 @@ async def _run_ingest(path: str, collection: str, task_id: str = "") -> None:
                             "document_type": "markdown",
                             "document_id": doc_id,
                             "chunk_index": i,
-                            "source_path": str(md_file),
+                            "source_path": source_path_str,
                         },
                     })
                     await postgres_tool.execute(
@@ -828,40 +870,49 @@ async def _run_ingest(path: str, collection: str, task_id: str = "") -> None:
                     doc_id,
                 )
 
-                total_files += 1
-                total_chunks += len(chunks)
+                stats["added"] += 1
                 logger.info(
                     "[Ingest] Processed | %s | chunks=%d", md_file.name, len(chunks)
                 )
                 if task_id:
                     await task_queue.update_progress(
                         task_id,
-                        current_item=total_files,
+                        current_item=stats["added"] + stats["skipped"],
                         stage="embedding",
                         current_name=md_file.name,
                     )
 
             except Exception as e:
                 logger.error("[Ingest] File failed | %s | %s", md_file, e)
+                stats["skipped"] += 1
                 if task_id:
                     await task_queue.update_progress(
                         task_id,
-                        current_item=total_files,
+                        current_item=stats["added"] + stats["skipped"],
                         stage="failed_file",
                         current_name=md_file.name,
                     )
 
         logger.info(
-            "[Ingest] Complete | files=%d | chunks=%d | collection=%s",
-            total_files, total_chunks, collection,
+            "[Ingest] Complete | found=%d added=%d skipped=%d | collection=%s",
+            stats["found"], stats["added"], stats["skipped"], collection,
         )
+
+        # 更新任务标题包含最终统计
         if task_id:
+            await postgres_tool.execute(
+                "UPDATE tasks SET title = $1 WHERE id = $2",
+                f"文档导入 {path} (found={stats['found']}, added={stats['added']}, skipped={stats['skipped']})",
+                task_id,
+            )
             await task_queue.complete_task(task_id)
 
     except Exception as e:
         logger.error("[Ingest] Fatal error: %s", e)
         if task_id:
             await task_queue.fail_task(task_id, str(e))
+
+    return stats
 
 
 @router.post("/ingest")
@@ -870,7 +921,7 @@ async def trigger_ingest(req: IngestRequest):
     # 基本路径验证
     target = Path(req.path)
     if not target.exists():
-        raise HTTPException(status_code=400, detail=f"路径不存在: {req.path}")
+        raise HTTPException(status_code=400, detail=f"路径不存在：{req.path}")
 
     # 只接受目录路径
     if not target.is_dir():
@@ -884,7 +935,7 @@ async def trigger_ingest(req: IngestRequest):
             break
 
     if file_count == 0:
-        raise HTTPException(status_code=400, detail=f"目录下无 .md 文件: {req.path}")
+        raise HTTPException(status_code=400, detail=f"目录下无 .md 文件：{req.path}")
 
     # 创建任务队列记录，供「处理详情」页展示进度
     task_id = await task_queue.create_task(
@@ -899,7 +950,7 @@ async def trigger_ingest(req: IngestRequest):
     return {
         "status": "accepted",
         "message": f"导入任务已启动（{count_label} 个文件 → {req.collection}）",
-        "file_count": file_count,
+        "found": file_count,
         "collection": req.collection,
         "task_id": task_id,
     }

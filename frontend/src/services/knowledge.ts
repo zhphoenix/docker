@@ -235,7 +235,7 @@ export function graphragSearch(params: {
 export interface IngestResponse {
   status: string
   message: string
-  file_count: number
+  found: number
   collection: string
   task_id?: string
 }
@@ -300,4 +300,21 @@ export function fetchBrowseDirs(path?: string): Promise<BrowseDirsResponse> {
   if (path) searchParams.set('path', path)
   const qs = searchParams.toString()
   return apiFetch<BrowseDirsResponse>(`/api/knowledge/browse-dirs${qs ? `?${qs}` : ''}`)
+}
+
+// ─── Path Mapping ──────────────────────────────────────
+
+export interface PathMappingInfo {
+  description: string
+  examples: {
+    windows: string
+    wsl: string
+    container: string
+  }
+  volume_mounts: Array<{ host_path: string; container_path: string }>
+  tip: string
+}
+
+export function fetchPathMapping(): Promise<PathMappingInfo> {
+  return apiFetch<PathMappingInfo>('/api/knowledge/path-mapping')
 }

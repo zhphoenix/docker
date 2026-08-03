@@ -660,15 +660,16 @@ export default function WorkflowPage() {
                 <TableBody>
                   {sortedTasks.map((task) => (
                     <TableRow key={task.id}>
-                      <TableCell className="max-w-[220px]">
+                      <TableCell className="min-w-0 max-w-[220px]">
                         <button
-                          className="block truncate text-left font-medium text-foreground hover:text-primary"
+                          className="block w-full truncate text-left font-medium text-foreground hover:text-primary"
                           onClick={() => setDetailTask(task)}
+                          title={task.title}
                         >
                           {task.title}
                         </button>
                         {task.error_message && (
-                          <div className="mt-0.5 truncate text-[11px] text-danger">{task.error_message}</div>
+                          <div className="mt-0.5 truncate text-[11px] text-danger" title={task.error_message}>{task.error_message}</div>
                         )}
                       </TableCell>
                       <TableCell>
