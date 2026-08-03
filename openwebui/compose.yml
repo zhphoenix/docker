@@ -4,14 +4,19 @@ services:
     container_name: open-webui
     restart: unless-stopped
     ports:
-      - "3000:8080"
+      # 宿主机 3001 访问 open-webui；容器内部改用 8084 监听，
+      # 避免与 LLM 宿主机端口 8080 冲突导致容器内 localhost:8080 self-loop
+      - "3001:8084"
     environment:
-      OPENAI_API_BASE_URL: http://sisyphus:8080/v1
+      # 服务间统一通过宿主机 localhost:端口 通信（见 extra_hosts 映射）
+      PORT: "8084"
+      OPENAI_API_BASE_URL: http://localhost:8080/v1
       OPENAI_API_KEY: dummy
     volumes:
       - open-webui:/app/backend/data
     extra_hosts:
       - "host.docker.internal:host-gateway"
+      - "localhost:host-gateway"
     networks:
       - ai-platform
     deploy:
@@ -23,7 +28,8 @@ services:
           cpus: "0.5"
           memory: 512M
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health || exit 1"]
+      # 用 127.0.0.1 检查容器自身（8084），避免被 localhost:host-gateway 映射到宿主机
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:8084/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -10,14 +10,14 @@ class NewsMCPSettings(BaseSettings):
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "ai"
-    POSTGRES_HOST: str = "postgres"
-    POSTGRES_PORT: int = 5432
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = 5433
     PG_POOL_MIN_SIZE: int = 3
     PG_POOL_MAX_SIZE: int = 15
     PG_STATEMENT_TIMEOUT_MS: int = 15000
 
     # Qdrant
-    QDRANT_HOST: str = "qdrant"
+    QDRANT_HOST: str = "localhost"
     QDRANT_PORT: int = 6333
 
     # MCP Server

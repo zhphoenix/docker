@@ -8,6 +8,7 @@ const SettingsPage = lazy(() => import('@/app/pages/SettingsPage'))
 const MonitorPage = lazy(() => import('@/app/pages/MonitorPage'))
 const AgentsPage = lazy(() => import('@/app/pages/AgentsPage'))
 const KnowledgePage = lazy(() => import('@/app/pages/KnowledgePage'))
+const KnowledgeReviewPage = lazy(() => import('@/app/pages/KnowledgeReviewPage'))
 const DocumentsPage = lazy(() => import('@/app/pages/DocumentsPage'))
 const WorkflowPage = lazy(() => import('@/app/pages/WorkflowPage'))
 const ResearchPage = lazy(() => import('@/app/pages/ResearchPage'))
@@ -62,6 +63,14 @@ export const router = createBrowserRouter([
         element: (
           <SuspenseWrapper>
             <KnowledgePage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: '/knowledge/review',
+        element: (
+          <SuspenseWrapper>
+            <KnowledgeReviewPage />
           </SuspenseWrapper>
         ),
       },

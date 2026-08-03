@@ -9,25 +9,30 @@ services:
     env_file:
       - ../.env
     environment:
+      # 服务间统一通过宿主机 localhost:端口 通信（见 extra_hosts 映射）
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: ai
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: "5432"
-      QDRANT_HOST: qdrant
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5433"
+      QDRANT_HOST: localhost
       QDRANT_PORT: "6333"
-      EMBEDDING_URL: http://embedding:8080/v1
+      EMBEDDING_URL: http://localhost:8001/v1
       MCP_HOST: 0.0.0.0
       MCP_PORT: "8200"
     networks:
       - ai-platform
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "localhost:host-gateway"
     deploy:
       resources:
         limits:
           cpus: "1.0"
           memory: 1G
     healthcheck:
-      test: ["CMD-SHELL", "python3 -c \"import urllib.request,json; req=urllib.request.Request('http://localhost:8200/mcp', data=json.dumps({'jsonrpc':'2.0','id':1,'method':'initialize','params':{'protocolVersion':'2025-03-26','capabilities':{},'clientInfo':{'name':'hc','version':'0.1'}}}).encode(), headers={'Content-Type':'application/json'}); urllib.request.urlopen(req, timeout=3)\" || exit 1"]
+      # 用 127.0.0.1 检查容器自身，避免被 localhost:host-gateway 映射到宿主机
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request,json; req=urllib.request.Request('http://127.0.0.1:8200/mcp', data=json.dumps({'jsonrpc':'2.0','id':1,'method':'initialize','params':{'protocolVersion':'2025-03-26','capabilities':{},'clientInfo':{'name':'hc','version':'0.1'}}}).encode(), headers={'Content-Type':'application/json','Accept':'application/json, text/event-stream'}); urllib.request.urlopen(req, timeout=3)\" || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3

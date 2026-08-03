@@ -64,6 +64,8 @@ from server.tools.semantic import register_semantic_tools  # noqa: E402
 from server.tools.write import register_write_tools  # noqa: E402
 from server.tools.analysis import register_analysis_tools  # noqa: E402
 from server.tools.graph import register_graph_tools  # noqa: E402
+from server.tools.inbox import register_inbox_tools  # noqa: E402
+from server.tools.siyuan import register_siyuan_tools  # noqa: E402
 
 register_entity_tools(mcp)
 register_fact_tools(mcp)
@@ -71,6 +73,8 @@ register_semantic_tools(mcp)
 register_write_tools(mcp)
 register_analysis_tools(mcp)
 register_graph_tools(mcp)
+register_inbox_tools(mcp)
+register_siyuan_tools(mcp)
 
 
 # ──────────────────────────────────────────────

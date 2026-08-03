@@ -36,7 +36,7 @@ chunk:
 
 # Embedding 配置
 embedding:
-  url: "http://embedding:8080/v1/embeddings"  # Docker 内部地址
+  url: "http://localhost:8001/v1/embeddings"  # 宿主机 localhost:映射端口
   model: "qwen3-embedding"
   batch_size: 16          # 每次 Embedding 请求的文本数
   concurrency: 4          # 并发请求数
@@ -97,19 +97,19 @@ incremental:
 
 services:
   crawl4ai:
-    url: "http://crawl4ai:11235"   # Docker 内部地址
+    url: "http://localhost:11235"   # 宿主机 localhost:映射端口
     timeout: 60
     api_token: "${CRAWL4AI_API_TOKEN:-crawl4ai-dev-token}"  # 与 compose.yml 保持一致
   postgres:
-    host: "postgres"
-    port: 5432                     # Docker 内部端口
+    host: "localhost"
+    port: 5433                     # 宿主机映射端口
     database: "ai"
   minio:
-    endpoint: "minio:9000"         # Docker 内部地址
+    endpoint: "localhost:9000"     # 宿主机 localhost:映射端口
     secure: false
     bucket: "documents"
   qdrant:
-    host: "qdrant"
+    host: "localhost"
     port: 6333
 
 # ──────────────────────────────────────────────

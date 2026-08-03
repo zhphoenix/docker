@@ -14,22 +14,23 @@ services:
       # 生产模式：禁用热重载
       RELOAD: "false"
       # 显式设置 PostgreSQL 连接（覆盖 .env 中可能的冲突变量）
+      # 服务间统一通过宿主机 localhost:端口 通信（见 extra_hosts 映射）
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: ai
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: "5432"
-      QDRANT_HOST: qdrant
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5433"
+      QDRANT_HOST: localhost
       QDRANT_PORT: "6333"
-      MINIO_ENDPOINT: minio:9000
-      OPENAI_BASE_URL: http://sisyphus:8080/v1
-      EMBEDDING_URL: http://embedding:8080/v1
-      RERANKER_URL: http://reranker:8080/v1
-      DOCLING_URL: http://docling:5001
-      CRAWL4AI_URL: http://crawl4ai:11235
-      LLM_BASE_URL: http://sisyphus:8080/v1/chat/completions
-      OBSIDIAN_URL: https://obsidian:27124
-      PG_HOST: postgres
+      MINIO_ENDPOINT: localhost:9000
+      OPENAI_BASE_URL: http://localhost:8080/v1
+      EMBEDDING_URL: http://localhost:8001/v1
+      RERANKER_URL: http://localhost:8002/v1
+      DOCLING_URL: http://localhost:5001
+      CRAWL4AI_URL: http://localhost:11235
+      LLM_BASE_URL: http://localhost:8080/v1/chat/completions
+      OBSIDIAN_URL: https://localhost:27124
+      PG_HOST: localhost
       VAULT_ROOT: /vault
       REPORT_SOURCE_DIR: /data/analysis_reports
     volumes:
@@ -40,13 +41,15 @@ services:
       - ai-platform
     extra_hosts:
       - "host.docker.internal:host-gateway"
+      - "localhost:host-gateway"
     deploy:
       resources:
         limits:
           cpus: "2.0"
           memory: 4G
     healthcheck:
-      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8100/health')\" || exit 1"]
+      # 用 127.0.0.1 检查容器自身，避免被 localhost:host-gateway 映射到宿主机
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8100/health')\" || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -12,6 +12,10 @@ import {
   Layers,
   Server,
   RefreshCw,
+  ScanText,
+  Notebook,
+  Cable,
+  Newspaper,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -115,11 +119,47 @@ const SERVICES: ServiceInfo[] = [
   {
     name: 'open-webui',
     label: 'Open WebUI',
-    port: '3000',
+    port: '3001',
     icon: MessageSquare,
     category: 'application',
     command: 'docker compose up -d open-webui',
     description: 'AI 对话界面 (备用)',
+  },
+  {
+    name: 'paddleocr',
+    label: 'PaddleOCR',
+    port: '8118',
+    icon: ScanText,
+    category: 'ai',
+    command: 'docker compose up -d paddleocr',
+    description: 'OCR 文档识别服务 (VL-1.6)',
+  },
+  {
+    name: 'siyuan',
+    label: 'SiYuan',
+    port: '6806',
+    icon: Notebook,
+    category: 'application',
+    command: 'docker compose up -d siyuan',
+    description: '知识库笔记平台 (展示层)',
+  },
+  {
+    name: 'mcp-knowledge',
+    label: 'Knowledge MCP',
+    port: '8200',
+    icon: Cable,
+    category: 'application',
+    command: 'docker compose up -d mcp-knowledge',
+    description: '知识库 MCP 服务 (JSON-RPC)',
+  },
+  {
+    name: 'mcp-news',
+    label: 'News MCP',
+    port: '8201',
+    icon: Newspaper,
+    category: 'application',
+    command: 'docker compose up -d mcp-news',
+    description: '新闻 MCP 服务 (JSON-RPC)',
   },
 ]
 

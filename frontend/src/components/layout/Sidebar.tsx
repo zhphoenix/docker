@@ -15,6 +15,7 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeft,
+  ClipboardCheck,
 } from 'lucide-react'
 import { useAppStore } from '@/stores/app-store'
 import { cn } from '@/lib/utils'
@@ -24,6 +25,7 @@ const navItems = [
   { to: '/chat', icon: MessageSquare, label: 'Chat' },
   { to: '/agents', icon: Bot, label: 'Agents' },
   { to: '/knowledge', icon: BookOpen, label: 'Knowledge' },
+  { to: '/knowledge/review', icon: ClipboardCheck, label: 'Review' },
   { to: '/documents', icon: FolderOpen, label: 'Documents' },
   { to: '/workflow', icon: GitBranch, label: 'Workflow' },
   { to: '/research', icon: BarChart3, label: 'Research' },

@@ -8,6 +8,9 @@ services:
     shm_size: 2g
     networks:
       - ai-platform
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "localhost:host-gateway"
     environment:
       - CRAWL4AI_HEADLESS=true
       - CRAWL4AI_MAX_TABS=5
@@ -23,7 +26,8 @@ services:
           cpus: "1.0"
           memory: 2G
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:11235/health || exit 1"]
+      # 用 127.0.0.1 检查容器自身，避免被 localhost:host-gateway 映射到宿主机
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:11235/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

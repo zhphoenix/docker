@@ -1,0 +1,42 @@
+services:
+  siyuan:
+    image: b3log/siyuan:latest
+    container_name: siyuan
+    restart: unless-stopped
+    # 覆盖镜像默认 CMD (/opt/siyuan/kernel serve)，避免 entrypoint 将其追加为 kernel 子命令导致
+    # "unknown command". 这里只传 serve，entrypoint 会拼成 kernel --workspace=... serve
+    command: serve
+    ports:
+      - "6806:6806"
+    volumes:
+      # 挂载独立的 SiYuan workspace 目录（展示层），由 SiYuan 自行初始化 .siyuan 元数据
+      # 注意：不能直接挂载整个 vault（/mnt/e 为 Windows 文件系统，递归 chown 上万文件会极慢）
+      # 数据经 Sync adapter 从 PostgreSQL 写入本 workspace
+      - ../data/siyuan-workspace:/siyuan/workspace
+    environment:
+      # 访问授权码（从根 .env 注入，见下方 env_file）
+      - SIYUAN_ACCESS_AUTH_CODE=${SIYUAN_ACCESS_AUTH_CODE:-}
+    env_file:
+      - ../.env
+    networks:
+      - ai-platform
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:6806/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
+
+networks:
+  ai-platform:
+    external: true

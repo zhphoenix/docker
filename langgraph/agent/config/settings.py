@@ -10,21 +10,21 @@ class Settings(BaseSettings):
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "ai"
-    POSTGRES_HOST: str = "postgres"
-    POSTGRES_PORT: int = 5432
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = 5433
     PG_POOL_MIN_SIZE: int = 5
     PG_POOL_MAX_SIZE: int = 20
     PG_STATEMENT_TIMEOUT_MS: int = 30000
     PG_HNSW_EF_SEARCH: int = 100
 
     # Qdrant
-    QDRANT_HOST: str = "qdrant"
+    QDRANT_HOST: str = "localhost"
     QDRANT_PORT: int = 6333
 
     # MinIO
     MINIO_ROOT_USER: str
     MINIO_ROOT_PASSWORD: str
-    MINIO_ENDPOINT: str = "minio:9000"
+    MINIO_ENDPOINT: str = "localhost:9000"
 
     # LLM
     OPENAI_BASE_URL: str
@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     MODEL_NAME: str = "qwen3"
 
     # Embedding
-    EMBEDDING_URL: str = "http://embedding:8080/v1"
+    EMBEDDING_URL: str = "http://localhost:8001/v1"
     EMBEDDING_MODEL: str = "embedding"
     EMBEDDING_CONNECT_TIMEOUT: float = 5.0
     EMBEDDING_READ_TIMEOUT: float = 120.0
@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     EMBEDDING_MAX_RETRIES: int = 3
 
     # Reranker
-    RERANKER_URL: str = "http://reranker:8080/v1"
+    RERANKER_URL: str = "http://localhost:8002/v1"
     RERANKER_MODEL: str = "reranker"
     RERANKER_CONNECT_TIMEOUT: float = 5.0
     RERANKER_READ_TIMEOUT: float = 120.0
@@ -58,8 +58,23 @@ class Settings(BaseSettings):
     RERANK_MAX_CHARS: int = 1000
 
     # Docling
-    DOCLING_URL: str = "http://docling:5001"
+    DOCLING_URL: str = "http://localhost:5001"
 
+    # PaddleOCR
+    PADDLEOCR_URL: str = "http://localhost:8118"
+
+    # SiYuan
+    SIYUAN_URL: str = "http://localhost:6806"
+
+    # Crawl4AI
+    CRAWL4AI_URL: str = "http://localhost:11235"
+
+    # Open WebUI（宿主机映射端口 3001 → 容器内 8084）
+    OPENWEBUI_URL: str = "http://localhost:3001"
+
+    # MCP 服务（FastMCP，JSON-RPC over HTTP POST /mcp）
+    MCP_KNOWLEDGE_URL: str = "http://localhost:8200"
+    MCP_NEWS_URL: str = "http://localhost:8201"
 
     # LangGraph
     LANGGRAPH_PORT: int = 8100
@@ -69,7 +84,7 @@ class Settings(BaseSettings):
 
     # Checkpoint
     CHECKPOINT_CONNSTRING: str = (
-        "postgresql+asyncpg://postgres:postgres@postgres:5432/langgraph"
+        "postgresql+asyncpg://postgres:postgres@localhost:5433/langgraph"
     )
 
     class Config:

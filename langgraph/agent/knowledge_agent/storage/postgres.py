@@ -461,6 +461,103 @@ class KnowledgePostgresStorage:
             *params,
         )
 
+    # ──────────────────────────────────────────────
+    # Knowledge Inbox（HITL 审核流，Phase 5）
+    # ──────────────────────────────────────────────
+
+    async def insert_inbox(
+        self,
+        object_type: str,
+        object_id: str,
+        confidence: float | None,
+        content: dict,
+        source: str = "agent",
+    ) -> str:
+        """写入 Knowledge Inbox
+
+        Args:
+            object_type: entity / fact / relation / event / document
+            object_id: 对象 UUID
+            confidence: 置信度 (0-1)
+            content: 待审内容（JSON 可序列化）
+            source: 来源（agent / document_id / ...）
+
+        Returns:
+            inbox_id (UUID)
+        """
+        inbox_id = str(uuid.uuid4())
+        await postgres_tool.execute(
+            """
+            INSERT INTO core.knowledge_inbox
+                (id, object_type, object_id, status, confidence, content, source)
+            VALUES ($1, $2, $3, 'EXTRACTED', $4, $5::jsonb, $6)
+            """,
+            inbox_id,
+            object_type,
+            object_id,
+            confidence,
+            json.dumps(content, ensure_ascii=False),
+            source,
+        )
+        return inbox_id
+
+    async def update_inbox_status(
+        self, inbox_id: str, status: str, reviewer: str | None = None
+    ) -> None:
+        """更新 Inbox 记录状态
+
+        Args:
+            inbox_id: Inbox 记录 ID
+            status: APPROVED / REJECTED / READY_REVIEW / ARCHIVED
+            reviewer: 审核人（system 表示自动审批）
+        """
+        await postgres_tool.execute(
+            """
+            UPDATE core.knowledge_inbox
+            SET status = $2,
+                reviewer = COALESCE($3, reviewer),
+                review_time = CASE WHEN $2 IN ('APPROVED', 'REJECTED') THEN NOW() ELSE review_time END,
+                updated_at = NOW()
+            WHERE id = $1
+            """,
+            inbox_id,
+            status,
+            reviewer,
+        )
+
+    async def find_inbox(self, status: str | None = None, limit: int = 50) -> list[dict]:
+        """查询 Inbox 记录
+
+        Args:
+            status: 状态过滤（NEW/EXTRACTED/READY_REVIEW/APPROVED/REJECTED/ARCHIVED）
+            limit: 返回数量上限
+
+        Returns:
+            Inbox 记录列表
+        """
+        if status:
+            return await postgres_tool.query(
+                """
+                SELECT id, object_type, object_id, status, confidence, source, content,
+                       reviewer, review_time, created_at, updated_at
+                FROM core.knowledge_inbox
+                WHERE status = $1
+                ORDER BY created_at ASC
+                LIMIT $2
+                """,
+                status, limit,
+            )
+        return await postgres_tool.query(
+            """
+            SELECT id, object_type, object_id, status, confidence, source, content,
+                   reviewer, review_time, created_at, updated_at
+            FROM core.knowledge_inbox
+            ORDER BY created_at DESC
+            LIMIT $1
+            """,
+            limit,
+        )
+
 
 # 模块级单例
 knowledge_storage = KnowledgePostgresStorage()

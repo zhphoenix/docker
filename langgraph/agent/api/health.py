@@ -21,17 +21,45 @@ async def health_check():
     services = {}
 
     checks = [
-        ("qdrant", f"http://{settings.QDRANT_HOST}:{settings.QDRANT_PORT}/healthz"),
-        ("embedding", f"{settings.EMBEDDING_URL}/../health"),
-        ("reranker", f"{settings.RERANKER_URL}/../health"),
-        ("docling", f"{settings.DOCLING_URL}/health"),
-        ("llm", f"{settings.OPENAI_BASE_URL}/../health"),
+        ("qdrant", f"http://{settings.QDRANT_HOST}:{settings.QDRANT_PORT}/healthz", 5.0),
+        ("embedding", f"{settings.EMBEDDING_URL}/../health", 5.0),
+        ("reranker", f"{settings.RERANKER_URL}/../health", 5.0),
+        ("docling", f"{settings.DOCLING_URL}/health", 5.0),
+        ("llm", f"{settings.OPENAI_BASE_URL}/../health", 5.0),
+        ("paddleocr", f"{settings.PADDLEOCR_URL}/health", 5.0),
+        ("siyuan", f"{settings.SIYUAN_URL}/", 5.0),
+        ("crawl4ai", f"{settings.CRAWL4AI_URL}/health", 5.0),
+        ("open-webui", f"{settings.OPENWEBUI_URL}/", 8.0),
     ]
 
     async with httpx.AsyncClient(timeout=5.0) as client:
-        for name, url in checks:
+        for name, url, timeout in checks:
             try:
-                response = await client.get(url)
+                response = await client.get(url, timeout=timeout)
+                services[name] = "up" if response.status_code < 500 else "down"
+            except Exception:
+                services[name] = "down"
+
+        # MCP 服务（FastMCP 暴露 JSON-RPC over HTTP POST /mcp）
+        for name, url in [
+            ("mcp-knowledge", settings.MCP_KNOWLEDGE_URL),
+            ("mcp-news", settings.MCP_NEWS_URL),
+        ]:
+            try:
+                response = await client.post(
+                    f"{url}/mcp",
+                    json={
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "initialize",
+                        "params": {
+                            "protocolVersion": "2025-03-26",
+                            "capabilities": {},
+                            "clientInfo": {"name": "health-check", "version": "0.1"},
+                        },
+                    },
+                    headers={"Accept": "application/json, text/event-stream"},
+                )
                 services[name] = "up" if response.status_code < 500 else "down"
             except Exception:
                 services[name] = "down"
