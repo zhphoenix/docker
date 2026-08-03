@@ -21,6 +21,26 @@ logger = logging.getLogger(__name__)
 _handlers: dict[str, Callable[..., Coroutine[Any, Any, None]]] = {}
 _worker_task: asyncio.Task | None = None
 _running = False
+_current_task: str | None = None
+
+
+def get_worker_status() -> dict:
+    """返回 Worker 运行状态（供 API 展示，in-process 内存态）
+
+    Returns:
+        {
+            "running": bool,
+            "active_tasks": int,
+            "current_task_id": str | None,
+            "registered_handlers": [str],
+        }
+    """
+    return {
+        "running": _running,
+        "active_tasks": 1 if _current_task else 0,
+        "current_task_id": _current_task,
+        "registered_handlers": list(_handlers.keys()),
+    }
 
 
 def register_handler(task_type: str, handler: Callable[..., Coroutine[Any, Any, None]]):
@@ -181,6 +201,8 @@ async def _worker_loop():
                 continue
 
             # 执行任务
+            global _current_task
+            _current_task = task_id
             logger.info(
                 "[Worker] Processing | %s | type=%s | %s",
                 task_id[:8], task_type, task.get("title", ""),
@@ -193,6 +215,8 @@ async def _worker_loop():
             except Exception as e:
                 logger.error("[Worker] Task failed | %s | %s", task_id[:8], e)
                 await task_queue.fail_task(task_id, str(e))
+            finally:
+                _current_task = None
 
         except asyncio.CancelledError:
             break

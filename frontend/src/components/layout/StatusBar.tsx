@@ -4,10 +4,10 @@ import { fetchModels } from '@/services/models'
 import { cn } from '@/lib/utils'
 
 export function StatusBar() {
+  // 只读消费：健康状态由全局 HealthProvider 统一轮询，此处仅「反映」最新状态，不再自行发起请求
   const healthQuery = useQuery({
     queryKey: ['health'],
     queryFn: fetchHealth,
-    refetchInterval: 30_000,
   })
 
   const modelsQuery = useQuery({

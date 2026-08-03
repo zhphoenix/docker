@@ -1,5 +1,6 @@
 """Health & Monitoring 路由 - 健康检查 + 系统监控"""
 
+import asyncio
 import logging
 import time
 
@@ -14,55 +15,71 @@ router = APIRouter()
 
 _start_time = time.time()
 
+# 单次探测超时（秒）。多个服务不可达时，并行检查可避免串行超时累加。
+CHECK_TIMEOUT = 2.0
+
+# 需要检查的 HTTP 服务（name, url）
+HTTP_CHECKS = [
+    ("qdrant", f"http://{settings.QDRANT_HOST}:{settings.QDRANT_PORT}/healthz"),
+    ("embedding", f"{settings.EMBEDDING_URL}/../health"),
+    ("reranker", f"{settings.RERANKER_URL}/../health"),
+    ("docling", f"{settings.DOCLING_URL}/health"),
+    ("llm", f"{settings.OPENAI_BASE_URL}/../health"),
+    ("paddleocr", f"{settings.PADDLEOCR_URL}/health"),
+    ("siyuan", f"{settings.SIYUAN_URL}/"),
+    ("crawl4ai", f"{settings.CRAWL4AI_URL}/health"),
+    ("open-webui", f"{settings.OPENWEBUI_URL}/"),
+]
+
+# MCP 服务（FastMCP 暴露 JSON-RPC over HTTP POST /mcp）
+MCP_CHECKS = [
+    ("mcp-knowledge", settings.MCP_KNOWLEDGE_URL),
+    ("mcp-news", settings.MCP_NEWS_URL),
+]
+
+
+async def _check_http(name: str, url: str) -> tuple[str, str]:
+    """探测单个 HTTP 服务连通性"""
+    try:
+        async with httpx.AsyncClient(timeout=CHECK_TIMEOUT) as client:
+            response = await client.get(url)
+            return name, "up" if response.status_code < 500 else "down"
+    except Exception:
+        return name, "down"
+
+
+async def _check_mcp(name: str, url: str) -> tuple[str, str]:
+    """探测单个 MCP 服务（JSON-RPC initialize）"""
+    try:
+        async with httpx.AsyncClient(timeout=CHECK_TIMEOUT) as client:
+            response = await client.post(
+                f"{url}/mcp",
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2025-03-26",
+                        "capabilities": {},
+                        "clientInfo": {"name": "health-check", "version": "0.1"},
+                    },
+                },
+                headers={"Accept": "application/json, text/event-stream"},
+            )
+            return name, "up" if response.status_code < 500 else "down"
+    except Exception:
+        return name, "down"
+
 
 @router.get("/health")
 async def health_check():
-    """健康检查 - 检查各下游服务连通性"""
-    services = {}
-
-    checks = [
-        ("qdrant", f"http://{settings.QDRANT_HOST}:{settings.QDRANT_PORT}/healthz", 5.0),
-        ("embedding", f"{settings.EMBEDDING_URL}/../health", 5.0),
-        ("reranker", f"{settings.RERANKER_URL}/../health", 5.0),
-        ("docling", f"{settings.DOCLING_URL}/health", 5.0),
-        ("llm", f"{settings.OPENAI_BASE_URL}/../health", 5.0),
-        ("paddleocr", f"{settings.PADDLEOCR_URL}/health", 5.0),
-        ("siyuan", f"{settings.SIYUAN_URL}/", 5.0),
-        ("crawl4ai", f"{settings.CRAWL4AI_URL}/health", 5.0),
-        ("open-webui", f"{settings.OPENWEBUI_URL}/", 8.0),
-    ]
-
-    async with httpx.AsyncClient(timeout=5.0) as client:
-        for name, url, timeout in checks:
-            try:
-                response = await client.get(url, timeout=timeout)
-                services[name] = "up" if response.status_code < 500 else "down"
-            except Exception:
-                services[name] = "down"
-
-        # MCP 服务（FastMCP 暴露 JSON-RPC over HTTP POST /mcp）
-        for name, url in [
-            ("mcp-knowledge", settings.MCP_KNOWLEDGE_URL),
-            ("mcp-news", settings.MCP_NEWS_URL),
-        ]:
-            try:
-                response = await client.post(
-                    f"{url}/mcp",
-                    json={
-                        "jsonrpc": "2.0",
-                        "id": 1,
-                        "method": "initialize",
-                        "params": {
-                            "protocolVersion": "2025-03-26",
-                            "capabilities": {},
-                            "clientInfo": {"name": "health-check", "version": "0.1"},
-                        },
-                    },
-                    headers={"Accept": "application/json, text/event-stream"},
-                )
-                services[name] = "up" if response.status_code < 500 else "down"
-            except Exception:
-                services[name] = "down"
+    """健康检查 - 检查各下游服务连通性（并行探测，总耗时受最慢单次限制）"""
+    # 并行检查 HTTP 与 MCP 服务，避免串行超时累加
+    results = await asyncio.gather(
+        *[_check_http(name, url) for name, url in HTTP_CHECKS],
+        *[_check_mcp(name, url) for name, url in MCP_CHECKS],
+    )
+    services = dict(results)
 
     # PostgreSQL
     try:

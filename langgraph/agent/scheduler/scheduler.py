@@ -325,6 +325,25 @@ def start_scheduler() -> None:
     logger.info("[Scheduler] Started with %d jobs", len(_scheduler.get_jobs()))
 
 
+def get_scheduler_jobs() -> list[dict]:
+    """返回已注册的调度任务列表（只读，供 API 展示）
+
+    Returns:
+        [{"id": str, "name": str, "next_run_time": str | None, "trigger": str}]
+    """
+    if _scheduler is None:
+        return []
+    jobs = []
+    for job in _scheduler.get_jobs():
+        jobs.append({
+            "id": job.id,
+            "name": job.name,
+            "next_run_time": job.next_run_time.isoformat() if job.next_run_time else None,
+            "trigger": str(job.trigger),
+        })
+    return jobs
+
+
 def stop_scheduler() -> None:
     """停止调度器"""
     global _scheduler

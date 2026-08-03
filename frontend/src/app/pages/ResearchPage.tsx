@@ -89,7 +89,7 @@ function formatDateTime(iso: string | null): string {
 }
 
 function formatElapsed(sec: number | null): string {
-  if (sec == null) return '—'
+  if (sec === null) return '—'
   if (sec < 60) return `${sec.toFixed(1)}s`
   return `${Math.floor(sec / 60)}m ${Math.round(sec % 60)}s`
 }
@@ -120,7 +120,7 @@ function ReportsPanel() {
   const detailQuery = useQuery({
     queryKey: ['report-detail', selectedId],
     queryFn: () => fetchReportDetail(selectedId!),
-    enabled: selectedId != null,
+    enabled: selectedId !== null,
     retry: 1,
   })
 
@@ -226,7 +226,7 @@ function ReportsPanel() {
       </Card>
 
       {/* Report Detail Dialog */}
-      <Dialog open={selectedId != null} onOpenChange={(open) => !open && setSelectedId(null)}>
+      <Dialog open={selectedId !== null} onOpenChange={(open) => !open && setSelectedId(null)}>
         <DialogContent className="max-w-4xl max-h-[85vh]">
           <DialogHeader>
             <DialogTitle className="text-base">
@@ -292,7 +292,7 @@ function AnalyzePanel() {
   }
 
   // 提交成功后显示动态进度指示
-  const showProgress = submitMsg != null && !submitMsg.includes('失败')
+  const showProgress = submitMsg !== null && !submitMsg.includes('失败')
 
   return (
     <div className="mx-auto max-w-lg space-y-6 pt-8">
@@ -433,7 +433,7 @@ function ResearchTasksPanel() {
   const detailQuery = useQuery({
     queryKey: ['research-detail', selectedId],
     queryFn: () => fetchResearchDetail(selectedId!),
-    enabled: selectedId != null,
+    enabled: selectedId !== null,
     retry: 1,
   })
 
@@ -447,7 +447,7 @@ function ResearchTasksPanel() {
           value={symbol}
           onChange={(e) => setSymbol(e.target.value)}
         />
-        <Select value={status || 'all'} onValueChange={(v) => setStatus(v === 'all' || v == null ? '' : v)}>
+        <Select value={status || 'all'} onValueChange={(v) => setStatus(v === 'all' || v === null ? '' : v)}>
           <SelectTrigger className="w-36">
             <SelectValue placeholder="状态" />
           </SelectTrigger>
@@ -539,7 +539,7 @@ function ResearchTasksPanel() {
                         )}
                       </TableCell>
                       <TableCell className="text-right tabular-nums text-muted-foreground">
-                        {task.confidence != null ? `${Math.round(task.confidence * 100)}%` : '—'}
+                        {task.confidence !== null ? `${Math.round(task.confidence * 100)}%` : '—'}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -565,7 +565,7 @@ function ResearchTasksPanel() {
       </Card>
 
       {/* Detail Dialog */}
-      <Dialog open={selectedId != null} onOpenChange={(open) => !open && setSelectedId(null)}>
+      <Dialog open={selectedId !== null} onOpenChange={(open) => !open && setSelectedId(null)}>
         <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-[95vw] h-[85vh] flex flex-col p-0 gap-0">
           <DialogHeader className="px-6 py-4 border-b shrink-0">
             <DialogTitle className="text-base">研究详情</DialogTitle>

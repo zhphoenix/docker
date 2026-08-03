@@ -121,6 +121,68 @@ class TaskQueue:
         rows = await postgres_tool.query("SELECT * FROM tasks WHERE id = $1", task_id)
         return rows[0] if rows else None
 
+    async def log_task(self, task_id: str, level: str, message: str, stage: str = "") -> None:
+        """写入任务日志（非关键路径，失败不阻塞主流程）"""
+        try:
+            await postgres_tool.execute(
+                """
+                INSERT INTO task_logs (task_id, level, message, stage)
+                VALUES ($1, $2, $3, $4)
+                """,
+                task_id, level, message[:2000], stage,
+            )
+        except Exception as e:
+            logger.warning("log_task failed | task=%s | %s", task_id[:8], e)
+
+    async def get_task_logs(self, task_id: str, limit: int = 200) -> list[dict]:
+        """查询任务日志（按创建时间升序）"""
+        rows = await postgres_tool.query(
+            """
+            SELECT id, level, message, stage, created_at
+            FROM task_logs
+            WHERE task_id = $1
+            ORDER BY created_at ASC
+            LIMIT $2
+            """,
+            task_id, limit,
+        )
+        for r in rows:
+            r["id"] = str(r["id"])
+            if r.get("created_at"):
+                r["created_at"] = r["created_at"].isoformat()
+        return rows
+
+    async def delete_task(self, task_id: str) -> bool:
+        """删除任务记录（仅 done/failed 可删，日志级联删除）"""
+        task = await self.get_task(task_id)
+        if not task:
+            return False
+        if task["status"] not in ("done", "failed"):
+            return False
+        result = await postgres_tool.execute(
+            "DELETE FROM tasks WHERE id = $1 AND status IN ('done', 'failed')",
+            task_id,
+        )
+        return "DELETE 1" in result
+
+    async def clone_task(self, task_id: str) -> str | None:
+        """复制任务参数创建新任务（返回新 task_id）"""
+        task = await self.get_task(task_id)
+        if not task:
+            return None
+        new_id = str(uuid.uuid4())
+        await postgres_tool.execute(
+            """
+            INSERT INTO tasks (id, task_type, title, status, params, total_items, created_by)
+            VALUES ($1, $2, $3, 'pending', $4::jsonb, $5, $6)
+            """,
+            new_id, task["task_type"], f"{task['title']} (clone)",
+            json.dumps(task.get("params") or {}), task.get("total_items", 0),
+            "api",
+        )
+        logger.info("Task cloned: %s -> %s", task_id[:8], new_id[:8])
+        return new_id
+
     async def retry_task(self, task_id: str) -> bool:
         """重试失败的任务（检查 retry_count < max_retries）"""
         task = await self.get_task(task_id)

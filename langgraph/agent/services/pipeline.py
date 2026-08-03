@@ -83,8 +83,13 @@ class DocumentPipeline:
                     task_id, i, stage="processing",
                     current_name=f"{market}/{symbol}/{doc.get('year', '')}",
                 )
+                await task_queue.log_task(
+                    task_id, "info",
+                    f"开始处理 {market}/{symbol} {doc.get('year', '')}",
+                    "processing",
+                )
 
-                result = await self._process_single_document(doc)
+                result = await self._process_single_document(doc, task_id, i)
                 if result == "indexed":
                     stats["processed"] += 1
                 else:
@@ -109,8 +114,13 @@ class DocumentPipeline:
         )
         return stats
 
-    async def _process_single_document(self, doc: dict) -> str:
+    async def _process_single_document(self, doc: dict, task_id: str | None = None, index: int = 0) -> str:
         """处理单个文档的完整链路
+
+        Args:
+            doc: 文档记录
+            task_id: 关联任务 ID（用于细分 stage 与写日志）
+            index: 文档序号（作为细化阶段里的 current_item）
 
         Returns:
             "indexed" | "skipped"
@@ -140,6 +150,10 @@ class DocumentPipeline:
         # 3. 下载 PDF from MinIO
         try:
             pdf_data = await minio_tool.download(bucket, object_key)
+            if task_id:
+                await task_queue.log_task(
+                    task_id, "info", f"下载完成 {object_key}", "parse"
+                )
         except Exception as e:
             logger.warning("MinIO download failed | %s | %s", object_key, e)
             await postgres_tool.execute(
@@ -153,6 +167,15 @@ class DocumentPipeline:
         try:
             filename = object_key.split("/")[-1] if "/" in object_key else object_key
             md_content = await docling_tool.convert_file(pdf_data, filename)
+            if task_id:
+                await task_queue.update_progress(
+                    task_id, index, stage="parse",
+                    current_name=f"{symbol} 解析",
+                )
+                await task_queue.log_task(
+                    task_id, "info",
+                    f"解析完成 {symbol} | {len(md_content)} chars", "parse",
+                )
         except DoclingError as e:
             logger.warning("Docling failed | %s | %s", doc_id[:8], e)
             await postgres_tool.execute(
@@ -181,15 +204,37 @@ class DocumentPipeline:
         chunks = chunk_markdown(md_content)
         if not chunks:
             logger.warning("No chunks generated | %s", doc_id[:8])
+            if task_id:
+                await task_queue.log_task(
+                    task_id, "warn", f"未生成分块 {symbol}", "chunk"
+                )
             await postgres_tool.execute(
                 "UPDATE documents SET status = 'parsed', chunk_count = 0 WHERE id = $1",
                 doc_id,
             )
             return "skipped"
 
+        if task_id:
+            await task_queue.update_progress(
+                task_id, index, stage="chunk",
+                current_name=f"{symbol} 分块",
+            )
+            await task_queue.log_task(
+                task_id, "info", f"分块完成 {symbol} | {len(chunks)} chunks", "chunk"
+            )
+
         # 7. Embedding（分批）
         collection = MARKET_COLLECTION.get(market, "documents_cn")
         all_vectors: list[list[float]] = []
+
+        if task_id:
+            await task_queue.update_progress(
+                task_id, index, stage="embedding",
+                current_name=f"{symbol} 嵌入",
+            )
+            await task_queue.log_task(
+                task_id, "info", f"开始嵌入 {symbol} | {len(chunks)} chunks", "embedding"
+            )
 
         for batch_start in range(0, len(chunks), self.embed_batch_size):
             batch = chunks[batch_start:batch_start + self.embed_batch_size]
@@ -250,6 +295,13 @@ class DocumentPipeline:
             """,
             doc_id, len(chunks),
         )
+
+        if task_id:
+            await task_queue.log_task(
+                task_id, "info",
+                f"索引完成 {symbol} | {len(chunks)} chunks | {collection}",
+                "embedding",
+            )
 
         logger.info(
             "Document indexed | %s/%s | chunks=%d | collection=%s",

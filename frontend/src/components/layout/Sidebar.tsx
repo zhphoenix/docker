@@ -24,7 +24,7 @@ const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/chat', icon: MessageSquare, label: 'Chat' },
   { to: '/agents', icon: Bot, label: 'Agents' },
-  { to: '/knowledge', icon: BookOpen, label: 'Knowledge' },
+  { to: '/knowledge', icon: BookOpen, label: 'Knowledge Hub' },
   { to: '/knowledge/review', icon: ClipboardCheck, label: 'Review' },
   { to: '/documents', icon: FolderOpen, label: 'Documents' },
   { to: '/workflow', icon: GitBranch, label: 'Workflow' },

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { BookOpen, Database, Layers, RefreshCw, FolderInput, CheckCircle2, XCircle, Folder, ChevronRight, ArrowUp, Loader2 } from 'lucide-react'
+import { BookOpen, Database, Layers, RefreshCw, FolderInput, CheckCircle2, XCircle, Folder, ChevronRight, ArrowUp, Loader2, Loader } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { EmptyState } from '@/components/common/EmptyState'
 import { fetchKnowledgeCollections, triggerIngest, fetchBrowseDirs } from '@/services/knowledge'
+import { fetchTasks } from '@/services/tasks'
 import { cn } from '@/lib/utils'
 
 const container = {
@@ -27,7 +28,11 @@ function formatNumber(n: number): string {
   return n.toLocaleString('zh-CN')
 }
 
-export function CollectionGrid() {
+interface CollectionGridProps {
+  onNavigateToTasks?: (taskId?: string) => void
+}
+
+export function CollectionGrid({ onNavigateToTasks }: CollectionGridProps) {
   const [ingestPath, setIngestPath] = useState('')
   const [ingestFeedback, setIngestFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
   const [dirDialogOpen, setDirDialogOpen] = useState(false)
@@ -40,6 +45,16 @@ export function CollectionGrid() {
     retry: 1,
   })
 
+  // 查询当前 running 的 doc_pipeline 任务，用于在卡片上展示实时进度
+  const runningTasksQuery = useQuery({
+    queryKey: ['ingest-running-tasks'],
+    queryFn: () =>
+      fetchTasks({ status: 'running', task_type: 'doc_pipeline', limit: 10 }),
+    refetchInterval: 5000,
+    retry: 1,
+  })
+  const runningTasks = runningTasksQuery.data?.tasks ?? []
+
   const browseQuery = useQuery({
     queryKey: ['browse-dirs', browsePath],
     queryFn: () => fetchBrowseDirs(browsePath),
@@ -50,6 +65,8 @@ export function CollectionGrid() {
     mutationFn: (path: string) => triggerIngest(path),
     onSuccess: (res) => {
       setIngestFeedback({ type: 'success', msg: res.message })
+      // 触发后刷新任务列表，让卡片展示实时进度
+      queryClient.invalidateQueries({ queryKey: ['ingest-running-tasks'] })
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['knowledge-collections'] })
       }, 5000)
@@ -245,6 +262,14 @@ export function CollectionGrid() {
               coll.chunk_count > 0
                 ? Math.round((coll.embedded_count / coll.chunk_count) * 100)
                 : 0
+            // 匹配该 collection 的 running 任务（doc_pipeline 处理中）
+            const runningTask = runningTasks.find(
+              (t) =>
+                (t.params as Record<string, unknown> | null)?.collection === coll.name
+            )
+            const taskPct = runningTask
+              ? Math.max(0, Math.min(100, runningTask.progress ?? 0))
+              : null
             return (
               <motion.div key={coll.id} variants={item}>
                 <Card className="h-full transition-shadow duration-200 hover:shadow-[var(--shadow-soft)]">
@@ -268,6 +293,41 @@ export function CollectionGrid() {
                         </p>
                       )}
                     </div>
+
+                    {/* 处理中任务实时进度 */}
+                    {runningTask && taskPct != null && (
+                      <button
+                        type="button"
+                        onClick={() => onNavigateToTasks?.(runningTask.id)}
+                        className="mt-4 w-full rounded-lg border border-primary/20 bg-primary/5 p-3 text-left transition-colors hover:bg-primary/10"
+                        title="点击跳转到处理详情定位该任务"
+                      >
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="flex items-center gap-1.5 font-medium text-primary">
+                            <Loader className="size-3.5 animate-spin" />
+                            处理中
+                          </span>
+                          <span className="tabular-nums text-foreground">
+                            {taskPct.toFixed(0)}%
+                          </span>
+                        </div>
+                        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                          <div
+                            className="h-full rounded-full bg-primary transition-all"
+                            style={{ width: `${taskPct}%` }}
+                          />
+                        </div>
+                        {runningTask.current_item != null && runningTask.total_items != null && (
+                          <div className="mt-1.5 text-[11px] tabular-nums text-muted-foreground">
+                            已完成 {formatNumber(runningTask.current_item)} /{' '}
+                            {formatNumber(runningTask.total_items)} 个文件
+                            {runningTask.current_name
+                              ? ` · ${runningTask.current_name}`
+                              : ''}
+                          </div>
+                        )}
+                      </button>
+                    )}
 
                     {/* 向量化进度 */}
                     <div className="mt-4 space-y-1.5">

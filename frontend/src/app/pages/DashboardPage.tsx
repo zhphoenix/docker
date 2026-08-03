@@ -33,14 +33,14 @@ const item = {
 const quickActions = [
   { to: '/chat', icon: MessageSquare, label: '开始对话', desc: '与 AI 助手交流' },
   { to: '/knowledge', icon: BookOpen, label: '知识库', desc: '检索研究资料' },
-  { to: '/documents', icon: FileText, label: '文档管理', desc: '上传与解析文档' },
+  { to: '/documents', icon: FileText, label: '文档中心', desc: '上传与解析文档' },
 ]
 
 export default function DashboardPage() {
+  // 只读消费：健康状态由全局 HealthProvider 统一轮询，此处仅「反映」最新状态，不再自行发起请求
   const healthQuery = useQuery({
     queryKey: ['health'],
     queryFn: fetchHealth,
-    refetchInterval: 30_000,
   })
 
   const modelsQuery = useQuery({

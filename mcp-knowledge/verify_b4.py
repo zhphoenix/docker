@@ -19,7 +19,7 @@ async def main():
             print("graph tools present:", {n: (n in names) for n in new_tools})
 
             # 2. 找出库中存在的公司，用真实数据调用
-            entities = await session.call_tool("search_entity", {"query": "台积电", "limit": 3})
+            entities = await session.call_tool("search_entity", {"name": "台积电", "limit": 3})
             print("\n=== search_entity(台积电) ===")
             _print(entities)
 

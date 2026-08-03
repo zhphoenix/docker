@@ -1,14 +1,22 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Search, Sparkles, GitFork, FileText } from 'lucide-react'
+import { Search, Sparkles, GitFork, FileText, BrainCircuit } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/common/EmptyState'
-import { searchKnowledge, type HybridSearchResult } from '@/services/knowledge'
+import {
+  searchKnowledge,
+  graphragSearch,
+  type HybridSearchResult,
+  type GraphRAGResult,
+} from '@/services/knowledge'
+import { cn } from '@/lib/utils'
+
+type SearchMode = 'hybrid' | 'graphrag'
 
 const listVariants = {
   hidden: { opacity: 0 },
@@ -23,9 +31,15 @@ const listItem = {
 export function SemanticSearchPanel() {
   const [query, setQuery] = useState('')
   const [entityFilter, setEntityFilter] = useState('')
+  const [mode, setMode] = useState<SearchMode>('hybrid')
 
-  const searchMutation = useMutation<HybridSearchResult, Error, { query: string; entity_name?: string }>({
-    mutationFn: searchKnowledge,
+  const searchMutation = useMutation<
+    HybridSearchResult | GraphRAGResult,
+    Error,
+    { query: string; entity_name?: string; limit?: number }
+  >({
+    mutationFn: (params) =>
+      mode === 'graphrag' ? graphragSearch(params) : searchKnowledge(params),
   })
 
   const handleSearch = () => {
@@ -38,41 +52,86 @@ export function SemanticSearchPanel() {
     })
   }
 
+  const handleModeChange = (m: SearchMode) => {
+    setMode(m)
+    searchMutation.reset()
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleSearch()
   }
 
   const result = searchMutation.data
+  const isGraphRAG = mode === 'graphrag'
+  const isHybrid = !isGraphRAG
+  const hybridResult = isHybrid ? (result as HybridSearchResult | undefined) : undefined
+  const ragResult = isGraphRAG ? (result as GraphRAGResult | undefined) : undefined
   const hasResults =
-    result &&
-    (result.vector_results.entities.length > 0 ||
-      result.vector_results.facts.length > 0 ||
-      result.graph_results.length > 0)
+    (isHybrid &&
+      !!hybridResult &&
+      (hybridResult.vector_results.entities.length > 0 ||
+        hybridResult.vector_results.facts.length > 0 ||
+        hybridResult.graph_results.length > 0)) ||
+    (isGraphRAG && !!ragResult && !!ragResult.fusion?.summary)
 
   return (
     <div className="space-y-6">
-      {/* Search Input */}
-      <div className="flex gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.8} />
+      {/* 检索模式切换 + Search Input */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground">检索模式</span>
+          <div className="flex rounded-lg border bg-muted/40 p-0.5">
+            <button
+              type="button"
+              onClick={() => handleModeChange('hybrid')}
+              className={cn(
+                'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+                mode === 'hybrid' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+              )}
+            >
+              <Search className="size-3.5" strokeWidth={1.8} />
+              混合检索
+            </button>
+            <button
+              type="button"
+              onClick={() => handleModeChange('graphrag')}
+              className={cn(
+                'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+                mode === 'graphrag' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+              )}
+            >
+              <BrainCircuit className="size-3.5" strokeWidth={1.8} />
+              GraphRAG
+            </button>
+          </div>
+          {isGraphRAG && (
+            <Badge variant="secondary" className="text-[10px]">
+              LLM 融合生成
+            </Badge>
+          )}
+        </div>
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.8} />
+            <Input
+              placeholder={isGraphRAG ? '输入查询，生成基于知识图谱的归纳回答...' : '输入自然语言查询，如：华为的供应链关系...'}
+              className="pl-9"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+          </div>
           <Input
-            placeholder="输入自然语言查询，如：华为的供应链关系..."
-            className="pl-9"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            placeholder="实体过滤（可选）"
+            className="w-40"
+            value={entityFilter}
+            onChange={(e) => setEntityFilter(e.target.value)}
             onKeyDown={handleKeyDown}
           />
+          <Button onClick={handleSearch} disabled={!query.trim() || searchMutation.isPending}>
+            {searchMutation.isPending ? '搜索中...' : '搜索'}
+          </Button>
         </div>
-        <Input
-          placeholder="实体过滤（可选）"
-          className="w-40"
-          value={entityFilter}
-          onChange={(e) => setEntityFilter(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-        <Button onClick={handleSearch} disabled={!query.trim() || searchMutation.isPending}>
-          {searchMutation.isPending ? '搜索中...' : '搜索'}
-        </Button>
       </div>
 
       {/* Idle State */}
@@ -127,20 +186,92 @@ export function SemanticSearchPanel() {
         />
       )}
 
-      {searchMutation.isSuccess && hasResults && result && (
+      {/* GraphRAG 结果（归纳回答 + 证据） */}
+      {searchMutation.isSuccess && isGraphRAG && ragResult && hasResults && (
+        <motion.div variants={listVariants} initial="hidden" animate="show" className="space-y-6">
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <BrainCircuit className="size-4 text-primary" strokeWidth={1.8} />
+                归纳回答
+                {ragResult.degraded && (
+                  <Badge variant="outline" className="text-[10px]">
+                    降级模式
+                  </Badge>
+                )}
+              </div>
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                {ragResult.fusion?.summary}
+              </p>
+              {ragResult.fusion?.key_findings?.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  {ragResult.fusion.key_findings.map((f, i) => (
+                    <div key={i} className="rounded-lg bg-muted/50 px-3 py-2 text-xs">
+                      <span className="font-medium text-foreground">要点 {i + 1}：</span>
+                      <span className="text-muted-foreground">{f.finding}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* 证据 */}
+          {(ragResult.evidence?.graph?.length > 0 || ragResult.evidence?.vector?.length > 0) && (
+            <div className="space-y-3">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <GitFork className="size-4 text-primary" strokeWidth={1.8} />
+                检索证据
+                <Badge variant="secondary" className="text-[10px]">
+                  {(ragResult.evidence?.graph?.length ?? 0) + (ragResult.evidence?.vector?.length ?? 0)}
+                </Badge>
+              </h3>
+              <div className="space-y-1.5">
+                {[...(ragResult.evidence?.graph ?? []), ...(ragResult.evidence?.vector ?? [])].map(
+                  (ev, i) => (
+                    <motion.div
+                      key={i}
+                      variants={listItem}
+                      className="flex items-start gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs"
+                    >
+                      <Badge variant="outline" className="shrink-0 text-[10px]">
+                        {ev.kind === 'graph' ? '图谱' : '向量'}
+                      </Badge>
+                      <div className="min-w-0 flex-1 text-muted-foreground">
+                        {ev.name || ev.subject || ev.source_entity || ''}
+                        {ev.predicate || ev.relation_type ? (
+                          <span className="text-primary">
+                            {' '}
+                            → {ev.predicate || ev.relation_type}
+                          </span>
+                        ) : null}
+                        {ev.value || ev.target_entity ? ` : ${ev.value || ev.target_entity}` : ''}
+                        {ev.description ? ` — ${ev.description}` : ''}
+                      </div>
+                    </motion.div>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* 混合检索结果 */}
+      {searchMutation.isSuccess && isHybrid && hybridResult && hasResults && (
         <motion.div variants={listVariants} initial="hidden" animate="show" className="space-y-6">
           {/* Entity Results */}
-          {result.vector_results.entities.length > 0 && (
+          {hybridResult.vector_results.entities.length > 0 && (
             <div className="space-y-3">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <Sparkles className="size-4 text-primary" strokeWidth={1.8} />
                 实体匹配
                 <Badge variant="secondary" className="text-[10px]">
-                  {result.vector_results.entities.length}
+                  {hybridResult.vector_results.entities.length}
                 </Badge>
               </h3>
               <div className="grid gap-3 sm:grid-cols-2">
-                {result.vector_results.entities.map((ent) => (
+                {hybridResult.vector_results.entities.map((ent) => (
                   <motion.div key={ent.id} variants={listItem}>
                     <Card className="transition-shadow duration-200 hover:shadow-[var(--shadow-soft)]">
                       <CardContent className="p-4">
@@ -152,16 +283,16 @@ export function SemanticSearchPanel() {
                             {Math.round(ent.score * 100)}%
                           </Badge>
                         </div>
-                        {ent.payload.entity_type && (
+                        {ent.payload.entity_type ? (
                           <Badge variant="secondary" className="mt-1.5 text-[10px]">
                             {String(ent.payload.entity_type)}
                           </Badge>
-                        )}
-                        {ent.payload.description && (
+                        ) : null}
+                        {ent.payload.description ? (
                           <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
                             {String(ent.payload.description)}
                           </p>
-                        )}
+                        ) : null}
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -171,17 +302,17 @@ export function SemanticSearchPanel() {
           )}
 
           {/* Fact Results */}
-          {result.vector_results.facts.length > 0 && (
+          {hybridResult.vector_results.facts.length > 0 && (
             <div className="space-y-3">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <FileText className="size-4 text-primary" strokeWidth={1.8} />
                 事实匹配
                 <Badge variant="secondary" className="text-[10px]">
-                  {result.vector_results.facts.length}
+                  {hybridResult.vector_results.facts.length}
                 </Badge>
               </h3>
               <div className="space-y-2">
-                {result.vector_results.facts.map((fact) => (
+                {hybridResult.vector_results.facts.map((fact) => (
                   <motion.div key={fact.id} variants={listItem}>
                     <Card>
                       <CardContent className="flex items-center gap-3 p-3.5">
@@ -204,17 +335,17 @@ export function SemanticSearchPanel() {
           )}
 
           {/* Graph Results */}
-          {result.graph_results.length > 0 && (
+          {hybridResult.graph_results.length > 0 && (
             <div className="space-y-3">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <GitFork className="size-4 text-primary" strokeWidth={1.8} />
                 关联关系
                 <Badge variant="secondary" className="text-[10px]">
-                  {result.graph_results.length}
+                  {hybridResult.graph_results.length}
                 </Badge>
               </h3>
               <div className="space-y-1.5">
-                {result.graph_results.slice(0, 15).map((edge, i) => (
+                {hybridResult.graph_results.slice(0, 15).map((edge, i) => (
                   <motion.div
                     key={`${edge.source_entity}-${edge.relation_type}-${edge.target_entity}-${i}`}
                     variants={listItem}

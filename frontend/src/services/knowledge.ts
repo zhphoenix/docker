@@ -23,6 +23,53 @@ export function fetchKnowledgeCollections(): Promise<KnowledgeCollectionsRespons
   return apiFetch<KnowledgeCollectionsResponse>('/api/knowledge/collections')
 }
 
+// ─── Knowledge Hub Stats ───────────────────────────────────
+
+export interface KnowledgeStatsTask {
+  id: string
+  title: string
+  task_type: string
+  status: string
+  progress: number
+  created_at: string | null
+}
+
+export interface KnowledgeStatsUpdate {
+  id: string
+  market: string
+  symbol: string
+  company: string | null
+  status: string
+  chunk_count: number
+  updated_at: string | null
+}
+
+export interface KnowledgeStats {
+  documents: number
+  chunks: number
+  embedded: number
+  entities: number
+  facts: number
+  task_queue: {
+    pending: number
+    running: number
+    done: number
+    failed: number
+  }
+  recent_tasks: KnowledgeStatsTask[]
+  recent_updates: KnowledgeStatsUpdate[]
+  quality: {
+    avg_chunk_length: number | null
+    embedding_coverage: number | null
+    entity_confidence: number | null
+  }
+  collections: KnowledgeCollection[]
+}
+
+export function fetchKnowledgeStats(): Promise<KnowledgeStats> {
+  return apiFetch<KnowledgeStats>('/api/knowledge/stats')
+}
+
 // ─── Entity ───────────────────────────────────────────────
 
 export interface KnowledgeEntity {
@@ -136,6 +183,53 @@ export function searchKnowledge(params: {
   })
 }
 
+// ─── GraphRAG Search ────────────────────────────────────
+
+export interface GraphRAGEvidence {
+  kind: string
+  name?: string
+  entity_type?: string
+  description?: string
+  subject?: string
+  predicate?: string
+  value?: string
+  time_start?: string
+  source_entity?: string
+  target_entity?: string
+  relation_type?: string
+  depth?: number
+}
+
+export interface GraphRAGKeyFinding {
+  finding: string
+  cited_evidence: string[]
+}
+
+export interface GraphRAGResult {
+  query: string
+  fusion: {
+    summary: string
+    key_findings: GraphRAGKeyFinding[]
+  }
+  entity_ids_used: string[]
+  evidence: {
+    graph: GraphRAGEvidence[]
+    vector: GraphRAGEvidence[]
+  }
+  degraded: boolean
+}
+
+export function graphragSearch(params: {
+  query: string
+  entity_name?: string
+  limit?: number
+}): Promise<GraphRAGResult> {
+  return apiFetch<GraphRAGResult>('/api/knowledge/search/rag', {
+    method: 'POST',
+    body: JSON.stringify(params),
+  })
+}
+
 // ─── Ingest ─────────────────────────────────────────────
 
 export interface IngestResponse {
@@ -143,6 +237,7 @@ export interface IngestResponse {
   message: string
   file_count: number
   collection: string
+  task_id?: string
 }
 
 export function triggerIngest(
@@ -152,6 +247,41 @@ export function triggerIngest(
   return apiFetch<IngestResponse>('/api/knowledge/ingest', {
     method: 'POST',
     body: JSON.stringify({ path, collection: collection || 'documents_cn' }),
+  })
+}
+
+// ─── Knowledge Extraction ───────────────────────────────
+
+export interface ExtractionResponse {
+  task_id: string
+  status: string
+  document_count: number
+}
+
+export function triggerExtraction(documentIds: string[], rawTexts?: Record<string, string>): Promise<ExtractionResponse> {
+  return apiFetch<ExtractionResponse>('/api/knowledge/extract', {
+    method: 'POST',
+    body: JSON.stringify({ document_ids: documentIds, raw_texts: rawTexts || {} }),
+  })
+}
+
+// ─── MinIO Ingest ───────────────────────────────────────
+
+export interface MinioIngestResponse {
+  status: string
+  registered: Record<string, unknown>
+  pipeline_task_id: string | null
+}
+
+export function triggerIngestMinio(params: {
+  bucket?: string
+  prefix?: string
+  market?: string
+  trigger?: boolean
+}): Promise<MinioIngestResponse> {
+  return apiFetch<MinioIngestResponse>('/api/knowledge/ingest-minio', {
+    method: 'POST',
+    body: JSON.stringify(params),
   })
 }
 

@@ -83,6 +83,12 @@ async def run_batch_embed(
         )
         await task_queue.start_task(task_id)
 
+    if task_id:
+        await task_queue.log_task(
+            task_id, "info",
+            f"开始批量向量化 {collection} | {total} chunks", "embedding",
+        )
+
     embedded = 0
     batches = 0
     import time
@@ -175,6 +181,12 @@ async def run_batch_embed(
                     stage="embedding",
                     current_name=f"batch {batches}",
                 )
+                if task_id:
+                    await task_queue.log_task(
+                        task_id, "info",
+                        f"进度 {embedded}/{total} ({embedded / total * 100:.1f}%)",
+                        "embedding",
+                    )
                 elapsed = time.time() - start_time
                 rate = embedded / elapsed if elapsed > 0 else 0
                 logger.info(
@@ -191,6 +203,13 @@ async def run_batch_embed(
     elapsed = time.time() - start_time
     if own_task:
         await task_queue.complete_task(task_id)
+
+    if task_id:
+        await task_queue.log_task(
+            task_id, "info",
+            f"批量向量化完成 | embedded={embedded} | batches={batches} | {elapsed:.1f}s",
+            "embedding",
+        )
 
     # 更新文档状态：所有 chunks 已嵌入的文档标记为 indexed
     await postgres_tool.execute(

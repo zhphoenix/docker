@@ -170,10 +170,11 @@ const CATEGORY_LABELS: Record<string, string> = {
 }
 
 export default function MonitorPage() {
+  // 只读消费：健康状态由全局 HealthProvider 统一轮询（共享缓存键 ['health']），
+  // 此处仅「反映」最新状态，不再自行发起定时请求；手动刷新时对共享 key 触发 refetch 即可向所有消费方广播。
   const healthQuery = useQuery({
     queryKey: ['health'],
     queryFn: fetchHealth,
-    retry: 1,
   })
 
   const services = healthQuery.data?.services ?? {}

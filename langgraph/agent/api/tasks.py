@@ -31,7 +31,7 @@ async def list_tasks(status: str | None = None, task_type: str | None = None, li
     """列出任务"""
     from tools.postgres import postgres_tool
 
-    query = "SELECT id, task_type, title, status, progress, stage, current_item, total_items, retry_count, created_at, started_at, finished_at, error_message FROM tasks WHERE 1=1"
+    query = "SELECT id, task_type, title, status, progress, stage, current_name, current_item, total_items, retry_count, params, created_at, started_at, finished_at, error_message FROM tasks WHERE 1=1"
     params = []
     idx = 1
 
@@ -120,6 +120,37 @@ async def reindex_document(req: ReindexRequest):
     return {"status": "queued", "task_id": task_id}
 
 
+@router.get("/workers")
+async def worker_status():
+    """获取 Worker 运行状态（in-process 内存态）"""
+    from scheduler.worker import get_worker_status
+    return get_worker_status()
+
+
+@router.get("/schedule")
+async def schedule_list():
+    """获取 APScheduler 已注册任务列表（只读）"""
+    from scheduler import get_scheduler_jobs
+    return {"jobs": get_scheduler_jobs()}
+
+
+@router.get("/stats")
+async def task_stats():
+    """按状态分组的任务统计（pending/running/done/failed）"""
+    from tools.postgres import postgres_tool
+    rows = await postgres_tool.query(
+        "SELECT status, COUNT(*) AS cnt FROM tasks GROUP BY status"
+    )
+    counts = {r["status"]: r["cnt"] for r in rows}
+    return {
+        "total": sum(counts.values()),
+        "pending": counts.get("pending", 0),
+        "running": counts.get("running", 0),
+        "done": counts.get("done", 0),
+        "failed": counts.get("failed", 0),
+    }
+
+
 @router.get("/{task_id}")
 async def get_task(task_id: str):
     """获取任务详情"""
@@ -134,6 +165,54 @@ async def get_task(task_id: str):
     if task.get("finished_at"):
         task["finished_at"] = task["finished_at"].isoformat()
     return task
+
+
+@router.get("/{task_id}/logs")
+async def get_task_logs(task_id: str, limit: int = 200):
+    """获取任务日志（按 created_at 升序）"""
+    task = await task_queue.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    logs = await task_queue.get_task_logs(task_id, limit=limit)
+    return {"logs": logs, "total": len(logs)}
+
+
+@router.post("/{task_id}/cancel")
+async def cancel_task(task_id: str):
+    """取消运行中的任务（batch_embed 支持优雅中断，其余不支持的返回 400）"""
+    task = await task_queue.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    if task["status"] not in ("pending", "running"):
+        raise HTTPException(status_code=400, detail="Task is not active")
+
+    if task["task_type"] == "batch_embed":
+        from services.batch_embed import cancel_batch_embed
+        cancel_batch_embed()
+        return {"status": "ok", "message": "Cancel requested for batch_embed"}
+
+    raise HTTPException(status_code=400, detail="Task type not cancellable (use Cancel via batch_embed)")
+
+
+@router.delete("/{task_id}")
+async def delete_task(task_id: str):
+    """删除任务记录（仅 done/failed 可删）"""
+    success = await task_queue.delete_task(task_id)
+    if not success:
+        raise HTTPException(
+            status_code=400,
+            detail="Task not found or only done/failed tasks can be deleted",
+        )
+    return {"status": "ok", "message": "Task deleted"}
+
+
+@router.post("/{task_id}/clone")
+async def clone_task(task_id: str):
+    """复制任务参数创建新任务"""
+    new_id = await task_queue.clone_task(task_id)
+    if not new_id:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return {"status": "ok", "task_id": new_id}
 
 
 @router.post("/{task_id}/retry")

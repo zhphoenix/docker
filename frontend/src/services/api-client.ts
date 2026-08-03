@@ -20,7 +20,10 @@ export async function apiFetch<T>(
 
   const response = await fetch(url, {
     headers: {
-      'Content-Type': 'application/json',
+      // FormData 由浏览器自动设置 multipart boundary，不能手动指定 Content-Type
+      ...(options?.body instanceof FormData
+        ? {}
+        : { 'Content-Type': 'application/json' }),
       ...options?.headers,
     },
     ...options,

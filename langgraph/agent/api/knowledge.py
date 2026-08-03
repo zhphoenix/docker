@@ -47,19 +47,23 @@ async def list_collections():
         raise HTTPException(status_code=500, detail=str(e))
 
     # Qdrant points 统计（独立降级，不影响主数据）
+    # 并行查询避免 collection 数量多时串行等待拖慢接口
     qdrant_stats: dict[str, int] = {}
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            for r in rows:
-                name = r["name"]
-                try:
+        async def _query_points(name: str) -> tuple[str, int | None]:
+            try:
+                async with httpx.AsyncClient(timeout=2.0) as client:
                     resp = await client.get(
                         f"http://{settings.QDRANT_HOST}:{settings.QDRANT_PORT}/collections/{name}"
                     )
                     if resp.status_code == 200:
-                        qdrant_stats[name] = resp.json().get("result", {}).get("points_count", 0)
-                except Exception:
-                    pass  # 单个 collection 查询失败不影响其他
+                        return name, resp.json().get("result", {}).get("points_count", 0)
+            except Exception:
+                pass  # 单个 collection 查询失败不影响其他
+            return name, None
+
+        results = await asyncio.gather(*[_query_points(r["name"]) for r in rows])
+        qdrant_stats = {name: cnt for name, cnt in results if cnt is not None}
     except Exception:
         logger.warning("Qdrant unreachable, qdrant_points will be null")
 
@@ -78,6 +82,146 @@ async def list_collections():
         })
 
     return {"collections": collections, "total": len(collections)}
+
+
+@router.get("/stats")
+async def knowledge_stats():
+    """Knowledge Hub 聚合统计 - 一次返回 Dashboard 全部数据
+
+    各子查询独立 try/catch，单故障不影响整体返回（对应字段降级为 0/空）。
+    """
+    stats: dict = {}
+
+    # documents / chunks / embedded
+    try:
+        rows = await postgres_tool.query(
+            "SELECT "
+            "(SELECT COUNT(*) FROM documents) AS documents, "
+            "(SELECT COUNT(*) FROM chunks) AS chunks, "
+            "(SELECT COUNT(*) FROM chunks WHERE qdrant_point_id IS NOT NULL) AS embedded"
+        )
+        r = rows[0]
+        stats["documents"] = r["documents"]
+        stats["chunks"] = r["chunks"]
+        stats["embedded"] = r["embedded"]
+    except Exception:
+        logger.warning("stats: documents/chunks query failed, degraded")
+        stats["documents"] = stats["chunks"] = stats["embedded"] = 0
+
+    # entities / facts（显式 schema 前缀，与现有代码一致）
+    try:
+        rows = await postgres_tool.query(
+            "SELECT "
+            "(SELECT COUNT(*) FROM core.entities WHERE status='active') AS entities, "
+            "(SELECT COUNT(*) FROM core.facts) AS facts"
+        )
+        r = rows[0]
+        stats["entities"] = r["entities"]
+        stats["facts"] = r["facts"]
+    except Exception:
+        logger.warning("stats: entities/facts query failed, degraded")
+        stats["entities"] = stats["facts"] = 0
+
+    # 任务队列（按状态分组）
+    try:
+        rows = await postgres_tool.query(
+            "SELECT status, COUNT(*) AS cnt FROM tasks GROUP BY status"
+        )
+        counts = {r["status"]: r["cnt"] for r in rows}
+        stats["task_queue"] = {
+            "pending": counts.get("pending", 0),
+            "running": counts.get("running", 0),
+            "done": counts.get("done", 0),
+            "failed": counts.get("failed", 0),
+        }
+    except Exception:
+        logger.warning("stats: task_queue query failed, degraded")
+        stats["task_queue"] = {"pending": 0, "running": 0, "done": 0, "failed": 0}
+
+    # 最近任务
+    try:
+        rows = await postgres_tool.query(
+            "SELECT id, title, task_type, status, progress, created_at "
+            "FROM tasks ORDER BY created_at DESC LIMIT 8"
+        )
+        stats["recent_tasks"] = [
+            {
+                "id": str(r["id"]),
+                "title": r["title"],
+                "task_type": r["task_type"],
+                "status": r["status"],
+                "progress": float(r["progress"] or 0),
+                "created_at": str(r["created_at"]) if r.get("created_at") else None,
+            }
+            for r in rows
+        ]
+    except Exception:
+        logger.warning("stats: recent_tasks query failed, degraded")
+        stats["recent_tasks"] = []
+
+    # 最近更新文档
+    try:
+        rows = await postgres_tool.query(
+            "SELECT id, market, symbol, company, status, chunk_count, updated_at "
+            "FROM documents ORDER BY updated_at DESC LIMIT 8"
+        )
+        stats["recent_updates"] = [
+            {
+                "id": str(r["id"]),
+                "market": r["market"],
+                "symbol": r["symbol"],
+                "company": r.get("company"),
+                "status": r["status"],
+                "chunk_count": r["chunk_count"],
+                "updated_at": str(r["updated_at"]) if r.get("updated_at") else None,
+            }
+            for r in rows
+        ]
+    except Exception:
+        logger.warning("stats: recent_updates query failed, degraded")
+        stats["recent_updates"] = []
+
+    # 知识质量：chunk 平均长度 / embedding 覆盖率 / 实体置信度
+    try:
+        rows = await postgres_tool.query(
+            "SELECT AVG(token_count) AS avg_token_count, "
+            "COUNT(qdrant_point_id)::float / NULLIF(COUNT(*), 0) AS embed_coverage "
+            "FROM chunks"
+        )
+        r = rows[0]
+        avg_token = r["avg_token_count"]
+        coverage = r["embed_coverage"]
+        stats["quality"] = {
+            "avg_chunk_length": round(float(avg_token), 1) if avg_token is not None else None,
+            "embedding_coverage": round(float(coverage) * 100, 1) if coverage is not None else None,
+            "entity_confidence": None,
+        }
+        # 实体置信度（独立降级，失败不影响其他质量指标）
+        try:
+            erows = await postgres_tool.query(
+                "SELECT AVG(confidence) AS avg_confidence FROM core.entities WHERE status='active'"
+            )
+            ec = erows[0]["avg_confidence"]
+            stats["quality"]["entity_confidence"] = round(float(ec) * 100, 1) if ec is not None else None
+        except Exception:
+            logger.warning("stats: entity_confidence query failed, degraded")
+    except Exception:
+        logger.warning("stats: quality query failed, degraded")
+        stats["quality"] = {
+            "avg_chunk_length": None,
+            "embedding_coverage": None,
+            "entity_confidence": None,
+        }
+
+    # Collections 概览（复用 list_collections 逻辑）
+    try:
+        coll_data = await list_collections()
+        stats["collections"] = coll_data["collections"]
+    except Exception:
+        logger.warning("stats: collections query failed, degraded")
+        stats["collections"] = []
+
+    return stats
 
 
 # ============================================================
@@ -577,13 +721,15 @@ class IngestRequest(BaseModel):
     collection: str = Field("documents_cn", description="目标 Qdrant collection")
 
 
-async def _run_ingest(path: str, collection: str) -> None:
-    """后台执行 MD 文件导入处理管线"""
+async def _run_ingest(path: str, collection: str, task_id: str = "") -> None:
+    """后台执行 MD 文件导入处理管线（task_id 非空时同步更新任务队列进度）"""
     from tools.chunker import chunk_markdown
     from tools.embedding import embedding_tool
     from tools.qdrant import qdrant_tool
 
     logger.info("[Ingest] Start | path=%s | collection=%s", path, collection)
+    if task_id:
+        await task_queue.start_task(task_id)
     try:
         target = Path(path)
         md_files: list[Path] = []
@@ -594,10 +740,14 @@ async def _run_ingest(path: str, collection: str) -> None:
             md_files = sorted(target.rglob("*.md"))
         else:
             logger.warning("[Ingest] Invalid path: %s", path)
+            if task_id:
+                await task_queue.fail_task(task_id, f"Invalid path: {path}")
             return
 
         if not md_files:
             logger.info("[Ingest] No .md files found at %s", path)
+            if task_id:
+                await task_queue.fail_task(task_id, f"No .md files found at {path}")
             return
 
         total_files = 0
@@ -683,17 +833,35 @@ async def _run_ingest(path: str, collection: str) -> None:
                 logger.info(
                     "[Ingest] Processed | %s | chunks=%d", md_file.name, len(chunks)
                 )
+                if task_id:
+                    await task_queue.update_progress(
+                        task_id,
+                        current_item=total_files,
+                        stage="embedding",
+                        current_name=md_file.name,
+                    )
 
             except Exception as e:
                 logger.error("[Ingest] File failed | %s | %s", md_file, e)
+                if task_id:
+                    await task_queue.update_progress(
+                        task_id,
+                        current_item=total_files,
+                        stage="failed_file",
+                        current_name=md_file.name,
+                    )
 
         logger.info(
             "[Ingest] Complete | files=%d | chunks=%d | collection=%s",
             total_files, total_chunks, collection,
         )
+        if task_id:
+            await task_queue.complete_task(task_id)
 
     except Exception as e:
         logger.error("[Ingest] Fatal error: %s", e)
+        if task_id:
+            await task_queue.fail_task(task_id, str(e))
 
 
 @router.post("/ingest")
@@ -718,11 +886,20 @@ async def trigger_ingest(req: IngestRequest):
     if file_count == 0:
         raise HTTPException(status_code=400, detail=f"目录下无 .md 文件: {req.path}")
 
-    asyncio.create_task(_run_ingest(req.path, req.collection))
+    # 创建任务队列记录，供「处理详情」页展示进度
+    task_id = await task_queue.create_task(
+        task_type="doc_pipeline",
+        title=f"文档导入 {req.path} ({file_count} files)",
+        params={"path": req.path, "collection": req.collection},
+        total_items=file_count,
+        created_by="api",
+    )
+    asyncio.create_task(_run_ingest(req.path, req.collection, task_id))
     count_label = f"{file_count}+" if file_count >= 9999 else str(file_count)
     return {
         "status": "accepted",
         "message": f"导入任务已启动（{count_label} 个文件 → {req.collection}）",
         "file_count": file_count,
         "collection": req.collection,
+        "task_id": task_id,
     }
