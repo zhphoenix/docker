@@ -1,0 +1,32 @@
+# Workflows 注册表（声明式定义）
+# graphs/__init__.py 依据本文件按需编译并缓存 Graph
+#
+# builder: 模块内可调用的工厂函数名。
+#   - build_* 函数每次调用都会重新编译，缓存由 graphs/__init__.py 负责
+#   - news 直接复用 news_analysis_graph 模块内自带缓存的 get_news_graph
+
+workflows:
+  research:
+    module: graphs.research_graph
+    builder: build_research_graph
+    description: "投资研究主流程: Planner → QueryRewrite → Retrieve → Rerank → Reason → Reflect → Finish"
+  chat:
+    module: graphs.research_graph
+    builder: build_chat_graph
+    description: "通用对话简化流程: Retrieve → Rerank → Reason → Finish"
+  kb:
+    module: graphs.research_graph
+    builder: build_kb_graph
+    description: "知识库流程: Retrieve → Rerank → Reason → Finish"
+  news:
+    module: graphs.news_analysis_graph
+    builder: get_news_graph
+    description: "新闻分析流程: Cleaner → Dedup → EmbeddingDedup → Classifier → [Entity || Event] → Impact → Publisher"
+  knowledge:
+    module: graphs.knowledge_graph
+    builder: build_knowledge_organization_graph
+    description: "知识整理流程: Parser → Entity → [Relation || Fact] → Validator → Merger"
+  document:
+    module: graphs.document_graph
+    builder: build_document_graph
+    description: "文档处理流程: 委托 pipelines/document_pipeline 执行解析 → 分片 → 向量化 → 入库"

@@ -9,6 +9,8 @@ import yaml
 logger = logging.getLogger(__name__)
 
 POLICIES_FILE = Path(__file__).parent / "policies.yaml"
+AGENTS_FILE = Path(__file__).parent / "agents.yaml"
+WORKFLOWS_FILE = Path(__file__).parent / "workflows.yaml"
 
 _policies: dict[str, Any] = {}
 _last_mtime: float = 0
@@ -71,3 +73,30 @@ def get_retry_config() -> dict:
         "backoff_multiplier": 2,
         "initial_delay_seconds": 1,
     })
+
+
+def _load_yaml_file(path: Path) -> dict[str, Any]:
+    """加载一个 YAML 配置文件（文件缺失时返回空 dict）"""
+    if not path.exists():
+        logger.warning("%s not found, returning empty config", path.name)
+        return {}
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f) or {}
+
+
+def get_agents_registry() -> dict[str, dict]:
+    """获取 Agent 注册表（来自 agents.yaml）
+
+    Returns:
+        {agent_name: {"module": str, "class": str, "description": str}, ...}
+    """
+    return _load_yaml_file(AGENTS_FILE).get("agents", {})
+
+
+def get_workflows_registry() -> dict[str, dict]:
+    """获取 Workflows 注册表（来自 workflows.yaml）
+
+    Returns:
+        {workflow_name: {"module": str, "builder": str, "description": str}, ...}
+    """
+    return _load_yaml_file(WORKFLOWS_FILE).get("workflows", {})

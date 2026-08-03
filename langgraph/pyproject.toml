@@ -1,0 +1,18 @@
+# AI Platform Agent Service
+#
+# 注意：本项目刻意不定义 [build-system] / packages，
+# 不作为可安装包安装（避免包名与 PyPI 的 langgraph 库冲突）。
+# 运行时以本目录为导入根（cwd 根导入模式），依赖管理见 requirements.txt。
+
+[project]
+name = "ai-platform-agent"
+version = "1.0.0"
+description = "AI Platform Agent Service - LangGraph workflows, Agent tools, FastAPI gateway"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"

@@ -1,0 +1,21 @@
+# Agent 注册表（声明式定义）
+# services/router.py 依据本文件动态导入并实例化 Agent
+# 路由规则与默认 Agent 仍由 policies.yaml 的 routing 段管理
+
+agents:
+  chat:
+    module: agents.chat_agent
+    class: ChatAgent
+    description: "通用对话 Agent（简化 RAG 流程）"
+  research:
+    module: agents.research_agent
+    class: ResearchAgent
+    description: "深度研究 Agent（完整 Research Workflow）"
+  kb:
+    module: agents.kb_agent
+    class: KBAgent
+    description: "知识库 Agent（知识检索与笔记）"
+  investment:
+    module: agents.investment_agent
+    class: InvestmentAgent
+    description: "价值投资分析 Agent（巴菲特/芒格/费雪/林奇框架）"
