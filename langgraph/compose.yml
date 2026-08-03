@@ -29,7 +29,7 @@ services:
       PG_HOST: localhost
       REPORT_SOURCE_DIR: /data/analysis_reports
     volumes:
-      - ./agent:/app
+      - .:/app
       - ../registry:/registry:ro
       - /mnt/d/minio/data:/data/minio:ro
       - /mnt/e/ai-platform/data/reports:/data/analysis_reports:ro

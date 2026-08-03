@@ -6,8 +6,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 复制应用代码
-COPY agent/ .
+# 复制应用代码（排除项见 .dockerignore）
+COPY . .
 
 # 暴露端口
 EXPOSE 8100
