@@ -214,7 +214,7 @@ async def news_publisher(state: dict) -> dict:
 async def _trigger_knowledge_agent(entities: list[dict], relations: list[dict]) -> None:
     """触发 Knowledge Agent 合并高置信度实体和关系到 core schema
 
-    调用 knowledge_agent.storage.postgres 的 bulk_upsert_entities + bulk_insert_relations，
+    调用 storage.knowledge.postgres 的 bulk_upsert_entities + bulk_insert_relations，
     将新闻实体合并到 core.entities（知识图谱）。
     """
     from storage.knowledge.postgres import knowledge_storage
