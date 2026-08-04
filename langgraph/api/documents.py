@@ -1,11 +1,15 @@
 """Documents API - 文档列表、统计、详情、分块、实体与生命周期管理"""
 
+import asyncio
 import logging
 import re
 import uuid
+from io import BytesIO
 from pathlib import Path, PurePosixPath
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 
 from api.path_utils import normalize_path
 from pipelines.document_pipeline import doc_pipeline
@@ -336,6 +340,127 @@ async def _purge_document_resources(doc: dict) -> dict:
                 logger.warning("MinIO cleanup failed | %s/%s | %s", bucket, k, e)
 
     return cleanup
+
+
+# ─── 管理端点：下载 / 批量清理 / 失败重试 ────────────────
+
+
+class CleanupRequest(BaseModel):
+    status: str | None = None
+    orphan: bool = False
+    dry_run: bool = True
+
+
+class RetryFailedRequest(BaseModel):
+    statuses: list[str] = ["error", "parse_failed", "waiting_parser"]
+    trigger: bool = True
+
+
+@router.get("/{document_id}/file")
+async def download_document_file(document_id: str, format: str = "pdf"):
+    """下载文档原始文件（pdf）或解析产物（md）"""
+    if format not in ("pdf", "md"):
+        raise HTTPException(status_code=400, detail="format 仅支持 pdf 或 md")
+    doc = await _get_document_or_404(document_id)
+    key = doc.get("object_key") or ""
+    if not key:
+        raise HTTPException(status_code=404, detail="文档无 object_key")
+    if format == "md":
+        key = key.rsplit(".", 1)[0] + ".md"
+    bucket = doc.get("bucket") or DEFAULT_BUCKET
+
+    if not await minio_tool.exists(bucket, key):
+        raise HTTPException(status_code=404, detail=f"MinIO 对象不存在: {key}")
+    data = await minio_tool.download(bucket, key)
+
+    media_type = "application/pdf" if format == "pdf" else "text/markdown; charset=utf-8"
+    filename = f"{doc.get('symbol')}_{doc.get('year')}.{format}"
+    return StreamingResponse(
+        BytesIO(data),
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.post("/cleanup")
+async def cleanup_documents(req: CleanupRequest):
+    """按状态或 MinIO 孤儿条件批量清理文档（dry_run=True 默认仅预览）"""
+    if not req.status and not req.orphan:
+        raise HTTPException(status_code=400, detail="需指定 status 或 orphan=true")
+
+    select_cols = (
+        "SELECT id, market, symbol, company, year, document_type, status, "
+        "bucket, object_key FROM documents"
+    )
+    if req.status:
+        rows = await postgres_tool.query(
+            f"{select_cols} WHERE status = $1 ORDER BY created_at ASC", req.status
+        )
+    else:
+        rows = await postgres_tool.query(f"{select_cols} ORDER BY created_at ASC")
+        # 孤儿过滤：MinIO 对象不存在（并发限流 16）
+        sem = asyncio.Semaphore(16)
+
+        async def _is_orphan(r: dict) -> bool:
+            key = r.get("object_key") or ""
+            if not key:
+                return True
+            async with sem:
+                return not await minio_tool.exists(
+                    r.get("bucket") or DEFAULT_BUCKET, key
+                )
+
+        flags = await asyncio.gather(*[_is_orphan(r) for r in rows])
+        rows = [r for r, f in zip(rows, flags) if f]
+
+    matched = [
+        {"id": str(r["id"]), "symbol": r["symbol"], "year": r["year"], "status": r["status"]}
+        for r in rows
+    ]
+
+    if req.dry_run:
+        return {"dry_run": True, "matched": len(matched), "documents": matched}
+
+    deleted = 0
+    for r in rows:
+        await _purge_document_resources(r)
+        doc_id = str(r["id"])
+        try:
+            await postgres_tool.execute(
+                "DELETE FROM core.facts WHERE source_document = $1", doc_id
+            )
+        except Exception as e:
+            logger.warning("cleanup: failed to delete facts %s: %s", doc_id[:8], e)
+        await postgres_tool.execute("DELETE FROM documents WHERE id = $1", doc_id)
+        deleted += 1
+    logger.info("Bulk cleanup done | matched=%d deleted=%d", len(matched), deleted)
+    return {"dry_run": False, "matched": len(matched), "deleted": deleted}
+
+
+@router.post("/retry-failed")
+async def retry_failed_documents(req: RetryFailedRequest):
+    """批量重置失败态文档为 pending，可选入队触发处理"""
+    if not req.statuses:
+        raise HTTPException(status_code=400, detail="statuses 不能为空")
+    rows = await postgres_tool.query(
+        "UPDATE documents SET status = 'pending', metadata = metadata - 'error', "
+        "updated_at = NOW() WHERE status = ANY($1) RETURNING id",
+        req.statuses,
+    )
+    reset = len(rows)
+
+    task_id = None
+    if req.trigger and reset > 0:
+        from runtime.queue import task_queue
+        task_id = await task_queue.create_task(
+            task_type="doc_pipeline",
+            title=f"重试失败文档 ({reset} docs)",
+            params={"limit": reset},
+            total_items=reset,
+            created_by="api",
+        )
+    logger.info("Retry-failed reset | %d docs | task=%s", reset, task_id)
+    return {"status": "ok", "reset": reset, "pipeline_task_id": task_id}
 
 
 @router.post("/upload")
