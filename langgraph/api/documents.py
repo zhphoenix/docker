@@ -12,7 +12,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from api.path_utils import normalize_path
-from pipelines.document_pipeline import doc_pipeline
+from pipelines.document_pipeline import FAILED_STATUSES, doc_pipeline
 from tools.minio import minio_tool
 from tools.postgres import postgres_tool
 from tools.qdrant import qdrant_tool
@@ -93,8 +93,13 @@ async def list_documents(
         cond = f" AND symbol ILIKE ${idx}"
         query += cond
         count_query += cond
-        params.append(f"%{symbol}%")
+        # 转义通配符，避免用户输入 %/_ 干扰匹配
+        escaped = symbol.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        params.append(f"%{escaped}%")
         idx += 1
+
+    # 分页参数 clamp，防止超大 page_size 拖垮 DB
+    page_size = min(max(page_size, 1), 200)
 
     # 总数
     try:
@@ -162,8 +167,8 @@ async def get_document(document_id: str):
         )
         chunks = rows[0]["total"] if rows else 0
         embedded = rows[0]["embedded"] if rows else 0
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Failed to count chunks for doc %s: %s", doc_id[:8], e)
 
     # 知识图谱统计（通过 core.facts.source_document 关联）
     entities = 0
@@ -176,8 +181,8 @@ async def get_document(document_id: str):
         )
         entities = erows[0]["entities"] if erows else 0
         facts = erows[0]["facts"] if erows else 0
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Failed to count facts for doc %s: %s", doc_id[:8], e)
 
     return {
         "document": _doc_row_to_dict(doc),
@@ -513,13 +518,14 @@ async def upload_document(
         raise HTTPException(status_code=500, detail=f"文档注册失败: {e}")
 
     task_id = None
-    if trigger and result.get("added", 0) > 0:
+    if trigger and (result.get("added", 0) + result.get("reset", 0)) > 0:
         from runtime.queue import task_queue
+        n = result.get("added", 0) + result.get("reset", 0)
         task_id = await task_queue.create_task(
             task_type="doc_pipeline",
             title=f"文档处理 Pipeline (1 doc, {market}/{symbol}/{year})",
-            params={"limit": 1},
-            total_items=1,
+            params={"limit": n},
+            total_items=n,
             created_by="api",
         )
 
@@ -629,12 +635,12 @@ async def upload_folder_pdfs(
         year = parsed["year"]
         object_key = f"{market}/{symbol}/annual_report/{year}/report.pdf"
 
-        # 检查是否已存在
+        # 检查是否已存在（失败态不跳过，重上传覆盖后重置为 pending）
         try:
             existing = await postgres_tool.query(
-                "SELECT 1 FROM documents WHERE object_key = $1", object_key
+                "SELECT status FROM documents WHERE object_key = $1", object_key
             )
-            if existing:
+            if existing and existing[0]["status"] not in FAILED_STATUSES:
                 stats["skipped"] += 1
                 results.append({"file": pdf_file.name, "status": "skipped", "reason": "already_exists", "object_key": object_key})
                 continue
@@ -658,7 +664,7 @@ async def upload_folder_pdfs(
                 prefix=f"{market}/{symbol}/annual_report/{year}",
                 market=market,
             )
-            if reg_result.get("added", 0) > 0:
+            if reg_result.get("added", 0) > 0 or reg_result.get("reset", 0) > 0:
                 stats["added"] += 1
             else:
                 stats["skipped"] += 1

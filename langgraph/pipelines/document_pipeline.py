@@ -33,6 +33,9 @@ MARKET_COLLECTION = {
     "us": "documents_us",
 }
 
+# 失败态集合（重上传/重试时可重置为 pending）
+FAILED_STATUSES = ("error", "parse_failed", "waiting_parser")
+
 
 class DocumentPipeline:
     """文档处理 Pipeline"""
@@ -44,17 +47,23 @@ class DocumentPipeline:
     async def process_pending_documents(self, limit: int = 50) -> dict[str, int]:
         """处理所有 pending 状态的文档
 
+        使用单语句原子认领（UPDATE ... RETURNING）将 pending 置为 processing，
+        避免并发触发时重复处理同一批文档。
+
         Returns:
             {"processed": N, "failed": N, "skipped": N}
         """
         docs = await postgres_tool.query(
             """
-            SELECT id, market, symbol, company, year, document_type,
-                   bucket, object_key, language
-            FROM documents
-            WHERE status = 'pending'
-            ORDER BY created_at ASC
-            LIMIT $1
+            UPDATE documents SET status = 'processing'
+            WHERE id IN (
+                SELECT id FROM documents
+                WHERE status = 'pending'
+                ORDER BY created_at ASC
+                LIMIT $1
+            )
+            RETURNING id, market, symbol, company, year, document_type,
+                      bucket, object_key, language
             """,
             limit,
         )
@@ -358,10 +367,11 @@ class DocumentPipeline:
         """扫描 MinIO 桶，把年报对象注册为 pending documents（幂等）
 
         仅处理 /annual_report/{year}/report.{pdf|md} 形态的对象；
-        已存在（按 object_key 判重）或无法解析路径的对象跳过。
+        已存在（按 object_key 判重）或无法解析路径的对象跳过；
+        已存在但处于失败态的记录重置为 pending（计入 reset）。
 
         Returns:
-            {"added": N, "skipped": M, "found": K}
+            {"added": N, "skipped": M, "found": K, "reset": R}
         """
         object_keys = await minio_tool.list_objects(bucket, prefix)
         if market:
@@ -370,6 +380,7 @@ class DocumentPipeline:
         found = len(object_keys)
         added = 0
         skipped = 0
+        reset = 0
 
         for key in object_keys:
             m = self._ANNUAL_REPORT_RE.match(key)
@@ -386,12 +397,21 @@ class DocumentPipeline:
                 continue
             doc_type = "annual_report" if key.endswith(".pdf") else "markdown"
 
-            # 幂等：按 object_key 判重
+            # 幂等：按 object_key 判重；失败态重置为 pending
             exists = await postgres_tool.query(
-                "SELECT 1 FROM documents WHERE object_key = $1", key
+                "SELECT status FROM documents WHERE object_key = $1", key
             )
             if exists:
-                skipped += 1
+                if exists[0]["status"] in FAILED_STATUSES:
+                    await postgres_tool.execute(
+                        "UPDATE documents SET status = 'pending', "
+                        "metadata = metadata - 'error', updated_at = NOW() "
+                        "WHERE object_key = $1",
+                        key,
+                    )
+                    reset += 1
+                else:
+                    skipped += 1
                 continue
 
             doc_id = str(uuid.uuid4())
@@ -414,10 +434,10 @@ class DocumentPipeline:
             )
 
         logger.info(
-            "MinIO pending registration done | bucket=%s prefix=%r | found=%d added=%d skipped=%d",
-            bucket, prefix, found, added, skipped,
+            "MinIO pending registration done | bucket=%s prefix=%r | found=%d added=%d skipped=%d reset=%d",
+            bucket, prefix, found, added, skipped, reset,
         )
-        return {"added": added, "skipped": skipped, "found": found}
+        return {"added": added, "skipped": skipped, "found": found, "reset": reset}
 
 
 # 模块级单例
