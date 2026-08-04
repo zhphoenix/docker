@@ -5,6 +5,7 @@ import logging
 from io import BytesIO
 
 from minio import Minio
+from minio.error import S3Error
 
 from config.settings import settings
 
@@ -38,6 +39,27 @@ class MinIOTool:
             response.release_conn()
             return data
         return await asyncio.to_thread(_download)
+
+    async def delete(self, bucket: str, key: str) -> None:
+        """删除对象；对象不存在视为成功（幂等）"""
+        def _del():
+            try:
+                self.client.remove_object(bucket, key)
+            except S3Error as e:
+                if e.code != "NoSuchKey":
+                    raise
+        await asyncio.to_thread(_del)
+        logger.info("Deleted %s/%s", bucket, key)
+
+    async def exists(self, bucket: str, key: str) -> bool:
+        """检查对象是否存在"""
+        def _stat():
+            try:
+                self.client.stat_object(bucket, key)
+                return True
+            except Exception:
+                return False
+        return await asyncio.to_thread(_stat)
 
     async def list_objects(self, bucket: str, prefix: str) -> list[str]:
         """列出对象"""
