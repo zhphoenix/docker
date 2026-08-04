@@ -11,6 +11,7 @@ from api.path_utils import normalize_path
 from pipelines.document_pipeline import doc_pipeline
 from tools.minio import minio_tool
 from tools.postgres import postgres_tool
+from tools.qdrant import qdrant_tool
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/documents", tags=["documents"])
@@ -279,9 +280,12 @@ async def get_document_entities(document_id: str):
 
 @router.delete("/{document_id}")
 async def delete_document(document_id: str):
-    """删除文档（chunks 级联删除；关联 facts 一并清理）"""
+    """删除文档（同步清理 Qdrant 向量 + MinIO 对象；chunks 级联删除；关联 facts 一并清理）"""
     doc = await _get_document_or_404(document_id)
     doc_id = str(doc["id"])
+
+    # 先清理外部资源（Qdrant 向量 + MinIO 对象），失败仅 warning 不阻塞 PG 删除
+    cleanup = await _purge_document_resources(doc)
 
     # 删除关联的知识图谱 facts（evidence 级联删除）
     try:
@@ -294,7 +298,44 @@ async def delete_document(document_id: str):
     # 删除文档（chunks 通过 ON DELETE CASCADE 自动删除）
     await postgres_tool.execute("DELETE FROM documents WHERE id = $1", doc_id)
     logger.info("Document deleted | %s | %s/%s/%s", doc_id[:8], doc.get("market"), doc.get("symbol"), doc.get("year"))
-    return {"status": "ok", "deleted": doc_id}
+    return {"status": "ok", "deleted": doc_id, "cleanup": cleanup}
+
+
+async def _purge_document_resources(doc: dict) -> dict:
+    """清理文档的 Qdrant 向量 + MinIO 对象（失败仅 warning，不阻塞 PG 删除）
+
+    Returns:
+        {"qdrant_points": N, "minio_keys": [...]}
+    """
+    doc_id = str(doc["id"])
+    cleanup: dict = {"qdrant_points": 0, "minio_keys": []}
+
+    # 1. Qdrant 向量（按 collection 分组删）
+    try:
+        rows = await postgres_tool.query(
+            "SELECT qdrant_point_id, collection_name FROM chunks "
+            "WHERE document_id = $1 AND qdrant_point_id IS NOT NULL", doc_id
+        )
+        by_coll: dict[str, list[str]] = {}
+        for r in rows:
+            by_coll.setdefault(r["collection_name"], []).append(str(r["qdrant_point_id"]))
+        for coll, ids in by_coll.items():
+            cleanup["qdrant_points"] += await qdrant_tool.delete_points(coll, ids)
+    except Exception as e:
+        logger.warning("Qdrant cleanup failed | %s | %s", doc_id[:8], e)
+
+    # 2. MinIO 对象（PDF + 同基名 .md 解析产物）
+    bucket = doc.get("bucket") or DEFAULT_BUCKET
+    key = doc.get("object_key") or ""
+    if key:
+        for k in (key, key.rsplit(".", 1)[0] + ".md"):
+            try:
+                await minio_tool.delete(bucket, k)
+                cleanup["minio_keys"].append(k)
+            except Exception as e:
+                logger.warning("MinIO cleanup failed | %s/%s | %s", bucket, k, e)
+
+    return cleanup
 
 
 @router.post("/upload")

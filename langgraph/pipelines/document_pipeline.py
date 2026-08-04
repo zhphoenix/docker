@@ -322,7 +322,21 @@ class DocumentPipeline:
         return {r["status"]: r["cnt"] for r in rows}
 
     async def reindex_document(self, doc_id: str) -> bool:
-        """重新索引单个文档（清除旧 chunks + 重新处理）"""
+        """重新索引单个文档（清除旧 Qdrant 向量 + 旧 chunks + 重新处理）"""
+        # 先删 Qdrant 旧向量（按 collection 分组），避免重索引后新旧向量并存
+        try:
+            rows = await postgres_tool.query(
+                "SELECT qdrant_point_id, collection_name FROM chunks "
+                "WHERE document_id = $1 AND qdrant_point_id IS NOT NULL", doc_id
+            )
+            by_coll: dict[str, list[str]] = {}
+            for r in rows:
+                by_coll.setdefault(r["collection_name"], []).append(str(r["qdrant_point_id"]))
+            for coll, ids in by_coll.items():
+                await qdrant_tool.delete_points(coll, ids)
+        except Exception as e:
+            logger.warning("Reindex: Qdrant old points cleanup failed | %s | %s", doc_id[:8], e)
+
         # 删除旧 chunks
         await postgres_tool.execute(
             "DELETE FROM chunks WHERE document_id = $1", doc_id
