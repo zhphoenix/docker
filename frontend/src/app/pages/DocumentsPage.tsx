@@ -44,14 +44,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { WindowedDialog } from '@/components/ui/windowed-dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { EmptyState } from '@/components/common/EmptyState'
 import {
@@ -514,13 +507,56 @@ function ImportPanel() {
       <Feedback msg={msg} />
 
       {/* ── Upload PDF Dialog ── */}
-      <Dialog open={uploadOpen} onOpenChange={(o) => { if (!o) { setUploadOpen(false); setUpFolderResult(null); setUpFile(null); setUpFolderTaskId(null); setUpFolderPaused(false); } }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>上传年报 PDF</DialogTitle>
-            <DialogDescription>上传年报 PDF 到 MinIO 并注册为文档，可触发后续处理 Pipeline</DialogDescription>
-          </DialogHeader>
-          <Tabs value={upTab} onValueChange={(v) => setUpTab(v as 'single' | 'folder')}>
+      <WindowedDialog
+        open={uploadOpen}
+        onOpenChange={(o) => {
+          if (!o) {
+            setUploadOpen(false)
+            setUpFolderResult(null)
+            setUpFile(null)
+            setUpFolderTaskId(null)
+            setUpFolderPaused(false)
+          }
+        }}
+        title="上传年报 PDF"
+        description="上传年报 PDF 到 MinIO 并注册为文档，可触发后续处理 Pipeline"
+        defaultWidth={560}
+        defaultHeight={560}
+        footer={
+          <div className="flex justify-end">
+            {upTab === 'single' ? (
+              <Button
+                variant="default"
+                className="gap-1.5"
+                disabled={!upFile || !upSymbol.trim() || !upYear.trim() || uploadDocMutation.isPending}
+                onClick={() => uploadDocMutation.mutate()}
+              >
+                {uploadDocMutation.isPending ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Upload className="size-3.5" />
+                )}
+                {uploadDocMutation.isPending ? '上传中...' : '上传文件'}
+              </Button>
+            ) : (
+              <Button
+                variant="default"
+                className="gap-1.5"
+                disabled={!upFolderPath.trim() || uploadMutation.isPending || upTaskActive}
+                onClick={() => uploadMutation.mutate()}
+              >
+                {uploadMutation.isPending || upTaskActive ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Upload className="size-3.5" />
+                )}
+                {upTaskActive ? '上传中...' : uploadMutation.isPending ? '启动中...' : '扫描并上传'}
+              </Button>
+            )}
+          </div>
+        }
+      >
+        <Tabs value={upTab} onValueChange={(v) => setUpTab(v as 'single' | 'folder')}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="single">上传单个文件</TabsTrigger>
               <TabsTrigger value="folder">批量上传文件夹</TabsTrigger>
@@ -797,43 +833,11 @@ function ImportPanel() {
               </div>
             )}
             </TabsContent>
-          </Tabs>
-          <DialogFooter>
-            {upTab === 'single' ? (
-              <Button
-                variant="default"
-                className="gap-1.5"
-                disabled={!upFile || !upSymbol.trim() || !upYear.trim() || uploadDocMutation.isPending}
-                onClick={() => uploadDocMutation.mutate()}
-              >
-                {uploadDocMutation.isPending ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Upload className="size-3.5" />
-                )}
-                {uploadDocMutation.isPending ? '上传中...' : '上传文件'}
-              </Button>
-            ) : (
-              <Button
-                variant="default"
-                className="gap-1.5"
-                disabled={!upFolderPath.trim() || uploadMutation.isPending || upTaskActive}
-                onClick={() => uploadMutation.mutate()}
-              >
-                {uploadMutation.isPending || upTaskActive ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Upload className="size-3.5" />
-                )}
-                {upTaskActive ? '上传中...' : uploadMutation.isPending ? '启动中...' : '扫描并上传'}
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </Tabs>
+    </WindowedDialog>
 
       {/* ── Import MinIO Dialog ── */}
-      <Dialog
+      <WindowedDialog
         open={minioOpen}
         onOpenChange={(o) => {
           if (!o) {
@@ -842,13 +846,31 @@ function ImportPanel() {
             setMinioPaused(false)
           }
         }}
+        title="从 MinIO 导入"
+        description="扫描 MinIO 中已有对象并注册为 pending 文档"
+        defaultWidth={520}
+        defaultHeight={480}
+        footer={
+          <div className="flex justify-end">
+            <Button
+              variant="default"
+              className="gap-1.5"
+              disabled={minioMutation.isPending || minioTaskActive}
+              onClick={() => minioMutation.mutate()}
+            >
+              {minioTaskActive ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : minioMutation.isPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Database className="size-3.5" />
+              )}
+              {minioTaskActive ? '导入中...' : minioMutation.isPending ? '启动中...' : '开始导入'}
+            </Button>
+          </div>
+        }
       >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>从 MinIO 导入</DialogTitle>
-            <DialogDescription>扫描 MinIO 中已有对象并注册为 pending 文档</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
+        <div className="space-y-4">
             <div>
               <div className="mb-1 text-xs font-medium text-muted-foreground">Bucket</div>
               <Input value={minioBucket} onChange={(e) => setMinioBucket(e.target.value)} />
@@ -961,35 +983,41 @@ function ImportPanel() {
                 )}
               </div>
             )}
-          </div>
-          <DialogFooter>
+      </div>
+    </WindowedDialog>
+
+      {/* ── Sync Folder Dialog ── */}
+      <WindowedDialog
+        open={syncOpen}
+        onOpenChange={(o) => {
+          if (!o) {
+            setSyncOpen(false)
+            setSyncResult(null)
+          }
+        }}
+        title="同步目录"
+        description="浏览并选择服务器目录，将其中的 .md 文件批量导入知识库（内置去重）"
+        defaultWidth={560}
+        defaultHeight={560}
+        footer={
+          <div className="flex justify-end">
             <Button
               variant="default"
               className="gap-1.5"
-              disabled={minioMutation.isPending || minioTaskActive}
-              onClick={() => minioMutation.mutate()}
+              disabled={!syncPath.trim() || syncMutation.isPending}
+              onClick={() => syncMutation.mutate()}
             >
-              {minioTaskActive ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : minioMutation.isPending ? (
+              {syncMutation.isPending ? (
                 <Loader2 className="size-3.5 animate-spin" />
               ) : (
-                <Database className="size-3.5" />
+                <FolderSync className="size-3.5" />
               )}
-              {minioTaskActive ? '导入中...' : minioMutation.isPending ? '启动中...' : '开始导入'}
+              {syncMutation.isPending ? '同步中...' : '开始同步'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── Sync Folder Dialog ── */}
-      <Dialog open={syncOpen} onOpenChange={(o) => { if (!o) { setSyncOpen(false); setSyncResult(null); } }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>同步目录</DialogTitle>
-            <DialogDescription>浏览并选择服务器目录，将其中的 .md 文件批量导入知识库（内置去重）</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
+          </div>
+        }
+      >
+        <div className="space-y-3">
             {/* 路径输入 */}
             <div className="flex gap-2">
               <Input
@@ -1086,24 +1114,8 @@ function ImportPanel() {
                 </div>
               </div>
             )}
-          </div>
-          <DialogFooter>
-            <Button
-              variant="default"
-              className="gap-1.5"
-              disabled={!syncPath.trim() || syncMutation.isPending}
-              onClick={() => syncMutation.mutate()}
-            >
-              {syncMutation.isPending ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <FolderSync className="size-3.5" />
-              )}
-              {syncMutation.isPending ? '同步中...' : '开始同步'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </div>
+    </WindowedDialog>
     </div>
   )
 }
@@ -1260,17 +1272,14 @@ function DocumentDetailDialog({
   const entities = entitiesQuery.data?.entities ?? []
 
   return (
-    <Dialog open={documentId != null} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[85vh]">
-        <DialogHeader>
-          <DialogTitle className="text-base">
-            {doc ? `${doc.symbol} · ${doc.company ?? '—'} · ${doc.year}` : '文档详情'}
-          </DialogTitle>
-          <DialogDescription>
-            {doc ? `${doc.document_type} · ${doc.object_key ?? ''}` : '加载中...'}
-          </DialogDescription>
-        </DialogHeader>
-
+    <WindowedDialog
+      open={documentId != null}
+      onOpenChange={(o) => !o && onClose()}
+      title={doc ? `${doc.symbol} · ${doc.company ?? '—'} · ${doc.year}` : '文档详情'}
+      description={doc ? `${doc.document_type} · ${doc.object_key ?? ''}` : '加载中...'}
+      defaultWidth={860}
+      defaultHeight={640}
+    >
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList>
             <TabsTrigger value="overview" className="gap-1.5">
@@ -1477,9 +1486,8 @@ function DocumentDetailDialog({
               )}
             </ScrollArea>
           </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+      </Tabs>
+    </WindowedDialog>
   )
 }
 

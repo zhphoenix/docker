@@ -40,14 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { WindowedDialog } from '@/components/ui/windowed-dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { EmptyState } from '@/components/common/EmptyState'
 import {
@@ -232,13 +225,26 @@ function NewWorkflowDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>创建任务</DialogTitle>
-          <DialogDescription>选择任务类型并配置参数，任务将进入后台队列由 Worker 执行</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-2">
+    <WindowedDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="创建任务"
+      description="选择任务类型并配置参数，任务将进入后台队列由 Worker 执行"
+      defaultWidth={480}
+      defaultHeight={480}
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={active}>
+            取消
+          </Button>
+          <Button onClick={submit} disabled={active || !extractReady}>
+            {active && <Loader2 className="mr-2 size-4 animate-spin" />}
+            创建并入队
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-4 py-2">
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">任务类型</label>
             <Select value={type} onValueChange={(v) => setType(v as CreateType)}>
@@ -288,17 +294,7 @@ function NewWorkflowDialog({
             </div>
           )}
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={active}>
-            取消
-          </Button>
-          <Button onClick={submit} disabled={active || !extractReady}>
-            {active && <Loader2 className="mr-2 size-4 animate-spin" />}
-            创建并入队
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </WindowedDialog>
   )
 }
 
@@ -331,24 +327,25 @@ function TaskDetailDialog({
   const logs: TaskLog[] = logsQuery.data?.logs ?? []
 
   return (
-    <Dialog open={!!task} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle className="truncate pr-8">{detail?.title ?? '任务详情'}</DialogTitle>
-          <DialogDescription>
-            {detail && (
-              <span className="flex items-center gap-2">
-                <Badge variant={STATUS_META[detail.status as TaskStatus]?.variant ?? 'outline'}>
-                  {STATUS_META[detail.status as TaskStatus]?.label ?? detail.status}
-                </Badge>
-                <span className="text-muted-foreground">{detail.task_type}</span>
-                <span className="text-muted-foreground">来源 {TYPE_SOURCE[detail.task_type] ?? '—'}</span>
-              </span>
-            )}
-          </DialogDescription>
-        </DialogHeader>
-
-        <Tabs defaultValue="overview" className="w-full">
+    <WindowedDialog
+      open={!!task}
+      onOpenChange={onOpenChange}
+      title={detail?.title ?? '任务详情'}
+      description={
+        detail && (
+          <span className="flex items-center gap-2">
+            <Badge variant={STATUS_META[detail.status as TaskStatus]?.variant ?? 'outline'}>
+              {STATUS_META[detail.status as TaskStatus]?.label ?? detail.status}
+            </Badge>
+            <span className="text-muted-foreground">{detail.task_type}</span>
+            <span className="text-muted-foreground">来源 {TYPE_SOURCE[detail.task_type] ?? '—'}</span>
+          </span>
+        )
+      }
+      defaultWidth={720}
+      defaultHeight={560}
+    >
+      <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">总览</TabsTrigger>
             <TabsTrigger value="pipeline">流水线</TabsTrigger>
@@ -475,9 +472,8 @@ function TaskDetailDialog({
               <Skeleton className="h-24 w-full" />
             )}
           </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+      </Tabs>
+    </WindowedDialog>
   )
 }
 

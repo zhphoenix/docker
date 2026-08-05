@@ -25,12 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { WindowedDialog } from '@/components/ui/windowed-dialog'
 import { EmptyState } from '@/components/common/EmptyState'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 import { fetchResearch, fetchResearchDetail } from '@/services/research'
@@ -226,40 +221,41 @@ function ReportsPanel() {
       </Card>
 
       {/* Report Detail Dialog */}
-      <Dialog open={selectedId !== null} onOpenChange={(open) => !open && setSelectedId(null)}>
-        <DialogContent className="max-w-4xl max-h-[85vh]">
-          <DialogHeader>
-            <DialogTitle className="text-base">
-              {detailQuery.data
-                ? `${detailQuery.data.company}（${detailQuery.data.symbol}）大师分析报告`
-                : '分析报告'}
-            </DialogTitle>
-          </DialogHeader>
-          <ScrollArea className="max-h-[65vh] pr-4">
-            {detailQuery.isLoading ? (
-              <div className="space-y-3 py-4">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-5/6" />
-                <Skeleton className="h-4 w-4/6" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/6" />
-              </div>
-            ) : detailQuery.isError ? (
-              <EmptyState
-                title="加载报告失败"
-                description="无法获取报告内容，请稍后重试"
-                action={{ label: '重试', onClick: () => detailQuery.refetch() }}
-              />
-            ) : detailQuery.data ? (
-              <div className="prose prose-sm max-w-none dark:prose-invert text-foreground py-2">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {detailQuery.data.content}
-                </ReactMarkdown>
-              </div>
-            ) : null}
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
+      <WindowedDialog
+        open={selectedId !== null}
+        onOpenChange={(open) => !open && setSelectedId(null)}
+        title={
+          detailQuery.data
+            ? `${detailQuery.data.company}（${detailQuery.data.symbol}）大师分析报告`
+            : '分析报告'
+        }
+        defaultWidth={900}
+        defaultHeight={640}
+      >
+        <div className="space-y-3">
+          {detailQuery.isLoading ? (
+            <div className="space-y-3 py-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-4 w-4/6" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/6" />
+            </div>
+          ) : detailQuery.isError ? (
+            <EmptyState
+              title="加载报告失败"
+              description="无法获取报告内容，请稍后重试"
+              action={{ label: '重试', onClick: () => detailQuery.refetch() }}
+            />
+          ) : detailQuery.data ? (
+            <div className="prose prose-sm max-w-none dark:prose-invert text-foreground py-2">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {detailQuery.data.content}
+              </ReactMarkdown>
+            </div>
+          ) : null}
+        </div>
+      </WindowedDialog>
     </div>
   )
 }
@@ -565,11 +561,15 @@ function ResearchTasksPanel() {
       </Card>
 
       {/* Detail Dialog */}
-      <Dialog open={selectedId !== null} onOpenChange={(open) => !open && setSelectedId(null)}>
-        <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-[95vw] h-[85vh] flex flex-col p-0 gap-0">
-          <DialogHeader className="px-6 py-4 border-b shrink-0">
-            <DialogTitle className="text-base">研究详情</DialogTitle>
-          </DialogHeader>
+      <WindowedDialog
+        open={selectedId !== null}
+        onOpenChange={(open) => !open && setSelectedId(null)}
+        title="研究详情"
+        defaultWidth={1000}
+        defaultHeight={640}
+        contentScroll={false}
+        contentClassName="flex"
+      >
 
           {detailQuery.isLoading ? (
             <div className="flex-1 space-y-3 p-6">
@@ -646,8 +646,7 @@ function ResearchTasksPanel() {
               </ResizablePanel>
             </ResizablePanelGroup>
           ) : null}
-        </DialogContent>
-      </Dialog>
+      </WindowedDialog>
     </div>
   )
 }

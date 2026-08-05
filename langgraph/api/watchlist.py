@@ -67,6 +67,10 @@ class ConfigUpdate(BaseModel):
     webhook_url: Optional[str] = None
 
 
+class GroupCreate(BaseModel):
+    group_name: str = Field(..., min_length=1, max_length=64)
+
+
 # ── 自选股 CRUD ───────────────────────────────────────────
 @watchlist_router.get("")
 async def list_watchlist(
@@ -124,18 +128,91 @@ async def add_watchlist(item: WatchlistCreate):
     return _normalize_tags(row)[0]
 
 
+async def _ensure_group_table():
+    """确保分组表存在并归档 watchlist 中已出现的分组（幂等，可重复调用）"""
+    await postgres_tool.execute(
+        """
+        CREATE TABLE IF NOT EXISTS watchlist.watchlist_group (
+            id SERIAL PRIMARY KEY,
+            group_name TEXT NOT NULL UNIQUE,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+        """
+    )
+    await postgres_tool.execute(
+        """
+        INSERT INTO watchlist.watchlist_group (group_name)
+        SELECT DISTINCT group_name FROM watchlist.watchlist
+        WHERE group_name IS NOT NULL AND group_name != ''
+        ON CONFLICT (group_name) DO NOTHING
+        """
+    )
+
+
 @watchlist_router.get("/groups")
 async def list_groups():
-    """分组列表"""
+    """分组列表（含未分配任何股票的空分组，保证新建分组刷新后仍保留）"""
+    await _ensure_group_table()
     rows = await postgres_tool.query(
         """
-        SELECT group_name, COUNT(*) AS cnt
-        FROM watchlist.watchlist
-        WHERE group_name IS NOT NULL AND group_name != ''
-        GROUP BY group_name ORDER BY cnt DESC
+        SELECT g.group_name, COALESCE(w.cnt, 0) AS cnt
+        FROM watchlist.watchlist_group g
+        LEFT JOIN (
+            SELECT group_name, COUNT(*) AS cnt FROM watchlist.watchlist
+            WHERE group_name IS NOT NULL AND group_name != ''
+            GROUP BY group_name
+        ) w ON w.group_name = g.group_name
+        ORDER BY cnt DESC, g.group_name
         """
     )
     return {"items": rows}
+
+
+@watchlist_router.post("/groups")
+async def create_group(g: GroupCreate):
+    """创建新分组（持久化到分组表，刷新后仍保留）"""
+    await _ensure_group_table()
+    name = g.group_name.strip()
+    if not name:
+        raise HTTPException(status_code=422, detail="分组名不能为空")
+    await postgres_tool.execute(
+        "INSERT INTO watchlist.watchlist_group (group_name) VALUES ($1) "
+        "ON CONFLICT (group_name) DO NOTHING",
+        name,
+    )
+    return {"group_name": name}
+
+
+@watchlist_router.get("/lookup")
+async def lookup_stock(
+    code: Optional[str] = Query(None, min_length=1, max_length=32),
+    name: Optional[str] = Query(None, max_length=128),
+    market: Optional[str] = Query(None),
+):
+    """按代码或名称查询公司基本信息（用于添加自选股时自动填充代码/名称/市场/行业）"""
+    clauses: list[str] = []
+    params: list = []
+    if code:
+        params.append(code.strip().upper())
+        clauses.append(f"symbol = ${len(params)}")
+    elif name:
+        params.append(f"%{name.strip()}%")
+        clauses.append(f"company_name ILIKE ${len(params)}")
+    else:
+        raise HTTPException(status_code=422, detail="code 或 name 至少提供一个")
+    if market:
+        params.append(market)
+        clauses.append(f"market = ${len(params)}")
+    where = " AND ".join(clauses)
+    rows = await postgres_tool.query(
+        f"SELECT market, symbol, company_name, exchange, industry "
+        f"FROM company_basic WHERE {where} "
+        f"ORDER BY COALESCE(updated_at, 'epoch') DESC LIMIT 1",
+        *params,
+    )
+    if not rows:
+        return {"item": None}
+    return {"item": rows[0]}
 
 
 # ── 监控触发 ──────────────────────────────────────────────
@@ -252,7 +329,9 @@ async def list_events(
     rows = await postgres_tool.query(
         f"SELECT we.id, we.stock_code, w.stock_name, we.news_id, we.event_id, "
         f"we.importance, we.sentiment, we.confidence, we.impact_horizon, "
-        f"we.summary, we.source_type, we.event_time, we.created_at "
+        f"we.summary, we.source_type, "
+        f"we.article_title, we.article_url, we.source_name, "
+        f"we.event_time, we.created_at "
         f"FROM watchlist.watchlist_events we "
         f"LEFT JOIN watchlist.watchlist w ON w.stock_code = we.stock_code "
         f"{where} ORDER BY we.importance DESC, we.created_at DESC LIMIT ${len(params) + 1}",

@@ -109,11 +109,12 @@ async def generate_daily_report() -> dict:
     """
     events = await _load_todays_events()
 
-    # 上海时区当天日期
+    # 上海时区当天日期（保留 date 对象用于 SQL 参数，避免 asyncpg toordinal 报错）
     date_rows = await postgres_tool.query(
         "SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Shanghai')::date AS d"
     )
-    report_date = str(date_rows[0]["d"]) if date_rows else ""
+    report_date_obj = date_rows[0]["d"] if date_rows else None
+    report_date = str(report_date_obj) if report_date_obj else ""
 
     content, summary = _build_markdown(events, report_date)
     title = f"Watchlist Daily Report {report_date}"
@@ -128,7 +129,8 @@ async def generate_daily_report() -> dict:
                       summary = EXCLUDED.summary,
                       created_at = NOW()
         """,
-        report_date, title, content, summary,
+        report_date_obj if report_date_obj is not None else report_date,
+        title, content, summary,
     )
 
     logger.info(

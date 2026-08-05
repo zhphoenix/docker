@@ -33,6 +33,9 @@ export interface WatchlistEvent {
   impact_horizon: string | null
   summary: string | null
   source_type: string | null
+  article_title: string | null
+  article_url: string | null
+  source_name: string | null
   event_time: string | null
   created_at: string | null
 }
@@ -61,6 +64,14 @@ export interface WebAlert {
 export interface GroupInfo {
   group_name: string | null
   cnt: number
+}
+
+export interface CompanyLookup {
+  market: string | null
+  symbol: string
+  company_name: string | null
+  exchange: string | null
+  industry: string | null
 }
 
 // ─── Watchlist CRUD ────────────────────────────────────
@@ -116,6 +127,27 @@ export function deleteWatchlist(id: string): Promise<{ deleted: string }> {
 
 export function fetchGroups(): Promise<{ items: GroupInfo[] }> {
   return apiFetch('/api/watchlist/groups')
+}
+
+export function lookupStock(params: {
+  code?: string
+  name?: string
+  market?: string
+}): Promise<{ item: CompanyLookup | null }> {
+  const searchParams = new URLSearchParams()
+  if (params.code) searchParams.set('code', params.code)
+  if (params.name) searchParams.set('name', params.name)
+  if (params.market) searchParams.set('market', params.market)
+  return apiFetch(`/api/watchlist/lookup?${searchParams.toString()}`)
+}
+
+export function createGroup(
+  group_name: string
+): Promise<{ group_name: string }> {
+  return apiFetch('/api/watchlist/groups', {
+    method: 'POST',
+    body: JSON.stringify({ group_name }),
+  })
 }
 
 // ─── Monitoring ────────────────────────────────────────

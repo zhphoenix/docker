@@ -75,8 +75,15 @@ class QdrantStorage:
         vector: list[float],
         limit: int = 10,
         query_filter: Optional[Filter] = None,
+        score_threshold: Optional[float] = None,
     ) -> list[dict]:
-        """语义检索"""
+        """语义检索
+
+        Args:
+            score_threshold: 相似度下限（低于该分数的结果直接丢弃，
+                防止无关概念如"光模块"混入"茅台"类查询的证据集）。
+                None 表示不过滤（向后兼容）。
+        """
         client = self._get_qdrant_client()
         response = await asyncio.to_thread(
             client.query_points,
@@ -84,21 +91,37 @@ class QdrantStorage:
             query=vector,
             query_filter=query_filter,
             limit=limit,
+            score_threshold=score_threshold,
         )
         return [
             {"id": str(p.id), "score": p.score, "payload": p.payload}
             for p in response.points
         ]
 
-    async def semantic_search(self, query: str, collection: str = COLLECTION_CHUNKS, top_k: int = 10) -> list[dict]:
+    async def semantic_search(
+        self,
+        query: str,
+        collection: str = COLLECTION_CHUNKS,
+        top_k: int = 10,
+        score_threshold: Optional[float] = None,
+    ) -> list[dict]:
         """语义搜索（embed + search 一步完成）"""
         vectors = await self.embed([query])
         if not vectors:
             return []
-        return await self.search(collection=collection, vector=vectors[0], limit=top_k)
+        return await self.search(
+            collection=collection,
+            vector=vectors[0],
+            limit=top_k,
+            score_threshold=score_threshold,
+        )
 
     async def parallel_search(
-        self, query: str, collections: list[str], top_k: int = 10
+        self,
+        query: str,
+        collections: list[str],
+        top_k: int = 10,
+        score_threshold: Optional[float] = None,
     ) -> dict[str, list[dict]]:
         """并行多 Collection 搜索（asyncio.gather 优化）"""
         vectors = await self.embed([query])
@@ -107,7 +130,12 @@ class QdrantStorage:
 
         vector = vectors[0]
         tasks = [
-            self.search(collection=c, vector=vector, limit=top_k)
+            self.search(
+                collection=c,
+                vector=vector,
+                limit=top_k,
+                score_threshold=score_threshold,
+            )
             for c in collections
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)

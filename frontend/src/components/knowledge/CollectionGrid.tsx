@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Progress } from '@/components/ui/progress'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { WindowedDialog } from '@/components/ui/windowed-dialog'
 import { EmptyState } from '@/components/common/EmptyState'
 import { fetchKnowledgeCollections, triggerIngest, fetchBrowseDirs } from '@/services/knowledge'
 import { fetchTasks } from '@/services/tasks'
@@ -142,12 +142,14 @@ export function CollectionGrid({ onNavigateToTasks }: CollectionGridProps) {
       </div>
 
       {/* Directory Browser Dialog */}
-      <Dialog open={dirDialogOpen} onOpenChange={setDirDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>选择目录</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
+      <WindowedDialog
+        open={dirDialogOpen}
+        onOpenChange={setDirDialogOpen}
+        title="选择目录"
+        defaultWidth={480}
+        defaultHeight={480}
+      >
+        <div className="space-y-3">
             {/* Current path */}
             <div className="flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm">
               <Folder className="size-4 shrink-0 text-muted-foreground" />
@@ -208,8 +210,7 @@ export function CollectionGrid({ onNavigateToTasks }: CollectionGridProps) {
               )}
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+      </WindowedDialog>
 
       {/* Toolbar */}
       <div className="flex justify-end">

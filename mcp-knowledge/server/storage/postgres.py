@@ -142,7 +142,11 @@ class PostgresStorage:
         )
 
     async def find_entity_by_name(self, name: str, limit: int = 5) -> list[dict]:
-        """精确 + trigram 模糊名称查找"""
+        """精确 + trigram 模糊名称查找
+
+        模糊匹配阈值 0.45（原 0.3 过松，短中文名称容易误配），
+        且要求候选名与查询名至少有一个公共字符，避免无关实体被别名映射误关联。
+        """
         exact = await self.query(
             """
             SELECT id, name, entity_type, canonical_name, aliases, confidence
@@ -160,7 +164,12 @@ class PostgresStorage:
             SELECT id, name, entity_type, canonical_name, aliases, confidence,
                    similarity(name, $1) AS sim
             FROM core.entities
-            WHERE status = 'active' AND similarity(name, $1) > 0.3
+            WHERE status = 'active'
+              AND similarity(name, $1) > 0.45
+              AND EXISTS (
+                  SELECT 1 FROM unnest(regexp_split_to_array($1, '')) AS ch
+                  WHERE ch <> '' AND position(ch in name) > 0
+              )
             ORDER BY sim DESC
             LIMIT $2
             """,

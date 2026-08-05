@@ -47,6 +47,10 @@ def parse_filename(filename: str, market: str) -> tuple[str, str] | None:
         m = re.match(r'^([A-Z]+)_\d{4}年年度报告$', name)
         if m:
             return m.group(1), m.group(1)
+        # 格式: AAPL_10-K_2025-10-31 或 NVDA_10-Q_2025-05-02
+        m = re.match(r'^([A-Z]+)_(?:10-K|10-Q|20-F|6-K|8-K|S-1)_', name)
+        if m:
+            return m.group(1), m.group(1)
 
     return None
 
@@ -87,7 +91,7 @@ def main():
 
         count = 0
         for f in dir_path.iterdir():
-            if f.suffix not in ('.pdf', '.json'):
+            if f.suffix not in ('.pdf', '.json', '.md'):
                 continue
             result = parse_filename(f.name, market)
             if result is None:

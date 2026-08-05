@@ -13,6 +13,11 @@ export default defineConfig({
   },
   server: {
     port: 3001,
+    watch: {
+      // /mnt/e 为挂载盘，inotify 不可用，需轮询以正常触发 HMR/文件监听
+      usePolling: true,
+      interval: 100,
+    },
     proxy: {
       '/v1': {
         target: 'http://localhost:8100',

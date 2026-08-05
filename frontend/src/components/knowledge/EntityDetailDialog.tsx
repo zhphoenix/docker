@@ -1,11 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { FileText, Tag, Clock } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { WindowedDialog } from '@/components/ui/windowed-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
@@ -28,18 +23,24 @@ export function EntityDetailDialog({ entity, onClose }: EntityDetailDialogProps)
   const facts = factsQuery.data?.facts ?? []
 
   return (
-    <Dialog open={!!entity} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[80vh] max-w-lg overflow-y-auto">
-        {entity && (
+    <WindowedDialog
+      open={!!entity}
+      onOpenChange={(open) => !open && onClose()}
+      title={
+        entity && (
           <>
-            <DialogHeader>
-              <div className="flex items-center gap-3">
-                <DialogTitle className="text-lg">{entity.name}</DialogTitle>
-                <Badge variant="secondary" className="text-[10px]">
-                  {entity.entity_type}
-                </Badge>
-              </div>
-            </DialogHeader>
+            <span>{entity.name}</span>
+            <Badge variant="secondary" className="text-[10px]">
+              {entity.entity_type}
+            </Badge>
+          </>
+        )
+      }
+      defaultWidth={480}
+      defaultHeight={480}
+    >
+      {entity && (
+        <>
 
             {/* Metadata */}
             <div className="space-y-3 text-sm">
@@ -134,7 +135,6 @@ export function EntityDetailDialog({ entity, onClose }: EntityDetailDialogProps)
             </div>
           </>
         )}
-      </DialogContent>
-    </Dialog>
+    </WindowedDialog>
   )
 }

@@ -62,7 +62,9 @@ export function TimelineTab() {
         </div>
         <Select value={days} onValueChange={(v) => setDays(v ?? '')}>
           <SelectTrigger className="w-[120px]">
-            <SelectValue />
+            <SelectValue>
+              {(v: string | null) => (v ? `${v} 天` : '')}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="30">30 天</SelectItem>

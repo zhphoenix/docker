@@ -19,6 +19,10 @@ from server.llm import llm_client
 
 logger = logging.getLogger(__name__)
 
+# 向量证据相似度下限：低于该分数的检索结果不作为 LLM 推理证据，
+# 防止无关概念（如消费股查询混入"光模块"）被 LLM 幻觉关联。
+VECTOR_EVIDENCE_MIN_SCORE = 0.5
+
 
 async def _resolve_entity_name_map(entity_ids: list[str]) -> dict[str, str]:
     """批量解析实体 id → 名称（按输入顺序）"""
@@ -249,7 +253,12 @@ def register_graph_tools(mcp: FastMCP) -> None:
                     entity_ids = [str(ents[0]["id"])]
                     graph_results = await pg_storage.get_entity_graph(entity_ids[0], depth=2)
 
-            vec = await qdrant_storage.parallel_search(query, [COLLECTION_ENTITIES, COLLECTION_FACTS], top_k=limit)
+            vec = await qdrant_storage.parallel_search(
+                query,
+                [COLLECTION_ENTITIES, COLLECTION_FACTS],
+                top_k=limit,
+                score_threshold=VECTOR_EVIDENCE_MIN_SCORE,
+            )
 
             # 组装证据
             graph_evidence = [
@@ -263,6 +272,8 @@ def register_graph_tools(mcp: FastMCP) -> None:
             ][:30]
             vector_evidence = []
             for ent in vec.get(COLLECTION_ENTITIES, []):
+                if ent.get("score", 0.0) < VECTOR_EVIDENCE_MIN_SCORE:
+                    continue  # 双保险：低相似度实体不作为证据
                 p = ent.get("payload") or {}
                 vector_evidence.append({
                     "kind": "entity", "name": p.get("name", ""),
@@ -270,6 +281,8 @@ def register_graph_tools(mcp: FastMCP) -> None:
                     "description": (p.get("description") or "")[:600],
                 })
             for fact in vec.get(COLLECTION_FACTS, []):
+                if fact.get("score", 0.0) < VECTOR_EVIDENCE_MIN_SCORE:
+                    continue  # 双保险：低相似度事实不作为证据
                 p = fact.get("payload") or {}
                 vector_evidence.append({
                     "kind": "fact",

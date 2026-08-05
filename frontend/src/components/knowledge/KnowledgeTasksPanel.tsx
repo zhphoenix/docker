@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Select,
   SelectContent,
@@ -14,12 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { WindowedDialog } from '@/components/ui/windowed-dialog'
 import {
   Table,
   TableBody,
@@ -452,13 +446,29 @@ export function KnowledgeTasksPanel({ focusTaskId }: KnowledgeTasksPanelProps) {
       </Card>
 
       {/* Detail Dialog */}
-      <Dialog open={selectedId != null} onOpenChange={(open) => !open && setSelectedId(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh]">
-          <DialogHeader>
-            <DialogTitle className="text-base">处理详情</DialogTitle>
-          </DialogHeader>
-          <ScrollArea className="max-h-[65vh] pr-4">
-            {detailQuery.isLoading ? (
+      <WindowedDialog
+        open={selectedId != null}
+        onOpenChange={(open) => !open && setSelectedId(null)}
+        title="处理详情"
+        defaultWidth={720}
+        defaultHeight={600}
+        footer={
+          selectedTask?.status === 'failed' ? (
+            <div className="flex justify-end">
+              <Button
+                variant="default"
+                className="gap-1.5"
+                onClick={() => handleRetry(selectedTask)}
+                disabled={retryMutation.isPending}
+              >
+                <RotateCcw className="size-3.5" />
+                {retryMutation.isPending ? '重试中...' : '重试该任务'}
+              </Button>
+            </div>
+          ) : undefined
+        }
+      >
+        {detailQuery.isLoading ? (
               <div className="space-y-3 py-4">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-5/6" />
@@ -614,24 +624,7 @@ export function KnowledgeTasksPanel({ focusTaskId }: KnowledgeTasksPanelProps) {
                 )}
               </div>
             ) : null}
-          </ScrollArea>
-
-          {/* 底部操作：失败任务重试 */}
-          {selectedTask?.status === 'failed' && (
-            <div className="flex justify-end border-t px-6 py-4">
-              <Button
-                variant="default"
-                className="gap-1.5"
-                onClick={() => handleRetry(selectedTask)}
-                disabled={retryMutation.isPending}
-              >
-                <RotateCcw className="size-3.5" />
-                {retryMutation.isPending ? '重试中...' : '重试该任务'}
-              </Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+    </WindowedDialog>
     </div>
   )
 }

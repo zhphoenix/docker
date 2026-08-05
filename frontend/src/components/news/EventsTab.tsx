@@ -72,7 +72,13 @@ export function EventsTab() {
           onValueChange={(v) => setEventType(v === 'all' ? '' : (v ?? ''))}
         >
           <SelectTrigger className="w-[130px]">
-            <SelectValue placeholder="事件类型" />
+            <SelectValue>
+              {(v: string | null) =>
+                v && v !== 'all'
+                  ? (EVENT_TYPES.find((t) => t.value === v)?.label ?? v)
+                  : '全部类型'
+              }
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">全部类型</SelectItem>
@@ -85,7 +91,9 @@ export function EventsTab() {
         </Select>
         <Select value={days} onValueChange={(v) => setDays(v ?? '')}>
           <SelectTrigger className="w-[120px]">
-            <SelectValue />
+            <SelectValue>
+              {(v: string | null) => (v ? `${v} 天` : '')}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="7">7 天</SelectItem>

@@ -5,6 +5,7 @@
 """
 
 import logging
+import re
 from typing import Optional
 
 from services.news_storage import news_storage
@@ -51,8 +52,24 @@ def _confidence_from_score(score) -> str:
     return "low"
 
 
-def _event_to_watch_event(stock_code: str, ev: dict) -> dict:
-    """将 news.events 行转换为 watchlist_events 行"""
+def _summarize_article(art: dict, limit: int = 300) -> str:
+    """生成事件摘要：优先文章 summary，其次正文截断（去除 Markdown 噪音），兜底标题"""
+    text = (art.get("summary") or "").strip()
+    if text:
+        return text
+    content = art.get("content") or ""
+    # 去 Markdown 链接/标记，压缩空白
+    content = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", content)
+    content = re.sub(r"[#>*`|]+", " ", content)
+    content = re.sub(r"\s+", " ", content).strip()
+    if content:
+        return content[:limit]
+    return art.get("title") or ""
+
+
+def _event_to_watch_event(stock_code: str, ev: dict, art: Optional[dict] = None) -> dict:
+    """将 news.events 行转换为 watchlist_events 行（art 提供文章冗余信息）"""
+    art = art or {}
     return {
         "stock_code": stock_code,
         "news_id": ev.get("article_id"),
@@ -61,14 +78,22 @@ def _event_to_watch_event(stock_code: str, ev: dict) -> dict:
         "sentiment": _SENTIMENT_MAP.get(ev.get("impact_direction"), "neutral"),
         "confidence": _confidence_from_score(ev.get("confidence")),
         "impact_horizon": _HORIZON_MAP.get(ev.get("impact_duration"), "short_term"),
-        "summary": ev.get("summary") or ev.get("title"),
+        "summary": ev.get("summary") or ev.get("title") or _summarize_article(art),
         "source_type": "company",
+        "article_title": art.get("title"),
+        "article_url": art.get("url"),
+        "source_name": art.get("source_name"),
         "event_time": ev.get("event_time") or ev.get("created_at"),
     }
 
 
 def _article_to_watch_event(stock_code: str, art: dict, event: Optional[dict] = None) -> dict:
     """将 news.articles 行（可附事件）转换为 watchlist_events 行"""
+    article_meta = {
+        "article_title": art.get("title"),
+        "article_url": art.get("url"),
+        "source_name": art.get("source_name"),
+    }
     if event:
         return {
             "stock_code": stock_code,
@@ -78,8 +103,9 @@ def _article_to_watch_event(stock_code: str, art: dict, event: Optional[dict] = 
             "sentiment": _SENTIMENT_MAP.get(event.get("impact_direction"), "neutral"),
             "confidence": _confidence_from_score(event.get("confidence")),
             "impact_horizon": _HORIZON_MAP.get(event.get("impact_duration"), "short_term"),
-            "summary": event.get("summary") or event.get("title") or art.get("summary"),
+            "summary": event.get("summary") or event.get("title") or _summarize_article(art),
             "source_type": "company",
+            **article_meta,
             "event_time": event.get("event_time") or art.get("published_at"),
         }
     return {
@@ -91,8 +117,9 @@ def _article_to_watch_event(stock_code: str, art: dict, event: Optional[dict] = 
         "sentiment": "neutral",
         "confidence": "medium",
         "impact_horizon": "short_term",
-        "summary": art.get("summary") or art.get("title"),
+        "summary": _summarize_article(art),
         "source_type": "company",
+        **article_meta,
         "event_time": art.get("published_at"),
     }
 
@@ -146,14 +173,16 @@ async def _collect_and_analyze_stock(stock_code: str, stock_name: str) -> list[d
             detail = None
 
         evs = (detail or {}).get("events") or []
+        # 文章详情含完整正文，合并进列表行用于生成摘要
+        merged = {**art, **(detail or {})}
         if evs:
             for ev in evs:
                 # news.events 查询未返回 article_id，从文章上下文注入以保持可追溯性
                 ev = dict(ev)
                 ev["article_id"] = art.get("id")
-                watch_events.append(_event_to_watch_event(stock_code, ev))
+                watch_events.append(_event_to_watch_event(stock_code, ev, merged))
         else:
-            watch_events.append(_article_to_watch_event(stock_code, art))
+            watch_events.append(_article_to_watch_event(stock_code, merged))
 
     return watch_events
 
@@ -190,7 +219,9 @@ async def run_watchlist_monitoring() -> dict:
             (
                 ev["stock_code"], ev["news_id"], ev["event_id"], ev["importance"],
                 ev["sentiment"], ev["confidence"], ev["impact_horizon"],
-                ev["summary"], ev["source_type"], ev["event_time"],
+                ev["summary"], ev["source_type"],
+                ev.get("article_title"), ev.get("article_url"), ev.get("source_name"),
+                ev["event_time"],
             )
             for ev in all_watch_events
         ]
@@ -198,8 +229,9 @@ async def run_watchlist_monitoring() -> dict:
             """
             INSERT INTO watchlist.watchlist_events
                 (stock_code, news_id, event_id, importance, sentiment, confidence,
-                 impact_horizon, summary, source_type, event_time)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                 impact_horizon, summary, source_type,
+                 article_title, article_url, source_name, event_time)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             """,
             rows,
         )

@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, RefreshCw, ExternalLink, ChevronLeft, ChevronRight, Radar, CheckCircle2, XCircle } from 'lucide-react'
+import { Search, RefreshCw, ExternalLink, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Radar, CheckCircle2, XCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -89,12 +89,25 @@ export function NewsListTab() {
 
   const articles = data?.articles ?? []
   const total = data?.total ?? 0
-  const totalPages = Math.ceil(total / PAGE_SIZE)
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+
+  // 数据量变化后总页数更新：若当前页已超出最新总页数，则钳制到最后一页，
+  // 避免停留在已失效的页码上导致列表为空
+  useEffect(() => {
+    if (page > totalPages - 1) {
+      setPage(totalPages - 1)
+    }
+  }, [totalPages, page])
 
   const handleSearch = () => {
     setKeyword(searchInput)
     setPage(0)
   }
+
+  const goToFirst = () => setPage(0)
+  const goToLast = () => setPage(totalPages - 1)
+  const goToPrev = () => setPage((p) => Math.max(0, p - 1))
+  const goToNext = () => setPage((p) => Math.min(totalPages - 1, p + 1))
 
   return (
     <div className="space-y-4">
@@ -156,7 +169,13 @@ export function NewsListTab() {
           onValueChange={(v) => { setCategory(v === 'all' ? '' : (v ?? '')); setPage(0) }}
         >
           <SelectTrigger className="w-[130px]">
-            <SelectValue placeholder="全部分类" />
+            <SelectValue>
+              {(v: string | null) =>
+                v && v !== 'all'
+                  ? (CATEGORIES.find((c) => c.value === v)?.label ?? v)
+                  : '全部分类'
+              }
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">全部分类</SelectItem>
@@ -169,7 +188,11 @@ export function NewsListTab() {
         </Select>
         <Select value={days} onValueChange={(v) => { setDays(v ?? ''); setPage(0) }}>
           <SelectTrigger className="w-[130px]">
-            <SelectValue />
+            <SelectValue>
+              {(v: string | null) =>
+                v ? (DAYS_OPTIONS.find((d) => d.value === v)?.label ?? v) : '最近 7 天'
+              }
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {DAYS_OPTIONS.map((d) => (
@@ -234,7 +257,17 @@ export function NewsListTab() {
             variant="outline"
             size="sm"
             disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
+            onClick={goToFirst}
+            title="首页"
+          >
+            <ChevronsLeft className="size-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page === 0}
+            onClick={goToPrev}
+            title="上一页"
           >
             <ChevronLeft className="size-4" />
           </Button>
@@ -245,9 +278,19 @@ export function NewsListTab() {
             variant="outline"
             size="sm"
             disabled={page >= totalPages - 1}
-            onClick={() => setPage((p) => p + 1)}
+            onClick={goToNext}
+            title="下一页"
           >
             <ChevronRight className="size-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= totalPages - 1}
+            onClick={goToLast}
+            title="末页"
+          >
+            <ChevronsRight className="size-4" />
           </Button>
         </div>
       )}

@@ -43,6 +43,9 @@ CREATE TABLE IF NOT EXISTS watchlist.watchlist_events (
     impact_horizon TEXT DEFAULT 'short_term', -- short_term / mid_term / long_term
     summary TEXT,                             -- AI 摘要
     source_type TEXT,                         -- company / industry / supply_chain / policy / macro / market
+    article_title TEXT,                       -- 冗余：来源文章标题（免二次查询）
+    article_url TEXT,                         -- 冗余：来源文章原文链接
+    source_name TEXT,                         -- 冗余：来源媒体名称
     event_time TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );

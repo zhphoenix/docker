@@ -1,11 +1,15 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Star, Play, Plus, Trash2, RefreshCw, CheckCheck } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Star, Play, Plus, Trash2, RefreshCw, CheckCheck, Loader2, ExternalLink } from 'lucide-react'
+import { useDebounce } from '@/hooks/useDebounce'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Combobox } from '@/components/ui/combobox'
+import { WindowedDialog } from '@/components/ui/windowed-dialog'
+import { LinkifiedText } from '@/components/ui/linkified-text'
 import {
   Select,
   SelectContent,
@@ -19,6 +23,8 @@ import type {
   DailyReport,
   WebAlert,
 } from '@/services/watchlist'
+import type { NewsArticle } from '@/services/news'
+import { fetchNewsArticle } from '@/services/news'
 import {
   fetchWatchlist,
   addWatchlist,
@@ -31,6 +37,9 @@ import {
   fetchWatchEvents,
   fetchWebAlerts,
   markAlertRead,
+  fetchGroups,
+  lookupStock,
+  createGroup,
 } from '@/services/watchlist'
 
 const STAR: Record<number, string> = { 5: '★★★★★', 4: '★★★★', 3: '★★★', 2: '★★', 1: '★' }
@@ -45,8 +54,19 @@ export default function WatchlistPage() {
   // 新增表单
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
+  const [market, setMarket] = useState('')
   const [group, setGroup] = useState('')
   const [tags, setTags] = useState('')
+  const [groupOptions, setGroupOptions] = useState<string[]>([])
+  const [lookupLoading, setLookupLoading] = useState(false)
+  // 记录用户最后主动编辑的字段（代码/名称），避免双向自动填充互相覆盖
+  const lastEditedRef = useRef<'code' | 'name'>('code')
+  // 抑制标志：添加成功后阻断仍在途的 lookup 异步回调回填，避免竞态残留
+  const suppressLookupRef = useRef(false)
+  // 记录最近一次发起 lookup 的输入，防止迟到的旧请求回填覆盖当前输入
+  const lookupInputRef = useRef<{ kind: 'code' | 'name'; input: string } | null>(
+    null
+  )
 
   // 自选股筛选
   const [filterGroup, setFilterGroup] = useState('')
@@ -58,6 +78,37 @@ export default function WatchlistPage() {
 
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
+
+  // 事件详情弹窗：点击事件卡打开，有 news_id 时懒加载文章正文
+  const [detailEvent, setDetailEvent] = useState<WatchlistEvent | null>(null)
+  const [detailArticle, setDetailArticle] = useState<NewsArticle | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+
+  const openEventDetail = useCallback((ev: WatchlistEvent) => {
+    setDetailEvent(ev)
+    setDetailArticle(null)
+    if (ev.news_id) {
+      setDetailLoading(true)
+      fetchNewsArticle(ev.news_id)
+        .then(setDetailArticle)
+        .catch(() => setDetailArticle(null))
+        .finally(() => setDetailLoading(false))
+    }
+  }, [])
+  // 采集中状态：触发监控后轮询每日报告，报告 updated 即视为本轮完成
+  const [running, setRunning] = useState(false)
+  const runPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const runStartedRef = useRef<number>(0)
+
+  const stopRunPolling = useCallback(() => {
+    if (runPollRef.current) {
+      clearInterval(runPollRef.current)
+      runPollRef.current = null
+    }
+  }, [])
+
+  // 组件卸载时清理轮询
+  useEffect(() => stopRunPolling, [stopRunPolling])
 
   const loadAll = useCallback(async () => {
     setLoading(true)
@@ -99,13 +150,112 @@ export default function WatchlistPage() {
     loadAll()
   }, [loadAll])
 
+  // 加载分组选项（已有分组 + 默认分组）
+  useEffect(() => {
+    fetchGroups()
+      .then((res) => {
+        const existing = res.items
+          .map((g) => g.group_name)
+          .filter((x): x is string => Boolean(x))
+        const defaults = ['顶级持仓', '科技', '消费']
+        setGroupOptions(Array.from(new Set([...existing, ...defaults])))
+      })
+      .catch(() => {})
+  }, [])
+
+  // 防抖：输入股票代码后自动填充名称/市场/行业
+  const debouncedCode = useDebounce(code, 400)
+  useEffect(() => {
+    const c = debouncedCode.trim()
+    if (!c) return
+    // 仅当用户正在编辑代码时填充名称，避免反向填充(code→name)时互相覆盖
+    if (lastEditedRef.current !== 'code') return
+    let cancelled = false
+    lookupInputRef.current = { kind: 'code', input: c }
+    setLookupLoading(true)
+    lookupStock({ code: c, market: market || undefined })
+      .then((res) => {
+        if (
+          cancelled ||
+          suppressLookupRef.current ||
+          !res.item ||
+          lookupInputRef.current?.kind !== 'code' ||
+          lookupInputRef.current.input !== c
+        )
+          return
+        if (res.item.company_name) setName(res.item.company_name)
+        if (res.item.market) setMarket(res.item.market)
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLookupLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [debouncedCode, market])
+
+  // 防抖：输入股票名称后反向自动填充代码/市场
+  const debouncedName = useDebounce(name, 400)
+  useEffect(() => {
+    const n = debouncedName.trim()
+    if (!n) return
+    // 仅当用户正在编辑名称时反向填充代码，避免 code→name 填充时触发循环
+    if (lastEditedRef.current !== 'name') return
+    let cancelled = false
+    lookupInputRef.current = { kind: 'name', input: n }
+    setLookupLoading(true)
+    lookupStock({ name: n, market: market || undefined })
+      .then((res) => {
+        if (
+          cancelled ||
+          suppressLookupRef.current ||
+          !res.item ||
+          lookupInputRef.current?.kind !== 'name' ||
+          lookupInputRef.current.input !== n
+        )
+          return
+        if (res.item.symbol) setCode(res.item.symbol)
+        if (res.item.market) setMarket(res.item.market)
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLookupLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [debouncedName, market])
+
+  // 分组选择/新建：新建分组持久化到后端，刷新后仍保留
+  const handleGroupChange = useCallback((v: string) => {
+    setGroup(v)
+    if (!v) return
+    setGroupOptions((prev) => {
+      if (prev.includes(v)) return prev
+      const next = [...prev, v]
+      createGroup(v).catch(() => {})
+      return next
+    })
+  }, [])
+
   const handleAdd = async () => {
     if (!code.trim()) return
+    // 拦截重复添加：同一股票代码已在自选股中时直接提示，不再发起请求
+    const normalized = code.trim().toUpperCase()
+    const existing = items.find(
+      (it) => it.stock_code.trim().toUpperCase() === normalized
+    )
+    if (existing) {
+      setMsg(`"${existing.stock_name || existing.stock_code}" 已在自选股中`)
+      return
+    }
     setBusy(true)
     try {
       await addWatchlist({
         stock_code: code.trim(),
         stock_name: name.trim() || code.trim(),
+        market: market.trim() || undefined,
         group_name: group.trim() || undefined,
         tags: tags
           .split(/[,，]/)
@@ -114,8 +264,11 @@ export default function WatchlistPage() {
       })
       setCode('')
       setName('')
+      setMarket('')
       setGroup('')
       setTags('')
+      suppressLookupRef.current = true
+      lookupInputRef.current = null
       setMsg('已添加')
       await loadAll()
     } catch (e) {
@@ -160,6 +313,32 @@ export default function WatchlistPage() {
     try {
       const res = await runMonitoring()
       setMsg(res.message || '监控任务已启动')
+      // 后端为异步任务（采集·分析·报告），轮询报告 updated 检测完成
+      setRunning(true)
+      runStartedRef.current = Date.now()
+      stopRunPolling()
+      runPollRef.current = setInterval(async () => {
+        // 超时保护：15 分钟后停止轮询
+        if (Date.now() - runStartedRef.current > 15 * 60 * 1000) {
+          stopRunPolling()
+          setRunning(false)
+          setMsg('采集耗时较长，请稍后手动刷新查看结果')
+          return
+        }
+        try {
+          const { report: rep } = await fetchLatestReport()
+          const repTime = rep?.created_at ? new Date(rep.created_at).getTime() : 0
+          // 容忍 60s 客户端/服务器时钟偏差
+          if (repTime >= runStartedRef.current - 60_000) {
+            stopRunPolling()
+            setRunning(false)
+            setMsg('采集完成')
+            loadAll()
+          }
+        } catch {
+          /* 网络抖动时继续轮询 */
+        }
+      }, 20_000)
     } catch (e) {
       setMsg(`启动失败: ${(e as Error).message}`)
     } finally {
@@ -210,7 +389,8 @@ export default function WatchlistPage() {
       </div>
 
       {msg && (
-        <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-2 text-sm text-foreground">
+        <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2 text-sm text-foreground">
+          {running && <Loader2 className="size-4 animate-spin text-primary" />}
           {msg}
         </div>
       )}
@@ -236,21 +416,55 @@ export default function WatchlistPage() {
               <CardHeader>
                 <CardTitle className="text-base">添加自选股</CardTitle>
               </CardHeader>
-              <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+                <Select
+                  value={market}
+                  onValueChange={(v) => setMarket(v === 'auto' ? '' : (v ?? ''))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="市场" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">自动识别</SelectItem>
+                    <SelectItem value="cn">A股</SelectItem>
+                    <SelectItem value="hk">港股</SelectItem>
+                    <SelectItem value="us">美股</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="relative">
+                  <Input
+                    placeholder="股票代码 *"
+                    value={code}
+                    onChange={(e) => {
+                      suppressLookupRef.current = false
+                      lookupInputRef.current = null
+                      lastEditedRef.current = 'code'
+                      setCode(e.target.value)
+                    }}
+                    className="pr-8"
+                  />
+                  {lookupLoading && (
+                    <Loader2 className="absolute right-2.5 top-2.5 size-4 animate-spin text-muted-foreground" />
+                  )}
+                </div>
                 <Input
-                  placeholder="股票代码 *"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                />
-                <Input
-                  placeholder="股票名称"
+                  placeholder="股票名称（自动填充）"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    suppressLookupRef.current = false
+                    lookupInputRef.current = null
+                    lastEditedRef.current = 'name'
+                    setName(e.target.value)
+                  }}
                 />
-                <Input
-                  placeholder="分组（如 科技/消费）"
+                <Combobox
                   value={group}
-                  onChange={(e) => setGroup(e.target.value)}
+                  onValueChange={handleGroupChange}
+                  options={groupOptions}
+                  placeholder="分组（可新建）"
+                  clearLabel="未分组"
+                  creatable
+                  createLabel={(q) => `新建分组 "${q}"`}
                 />
                 <Input
                   placeholder="标签（逗号分隔）"
@@ -389,11 +603,18 @@ export default function WatchlistPage() {
                   </Button>
                 </div>
                 <div className="flex items-center gap-3 border-t pt-4">
-                  <Button onClick={handleRun} disabled={busy}>
-                    <Play className="mr-1 size-4" /> 开始监控
+                  <Button onClick={handleRun} disabled={busy || running}>
+                    {running ? (
+                      <Loader2 className="mr-1 size-4 animate-spin" />
+                    ) : (
+                      <Play className="mr-1 size-4" />
+                    )}
+                    {running ? '采集中…' : '开始监控'}
                   </Button>
                   <span className="text-xs text-muted-foreground">
-                    手动触发立即执行一次采集 · 分析 · 报告 · 告警
+                    {running
+                      ? '正在采集 · 分析 · 生成报告，完成后自动刷新（约数分钟）'
+                      : '手动触发立即执行一次采集 · 分析 · 报告 · 告警'}
                   </span>
                 </div>
               </CardContent>
@@ -419,7 +640,16 @@ export default function WatchlistPage() {
                   events.filter((e) => e.importance === imp).map((ev) => (
                     <div
                       key={ev.id}
-                      className="rounded-lg border p-3"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openEventDetail(ev)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          openEventDetail(ev)
+                        }
+                      }}
+                      className="cursor-pointer rounded-lg border p-3 transition-colors hover:border-primary/40 hover:bg-muted/40"
                     >
                       <div className="flex items-center gap-2">
                         <span className="font-semibold">{STAR[ev.importance] ?? '★'}</span>
@@ -428,8 +658,14 @@ export default function WatchlistPage() {
                         </span>
                         <Badge variant="outline">{ev.sentiment || 'neutral'}</Badge>
                         <Badge variant="secondary">{ev.confidence || 'medium'}</Badge>
+                        {ev.article_title && (
+                          <span className="truncate text-xs text-muted-foreground">
+                            {ev.source_name ? `${ev.source_name} · ` : ''}
+                            {ev.article_title}
+                          </span>
+                        )}
                       </div>
-                      <p className="mt-1 text-sm text-foreground">{ev.summary}</p>
+                      <p className="mt-1 line-clamp-2 text-sm text-foreground">{ev.summary}</p>
                     </div>
                   ))
                 )}
@@ -514,6 +750,96 @@ export default function WatchlistPage() {
           </TabsContent>
         </Tabs>
       )}
+
+      {/* 事件详情弹窗（可拖拽/缩放/最大化/最小化） */}
+      <WindowedDialog
+        open={detailEvent !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDetailEvent(null)
+            setDetailArticle(null)
+          }
+        }}
+        defaultWidth={760}
+        defaultHeight={600}
+        title={
+          detailEvent ? (
+            <>
+              <span className="font-semibold">
+                {STAR[detailEvent.importance] ?? '★'}
+              </span>
+              <span>
+                {detailEvent.stock_name || detailEvent.stock_code} 相关事件
+              </span>
+              <Badge variant="outline">{detailEvent.sentiment || 'neutral'}</Badge>
+              <Badge variant="secondary">{detailEvent.confidence || 'medium'}</Badge>
+            </>
+          ) : (
+            '事件详情'
+          )
+        }
+      >
+        {detailEvent && (
+          <div className="space-y-4">
+            {/* 元信息 */}
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              {detailEvent.event_time && (
+                <span>
+                  事件时间：
+                  {new Date(detailEvent.event_time).toLocaleString('zh-CN')}
+                </span>
+              )}
+              {detailEvent.source_type && <span>类型：{detailEvent.source_type}</span>}
+              {detailEvent.impact_horizon && (
+                <span>影响周期：{detailEvent.impact_horizon}</span>
+              )}
+              {detailEvent.source_name && <span>来源：{detailEvent.source_name}</span>}
+            </div>
+
+            {/* 摘要（自动识别其中的网址并渲染为可点击链接） */}
+            {detailEvent.summary && (
+              <div>
+                <h4 className="mb-1 text-sm font-medium">事件摘要</h4>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                  <LinkifiedText text={detailEvent.summary} />
+                </p>
+              </div>
+            )}
+
+            {/* 来源文章 */}
+            {(detailEvent.news_id || detailEvent.article_title) && (
+              <div className="space-y-2 rounded-lg border p-3">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-medium">
+                    {detailEvent.article_title || '来源文章'}
+                  </h4>
+                  {detailEvent.article_url && (
+                    <a
+                      href={detailEvent.article_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      查看原文 <ExternalLink className="size-3" />
+                    </a>
+                  )}
+                </div>
+                {detailLoading ? (
+                  <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
+                    <Loader2 className="size-4 animate-spin" /> 加载文章正文…
+                  </div>
+                ) : detailArticle?.content ? (
+                  <pre className="whitespace-pre-wrap rounded-md bg-muted p-3 text-xs leading-relaxed">
+                    <LinkifiedText text={detailArticle.content} />
+                  </pre>
+                ) : (
+                  <p className="text-xs text-muted-foreground">暂无正文内容</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </WindowedDialog>
     </div>
   )
 }
