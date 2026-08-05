@@ -1,10 +1,10 @@
-"""MCP Knowledge Server 配置 - Pydantic Settings"""
+"""Knowledge MCP Server 配置 - Pydantic Settings"""
 
 from pydantic_settings import BaseSettings
 
 
 class MCPSettings(BaseSettings):
-    """MCP Knowledge Server 配置"""
+    """Knowledge MCP Server 配置"""
 
     # PostgreSQL 连接池（独立于 langgraph 服务）
     POSTGRES_USER: str = "postgres"

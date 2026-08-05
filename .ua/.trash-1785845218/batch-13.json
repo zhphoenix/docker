@@ -1,0 +1,83 @@
+{
+ "nodes": [
+  {
+   "id": "document:langgraph/prompts/earnings_call_analysis.md",
+   "type": "document",
+   "name": "earnings_call_analysis.md",
+   "filePath": "langgraph/prompts/earnings_call_analysis.md",
+   "summary": "文档：earnings_call_analysis.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/planner.md",
+   "type": "document",
+   "name": "planner.md",
+   "filePath": "langgraph/prompts/planner.md",
+   "summary": "文档：planner.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/query_rewrite.md",
+   "type": "document",
+   "name": "query_rewrite.md",
+   "filePath": "langgraph/prompts/query_rewrite.md",
+   "summary": "文档：query_rewrite.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/reason.md",
+   "type": "document",
+   "name": "reason.md",
+   "filePath": "langgraph/prompts/reason.md",
+   "summary": "文档：reason.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/reflect.md",
+   "type": "document",
+   "name": "reflect.md",
+   "filePath": "langgraph/prompts/reflect.md",
+   "summary": "文档：reflect.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/writer.md",
+   "type": "document",
+   "name": "writer.md",
+   "filePath": "langgraph/prompts/writer.md",
+   "summary": "文档：writer.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

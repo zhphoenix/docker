@@ -1,0 +1,41 @@
+{
+ "nodes": [
+  {
+   "id": "resource:minio/compose.yml",
+   "type": "resource",
+   "name": "compose.yml",
+   "filePath": "minio/compose.yml",
+   "summary": "compose.yml（minio）",
+   "tags": [
+    "minio"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:minio/init-buckets.sh",
+   "type": "file",
+   "name": "init-buckets.sh",
+   "filePath": "minio/init-buckets.sh",
+   "summary": "init-buckets.sh（minio）",
+   "tags": [
+    "minio"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:minio/mc-config.json",
+   "type": "config",
+   "name": "mc-config.json",
+   "filePath": "minio/mc-config.json",
+   "summary": "配置文件：mc-config.json",
+   "tags": [
+    "minio"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

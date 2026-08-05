@@ -1,4 +1,4 @@
-"""Knowledge Organization Agent Graph - LangGraph StateGraph 定义
+"""Knowledge Ingestion Agent Graph - LangGraph StateGraph 定义
 
 流水线: Parser → Entity → [Relation || Fact] → Validator → Merger → END
 性能优化: Entity 完成后 Relation/Fact 并行执行（fan-out/fan-in）
@@ -38,8 +38,8 @@ def _timed(node_name: str):
     return decorator
 
 
-def build_knowledge_organization_graph():
-    """构建 Knowledge Organization Agent 的 Workflow
+def build_knowledge_ingestion_graph():
+    """构建 Knowledge Ingestion Agent 的 Workflow
 
     Parser → EntityExtractor → [RelationExtractor || FactExtractor]
     → Validator → Merger → END

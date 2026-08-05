@@ -7,7 +7,7 @@ const pageTitles: Record<string, string> = {
   '/': 'Dashboard',
   '/chat': 'AI Chat',
   '/agents': 'Agent Center',
-  '/knowledge': 'Knowledge Base',
+  '/knowledge': 'Knowledge Hub',
   '/documents': 'Documents',
   '/workflow': 'Workflow',
   '/research': 'Research Center',

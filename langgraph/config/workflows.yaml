@@ -24,7 +24,7 @@ workflows:
     description: "新闻分析流程: Cleaner → Dedup → EmbeddingDedup → Classifier → [Entity || Event] → Impact → Publisher"
   knowledge:
     module: graphs.knowledge_graph
-    builder: build_knowledge_organization_graph
+    builder: build_knowledge_ingestion_graph
     description: "知识整理流程: Parser → Entity → [Relation || Fact] → Validator → Merger"
   document:
     module: graphs.document_graph

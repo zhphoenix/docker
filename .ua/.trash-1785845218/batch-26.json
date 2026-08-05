@@ -1,0 +1,641 @@
+{
+ "nodes": [
+  {
+   "id": "file:langgraph/nodes/research/rerank.py",
+   "type": "file",
+   "name": "rerank.py",
+   "filePath": "langgraph/nodes/research/rerank.py",
+   "summary": "Rerank Node - 文档重排序节点（极简） 职责仅限于： 读取 State → 调用 RerankerTool → 更新 State 截断、Top-K、Retry、超时等全部由 RerankerTool 处理。",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/research/retrieve.py",
+   "type": "file",
+   "name": "retrieve.py",
+   "filePath": "langgraph/nodes/research/retrieve.py",
+   "summary": "Retrieve Node - 语义检索（Embedding + Qdrant）",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/research/writer.py",
+   "type": "file",
+   "name": "writer.py",
+   "filePath": "langgraph/nodes/research/writer.py",
+   "summary": "Writer Node - 格式化最终输出（可选）",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/pipelines/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/pipelines/__init__.py",
+   "summary": "__init__.py（langgraph/pipelines）",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/pipelines/document_pipeline.py",
+   "type": "file",
+   "name": "document_pipeline.py",
+   "filePath": "langgraph/pipelines/document_pipeline.py",
+   "summary": "Document Pipeline - 文档处理全链路 流程: MinIO PDF → Docling 解析 → Chunk 分片 → Embedding → Qdrant → PostgreSQL 状态更新 支持: - 批量处理（limit 控制） - 断点续传（通过 tasks 表 stage/current_item） - 失败重试（task_queue retry_count） - Doc",
+   "tags": [
+    "langgraph",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/pipelines/web/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/pipelines/web/__init__.py",
+   "summary": "__init__.py（langgraph/pipelines/web）",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/pipelines/web/chunker.py",
+   "type": "file",
+   "name": "chunker.py",
+   "filePath": "langgraph/pipelines/web/chunker.py",
+   "summary": "Web Markdown 分块器 基于 Crawl4AI 集成设计规范 第10节: - 按 Markdown 标题层级切分 - 超长段落二次切分（滑动窗口） - 保留标题上下文（面包屑） 用法: chunker = WebChunker(max_chars=800, overlap_chars=100) chunks = chunker.chunk(markdown_text) for c in ",
+   "tags": [
+    "langgraph",
+    "class",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/pipelines/web/diff_detector.py",
+   "type": "file",
+   "name": "diff_detector.py",
+   "filePath": "langgraph/pipelines/web/diff_detector.py",
+   "summary": "增量变更检测模块 基于 Crawl4AI 集成设计规范 第18.3节 Phase 2: - 内容 Hash 对比检测变化 - 变更状态判定（unchanged / changed / new / removed） - 页面下线检测 用法: detector = DiffDetector.from_config(config) # 检测单个 URL 的变更状态 status = await dete",
+   "tags": [
+    "langgraph",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/pipelines/web/link_extractor.py",
+   "type": "file",
+   "name": "link_extractor.py",
+   "filePath": "langgraph/pipelines/web/link_extractor.py",
+   "summary": "列表页链接提取器 从 Crawl4AI 返回的页面链接中提取文章 URL。 支持： - URL 模式过滤（include/exclude 正则） - 按日期降序排序（从 URL 路径提取 YYYYMM/YYYYMMDD） - 同域过滤 - 去重 - 最大数量限制 用法: extractor = LinkExtractor( include_patterns=[r\"/2026/\", r\"/2025/",
+   "tags": [
+    "langgraph",
+    "class",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/pipelines/web/rate_limiter.py",
+   "type": "file",
+   "name": "rate_limiter.py",
+   "filePath": "langgraph/pipelines/web/rate_limiter.py",
+   "summary": "弹性抓取 — 域名级速率限制模块 基于 Crawl4AI 集成设计规范 第18.2节 Phase 1: - 令牌桶算法实现域名级限速 - 支持全局默认 + 按域名覆盖 - 异步安全（asyncio.Lock） 用法: limiter = RateLimiter.from_config(config_dict) # 在请求前等待 await limiter.acquire(\"cninfo.com.c",
+   "tags": [
+    "langgraph",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/pipelines/web/retry.py",
+   "type": "file",
+   "name": "retry.py",
+   "filePath": "langgraph/pipelines/web/retry.py",
+   "summary": "弹性抓取 — 重试策略模块 基于 Crawl4AI 集成设计规范 第18.2节 Phase 1: - 指数退避重试 - 可重试状态码判定 - 死信检测 - 域名级配置覆盖 用法: policy = RetryPolicy.from_config(config_dict) policy = policy.with_domain_override(\"cninfo.com.cn\", {\"max_atte",
+   "tags": [
+    "langgraph",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/pipelines/web/summarizer.py",
+   "type": "file",
+   "name": "summarizer.py",
+   "filePath": "langgraph/pipelines/web/summarizer.py",
+   "summary": "文章摘要生成器 调用 LLM（OpenAI Compatible API）为单篇文章生成结构化摘要。 支持两种调用方式： 1. 独立使用（通过 httpx 直接调用 LLM API） 2. 在 LangGraph Agent 内使用（复用 tools.llm.llm_tool 单例） 用法: summarizer = ArticleSummarizer(llm_url=\"http://localh",
+   "tags": [
+    "langgraph",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/pipelines/web_pipeline.py",
+   "type": "file",
+   "name": "web_pipeline.py",
+   "filePath": "langgraph/pipelines/web_pipeline.py",
+   "summary": "Web Pipeline — 网页抓取数据流 基于 Crawl4AI 集成设计规范: - 第10节: 数据流规范（网页 → Crawl4AI → Markdown → MinIO → Metadata → Chunk → Embedding → Qdrant） - 第13节: Pipeline 规范 - 第18.2节: Phase 1 弹性抓取 - 第18.3节: Phase 2 增量变更检测 职",
+   "tags": [
+    "langgraph",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/chat/system.md",
+   "type": "document",
+   "name": "system.md",
+   "filePath": "langgraph/prompts/chat/system.md",
+   "summary": "文档：system.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/investment/system.md",
+   "type": "document",
+   "name": "system.md",
+   "filePath": "langgraph/prompts/investment/system.md",
+   "summary": "文档：system.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/prompts/loader.py",
+   "type": "file",
+   "name": "loader.py",
+   "filePath": "langgraph/prompts/loader.py",
+   "summary": "Prompt Hub - 统一加载 prompts/ 目录下的 .md 模板文件 目录结构: prompts/ ├── planner.md # 通用 Planner ├── reason.md # 通用 Reason ├── reflect.md # 通用 Reflect ├── writer.md # 通用 Writer ├── chat/system.md # Chat Agent 专用 ├",
+   "tags": [
+    "langgraph",
+    "prompt",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/research/system.md",
+   "type": "document",
+   "name": "system.md",
+   "filePath": "langgraph/prompts/research/system.md",
+   "summary": "文档：system.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/providers/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/providers/__init__.py",
+   "summary": "__init__.py（langgraph/providers）",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/providers/web/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/providers/web/__init__.py",
+   "summary": "__init__.py（langgraph/providers/web）",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/providers/web/crawl4ai_provider.py",
+   "type": "file",
+   "name": "crawl4ai_provider.py",
+   "filePath": "langgraph/providers/web/crawl4ai_provider.py",
+   "summary": "Crawl4AI Provider — Web 抓取提供者 基于 Crawl4AI 集成设计规范: - 第12节: Provider 规范（Agent 仅调用 Provider） - 第18.2节: Phase 1 弹性抓取（集成重试 + 限速） 职责: - 封装 Crawl4AI HTTP API 调用 - 集成 RetryPolicy（指数退避） - 集成 RateLimiter（域名级限速）",
+   "tags": [
+    "langgraph",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/runtime/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/runtime/__init__.py",
+   "summary": "__init__.py（langgraph/runtime）",
+   "tags": [
+    "langgraph",
+    "runtime"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/runtime/executor.py",
+   "type": "file",
+   "name": "executor.py",
+   "filePath": "langgraph/runtime/executor.py",
+   "summary": "Runtime Executor - Graph 执行统一入口 封装 Graph 的调用（ainvoke / astream），屏蔽调用方对具体 Graph 实例与编译细节的依赖。配合 memory.checkpoint 可为需要多轮会话的 Graph 注入 Checkpointer。 Usage: from runtime.executor import run_graph, stream_gr",
+   "tags": [
+    "langgraph",
+    "runtime",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/runtime/queue.py",
+   "type": "file",
+   "name": "queue.py",
+   "filePath": "langgraph/runtime/queue.py",
+   "summary": "Task Queue - 基于 PostgreSQL tasks 表的简单任务队列 支持： - 任务创建、状态更新、进度追踪 - 断点续传（通过 stage/current_item） - 重试（retry_count + 指数退避） - 优先级排序",
+   "tags": [
+    "langgraph",
+    "runtime",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/runtime/scheduler.py",
+   "type": "file",
+   "name": "scheduler.py",
+   "filePath": "langgraph/runtime/scheduler.py",
+   "summary": "Resource Scheduler - 基于 APScheduler 的定时任务 Jobs: - daily_pipeline: 每日处理 pending 文档（触发 Pipeline） - weekly_consistency: 每周 Embedding 一致性检查 - monthly_cleanup: 每月清理 staging + 过期数据 - task_retry: 每 5 分钟重试失败任",
+   "tags": [
+    "langgraph",
+    "runtime",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/runtime/worker.py",
+   "type": "file",
+   "name": "worker.py",
+   "filePath": "langgraph/runtime/worker.py",
+   "summary": "Task Worker - 后台任务处理器 职责: - 轮询 tasks 表中 pending 状态的任务 - 根据 task_type 分发到对应处理器 - 控制并发（同时只运行 1 个 Pipeline 任务） - 失败自动标记（由 Scheduler 负责重试）",
+   "tags": [
+    "langgraph",
+    "runtime",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:langgraph/nodes/research/rerank.py",
+   "target": "file:langgraph/state/research_state.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/rerank.py",
+   "target": "file:langgraph/tools/reranker.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/retrieve.py",
+   "target": "file:langgraph/state/research_state.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/retrieve.py",
+   "target": "file:langgraph/schemas/authority.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/retrieve.py",
+   "target": "file:langgraph/tools/embedding.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/retrieve.py",
+   "target": "file:langgraph/tools/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/writer.py",
+   "target": "file:langgraph/state/research_state.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/pipelines/document_pipeline.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/pipelines/document_pipeline.py",
+   "target": "file:langgraph/tools/minio.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/pipelines/document_pipeline.py",
+   "target": "file:langgraph/tools/docling.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/pipelines/document_pipeline.py",
+   "target": "file:langgraph/tools/chunker.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/pipelines/document_pipeline.py",
+   "target": "file:langgraph/tools/embedding.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/pipelines/document_pipeline.py",
+   "target": "file:langgraph/tools/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/pipelines/document_pipeline.py",
+   "target": "file:langgraph/runtime/queue.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/pipelines/document_pipeline.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/pipelines/web_pipeline.py",
+   "target": "file:langgraph/pipelines/web/chunker.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/pipelines/web_pipeline.py",
+   "target": "file:langgraph/pipelines/web/diff_detector.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/pipelines/web_pipeline.py",
+   "target": "file:frontend/src/services/models.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/pipelines/web/summarizer.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/providers/web/crawl4ai_provider.py",
+   "target": "file:langgraph/pipelines/web/rate_limiter.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/providers/web/crawl4ai_provider.py",
+   "target": "file:langgraph/pipelines/web/retry.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/queue.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/queue.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/scheduler.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/scheduler.py",
+   "target": "file:langgraph/pipelines/document_pipeline.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/scheduler.py",
+   "target": "file:langgraph/runtime/queue.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/scheduler.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/scheduler.py",
+   "target": "file:langgraph/collectors/source_registry.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/scheduler.py",
+   "target": "file:langgraph/collectors/rss_collector.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/scheduler.py",
+   "target": "file:langgraph/collectors/web_collector.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/scheduler.py",
+   "target": "file:langgraph/graphs/news_analysis_graph.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/scheduler.py",
+   "target": "file:langgraph/services/lifecycle.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/worker.py",
+   "target": "file:langgraph/runtime/queue.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/worker.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/worker.py",
+   "target": "file:langgraph/pipelines/document_pipeline.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/worker.py",
+   "target": "file:langgraph/services/batch_embed.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/worker.py",
+   "target": "file:langgraph/graphs/knowledge_graph.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/runtime/worker.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  }
+ ]
+}

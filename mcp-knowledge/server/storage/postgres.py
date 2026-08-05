@@ -317,6 +317,36 @@ class PostgresStorage:
             eid, depth, limit,
         )
 
+    async def get_entity_neighbors_for_render(self, entity_id: str, limit: int = 50) -> list[dict]:
+        """一跳邻居（含实体名/类型/股票代码），供 SiYuan 渲染 [[链接]] 使用。
+
+        无向遍历：source 或 target 为起点的 active 边，返回邻居实体的展示信息。
+
+        Returns:
+            [{neighbor_id, neighbor_name, neighbor_type, neighbor_ticker, relation_type, confidence}]
+        """
+        eid = uuid.UUID(entity_id)
+        return await self.query(
+            """
+            SELECT
+                e.id AS neighbor_id,
+                e.canonical_name AS neighbor_name,
+                e.entity_type AS neighbor_type,
+                e.properties->>'ticker' AS neighbor_ticker,
+                r.relation_type,
+                r.confidence
+            FROM core.relations r
+            JOIN core.entities e
+              ON e.id = CASE WHEN r.source_entity = $1 THEN r.target_entity ELSE r.source_entity END
+             AND e.status = 'active'
+            WHERE (r.source_entity = $1 OR r.target_entity = $1)
+              AND r.status = 'active'
+            ORDER BY r.confidence DESC NULLS LAST
+            LIMIT $2
+            """,
+            eid, limit,
+        )
+
     # ──────────────────────────────────────────────
     # Fact 查询
     # ──────────────────────────────────────────────

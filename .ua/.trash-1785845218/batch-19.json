@@ -1,0 +1,41 @@
+{
+ "nodes": [
+  {
+   "id": "config:specs/agent-registry.yaml",
+   "type": "config",
+   "name": "agent-registry.yaml",
+   "filePath": "specs/agent-registry.yaml",
+   "summary": "配置文件：agent-registry.yaml",
+   "tags": [
+    "specs"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:specs/architecture.yaml",
+   "type": "config",
+   "name": "architecture.yaml",
+   "filePath": "specs/architecture.yaml",
+   "summary": "配置文件：architecture.yaml",
+   "tags": [
+    "specs"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:specs/ontology.yaml",
+   "type": "config",
+   "name": "ontology.yaml",
+   "filePath": "specs/ontology.yaml",
+   "summary": "配置文件：ontology.yaml",
+   "tags": [
+    "specs"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

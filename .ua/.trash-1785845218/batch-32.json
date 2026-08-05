@@ -1,0 +1,194 @@
+{
+ "nodes": [
+  {
+   "id": "config:scripts/collect_out/glossary_term_facts.json",
+   "type": "config",
+   "name": "glossary_term_facts.json",
+   "filePath": "scripts/collect_out/glossary_term_facts.json",
+   "summary": "配置文件：glossary_term_facts.json",
+   "tags": [
+    "scripts"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:scripts/dedupe_vault.py",
+   "type": "file",
+   "name": "dedupe_vault.py",
+   "filePath": "scripts/dedupe_vault.py",
+   "summary": "vault companies 目录治理脚本（安全去重） 背景： data/vault/companies/ 存在 7894 个目录，严重混乱： - 同一公司重复：000001 / 000001_平安银行 / 000001_長和 - 全角空格/多余空格：000002_万 科Ａ / 000012_南 玻Ａ - 6 位 A 股代码与 5 位港股代码混存（000001 平安银行 vs 00001 長和）",
+   "tags": [
+    "scripts",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:scripts/import_company_basic.py",
+   "type": "file",
+   "name": "import_company_basic.py",
+   "filePath": "scripts/import_company_basic.py",
+   "summary": "从本地 PDF 文件名提取公司基本信息 → PostgreSQL company_basic 无需网络，直接从 data/stock_a/, stock_h/, stock_us/ 文件名解析。",
+   "tags": [
+    "scripts",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:scripts/import_providers.py",
+   "type": "file",
+   "name": "import_providers.py",
+   "filePath": "scripts/import_providers.py",
+   "summary": "导入 providers.yaml 到 PostgreSQL providers 表 用法: python scripts/import_providers.py 环境变量: PROVIDERS_YAML - providers.yaml 文件路径 (默认: {PROJECT_ROOT}/data/providers.yaml) PG_DSN - PostgreSQL 连接串 (默认: postg",
+   "tags": [
+    "scripts",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:scripts/init_news_qdrant.py",
+   "type": "file",
+   "name": "init_news_qdrant.py",
+   "filePath": "scripts/init_news_qdrant.py",
+   "summary": "News Intelligence Pipeline — Qdrant Collections 初始化 创建新闻管线所需的向量集合： - news_embeddings: 文章 embedding（去重 + 语义搜索） - news_events: 事件 embedding（事件语义检索） 用法: python3 scripts/init_news_qdrant.py python3 script",
+   "tags": [
+    "scripts",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:scripts/sync_to_age.py",
+   "type": "file",
+   "name": "sync_to_age.py",
+   "filePath": "scripts/sync_to_age.py",
+   "summary": "PostgreSQL → Apache AGE 数据同步脚本 将 core.entities + core.relations 现有数据同步到 AGE Graph。 幂等：使用 MERGE（ON MATCH 更新属性）。 用法： python3 scripts/sync_to_age.py python3 scripts/sync_to_age.py --batch-size 100 --dry-",
+   "tags": [
+    "scripts",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:scripts/upload_analysis_reports.py",
+   "type": "file",
+   "name": "upload_analysis_reports.py",
+   "filePath": "scripts/upload_analysis_reports.py",
+   "summary": "上传大师分析报告到 MinIO artifacts/research/ Bucket 路径规范: artifacts/research/{market}/{symbol}/master_analysis_{year}.md 环境变量: MINIO_ENDPOINT - MinIO 服务地址 (默认: localhost:9000) MINIO_ROOT_USER - MinIO 访问密钥 MINI",
+   "tags": [
+    "scripts",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:scripts/web_scheduler.py",
+   "type": "file",
+   "name": "web_scheduler.py",
+   "filePath": "scripts/web_scheduler.py",
+   "summary": "Web Crawl Scheduler — 定时增量抓取 + 向量化同步 + 数据清理 基于 Crawl4AI 集成设计规范 第18节: - 周期性增量抓取（检测内容变化） - 自动向量化同步（Chunk → Embedding → Qdrant） - 死信重跑 - 定时数据清理（死信/孤儿/过期数据） 调度策略: - 增量抓取: 每 6 小时 - 向量化同步: 每 30 分钟（处理 pendin",
+   "tags": [
+    "scripts",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:sisyphus/compose.yml",
+   "type": "resource",
+   "name": "compose.yml",
+   "filePath": "sisyphus/compose.yml",
+   "summary": "compose.yml（sisyphus）",
+   "tags": [
+    "sisyphus"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:siyuan/compose.yml",
+   "type": "resource",
+   "name": "compose.yml",
+   "filePath": "siyuan/compose.yml",
+   "summary": "compose.yml（siyuan）",
+   "tags": [
+    "siyuan"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:skills/glossary/skill.md",
+   "type": "document",
+   "name": "skill.md",
+   "filePath": "skills/glossary/skill.md",
+   "summary": "文档：skill.md",
+   "tags": [
+    "skills",
+    "skill"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:scripts/init_news_qdrant.py",
+   "target": "file:frontend/src/services/models.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/upload_analysis_reports.py",
+   "target": "file:langgraph/tools/minio.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/web_scheduler.py",
+   "target": "file:langgraph/tools/minio.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/web_scheduler.py",
+   "target": "file:langgraph/providers/web/crawl4ai_provider.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/web_scheduler.py",
+   "target": "file:langgraph/pipelines/web_pipeline.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/web_scheduler.py",
+   "target": "file:frontend/src/services/models.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  }
+ ]
+}

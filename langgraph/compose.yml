@@ -31,11 +31,11 @@ services:
     volumes:
       - .:/app
       - ../registry:/registry:ro
-      - /mnt/d/minio/data:/data/minio:ro
-      - /mnt/e/ai-platform/data/reports:/data/analysis_reports:ro
-      - /mnt/e/ai-platform/data/stock_a:/data/stock_a:ro
-      - /mnt/e/ai-platform/data/stock_h:/data/stock_h:ro
-      - /mnt/e/ai-platform/data/stock_us:/data/stock_us:ro
+      - ../minio/data:/data/minio:ro
+      - ../data/reports:/data/analysis_reports:ro
+      - ../data/stock_a:/data/stock_a:ro
+      - ../data/stock_h:/data/stock_h:ro
+      - ../data/stock_us:/data/stock_us:ro
     networks:
       - ai-platform
     extra_hosts:

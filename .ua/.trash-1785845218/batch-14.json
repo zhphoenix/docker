@@ -1,0 +1,70 @@
+{
+ "nodes": [
+  {
+   "id": "document:langgraph/prompts/kb/entity_extraction.md",
+   "type": "document",
+   "name": "entity_extraction.md",
+   "filePath": "langgraph/prompts/kb/entity_extraction.md",
+   "summary": "文档：entity_extraction.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/kb/fact_extraction.md",
+   "type": "document",
+   "name": "fact_extraction.md",
+   "filePath": "langgraph/prompts/kb/fact_extraction.md",
+   "summary": "文档：fact_extraction.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/kb/relation_extraction.md",
+   "type": "document",
+   "name": "relation_extraction.md",
+   "filePath": "langgraph/prompts/kb/relation_extraction.md",
+   "summary": "文档：relation_extraction.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/kb/system.md",
+   "type": "document",
+   "name": "system.md",
+   "filePath": "langgraph/prompts/kb/system.md",
+   "summary": "文档：system.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/kb/validation.md",
+   "type": "document",
+   "name": "validation.md",
+   "filePath": "langgraph/prompts/kb/validation.md",
+   "summary": "文档：validation.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

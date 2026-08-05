@@ -1,0 +1,1370 @@
+{
+ "nodes": [
+  {
+   "id": "file:frontend/src/app/pages/NewsPage.tsx",
+   "type": "file",
+   "name": "NewsPage.tsx",
+   "filePath": "frontend/src/app/pages/NewsPage.tsx",
+   "summary": "NewsPage.tsx（frontend/src/app/pages）",
+   "tags": [
+    "frontend",
+    "page",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "type": "file",
+   "name": "ResearchPage.tsx",
+   "filePath": "frontend/src/app/pages/ResearchPage.tsx",
+   "summary": "ResearchPage.tsx（frontend/src/app/pages）",
+   "tags": [
+    "frontend",
+    "page",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/app/pages/SettingsPage.tsx",
+   "type": "file",
+   "name": "SettingsPage.tsx",
+   "filePath": "frontend/src/app/pages/SettingsPage.tsx",
+   "summary": "SettingsPage.tsx（frontend/src/app/pages）",
+   "tags": [
+    "frontend",
+    "page",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/app/pages/VectorDbPage.tsx",
+   "type": "file",
+   "name": "VectorDbPage.tsx",
+   "filePath": "frontend/src/app/pages/VectorDbPage.tsx",
+   "summary": "VectorDbPage.tsx（frontend/src/app/pages）",
+   "tags": [
+    "frontend",
+    "page",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/app/pages/WorkflowPage.tsx",
+   "type": "file",
+   "name": "WorkflowPage.tsx",
+   "filePath": "frontend/src/app/pages/WorkflowPage.tsx",
+   "summary": "WorkflowPage.tsx（frontend/src/app/pages）",
+   "tags": [
+    "frontend",
+    "page",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/app/router.tsx",
+   "type": "file",
+   "name": "router.tsx",
+   "filePath": "frontend/src/app/router.tsx",
+   "summary": "router.tsx（frontend/src/app）",
+   "tags": [
+    "frontend",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/common/EmptyState.tsx",
+   "type": "file",
+   "name": "EmptyState.tsx",
+   "filePath": "frontend/src/components/common/EmptyState.tsx",
+   "summary": "EmptyState.tsx（frontend/src/components/common）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/health/HealthProvider.tsx",
+   "type": "file",
+   "name": "HealthProvider.tsx",
+   "filePath": "frontend/src/components/health/HealthProvider.tsx",
+   "summary": "HealthProvider.tsx（frontend/src/components/health）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/knowledge/CollectionGrid.tsx",
+   "type": "file",
+   "name": "CollectionGrid.tsx",
+   "filePath": "frontend/src/components/knowledge/CollectionGrid.tsx",
+   "summary": "CollectionGrid.tsx（frontend/src/components/knowledge）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/knowledge/EntityBrowser.tsx",
+   "type": "file",
+   "name": "EntityBrowser.tsx",
+   "filePath": "frontend/src/components/knowledge/EntityBrowser.tsx",
+   "summary": "EntityBrowser.tsx（frontend/src/components/knowledge）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/knowledge/EntityDetailDialog.tsx",
+   "type": "file",
+   "name": "EntityDetailDialog.tsx",
+   "filePath": "frontend/src/components/knowledge/EntityDetailDialog.tsx",
+   "summary": "EntityDetailDialog.tsx（frontend/src/components/knowledge）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/knowledge/KnowledgeDashboard.tsx",
+   "type": "file",
+   "name": "KnowledgeDashboard.tsx",
+   "filePath": "frontend/src/components/knowledge/KnowledgeDashboard.tsx",
+   "summary": "KnowledgeDashboard.tsx（frontend/src/components/knowledge）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+   "type": "file",
+   "name": "KnowledgeTasksPanel.tsx",
+   "filePath": "frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+   "summary": "KnowledgeTasksPanel.tsx（frontend/src/components/knowledge）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/knowledge/SemanticSearchPanel.tsx",
+   "type": "file",
+   "name": "SemanticSearchPanel.tsx",
+   "filePath": "frontend/src/components/knowledge/SemanticSearchPanel.tsx",
+   "summary": "SemanticSearchPanel.tsx（frontend/src/components/knowledge）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/layout/AppShell.tsx",
+   "type": "file",
+   "name": "AppShell.tsx",
+   "filePath": "frontend/src/components/layout/AppShell.tsx",
+   "summary": "AppShell.tsx（frontend/src/components/layout）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/layout/CommandPalette.tsx",
+   "type": "file",
+   "name": "CommandPalette.tsx",
+   "filePath": "frontend/src/components/layout/CommandPalette.tsx",
+   "summary": "CommandPalette.tsx（frontend/src/components/layout）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/layout/Header.tsx",
+   "type": "file",
+   "name": "Header.tsx",
+   "filePath": "frontend/src/components/layout/Header.tsx",
+   "summary": "Header.tsx（frontend/src/components/layout）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/layout/Sidebar.tsx",
+   "type": "file",
+   "name": "Sidebar.tsx",
+   "filePath": "frontend/src/components/layout/Sidebar.tsx",
+   "summary": "Sidebar.tsx（frontend/src/components/layout）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/layout/StatusBar.tsx",
+   "type": "file",
+   "name": "StatusBar.tsx",
+   "filePath": "frontend/src/components/layout/StatusBar.tsx",
+   "summary": "StatusBar.tsx（frontend/src/components/layout）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/news/ArticleDetailDialog.tsx",
+   "type": "file",
+   "name": "ArticleDetailDialog.tsx",
+   "filePath": "frontend/src/components/news/ArticleDetailDialog.tsx",
+   "summary": "ArticleDetailDialog.tsx（frontend/src/components/news）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/news/EventsTab.tsx",
+   "type": "file",
+   "name": "EventsTab.tsx",
+   "filePath": "frontend/src/components/news/EventsTab.tsx",
+   "summary": "EventsTab.tsx（frontend/src/components/news）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/news/ImpactTab.tsx",
+   "type": "file",
+   "name": "ImpactTab.tsx",
+   "filePath": "frontend/src/components/news/ImpactTab.tsx",
+   "summary": "ImpactTab.tsx（frontend/src/components/news）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/news/NewsListTab.tsx",
+   "type": "file",
+   "name": "NewsListTab.tsx",
+   "filePath": "frontend/src/components/news/NewsListTab.tsx",
+   "summary": "NewsListTab.tsx（frontend/src/components/news）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/news/TimelineTab.tsx",
+   "type": "file",
+   "name": "TimelineTab.tsx",
+   "filePath": "frontend/src/components/news/TimelineTab.tsx",
+   "summary": "TimelineTab.tsx（frontend/src/components/news）",
+   "tags": [
+    "frontend",
+    "component",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/ui/badge.tsx",
+   "type": "file",
+   "name": "badge.tsx",
+   "filePath": "frontend/src/components/ui/badge.tsx",
+   "summary": "badge.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:frontend/src/app/pages/NewsPage.tsx",
+   "target": "file:frontend/src/components/ui/tabs.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/NewsPage.tsx",
+   "target": "file:frontend/src/components/news/NewsListTab.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/NewsPage.tsx",
+   "target": "file:frontend/src/components/news/EventsTab.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/NewsPage.tsx",
+   "target": "file:frontend/src/components/news/ImpactTab.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "target": "file:frontend/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "target": "file:frontend/src/components/ui/scroll-area.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "target": "file:frontend/src/components/ui/tabs.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "target": "file:frontend/src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "target": "file:frontend/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "target": "file:frontend/src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "target": "file:frontend/src/components/common/EmptyState.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "target": "file:frontend/src/components/ui/resizable.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "target": "file:frontend/src/services/research.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "target": "file:frontend/src/services/reports.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ResearchPage.tsx",
+   "target": "file:frontend/src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/SettingsPage.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/SettingsPage.tsx",
+   "target": "file:frontend/src/components/ui/separator.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/SettingsPage.tsx",
+   "target": "file:frontend/src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/VectorDbPage.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/VectorDbPage.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/VectorDbPage.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/VectorDbPage.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/VectorDbPage.tsx",
+   "target": "file:frontend/src/components/common/EmptyState.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/VectorDbPage.tsx",
+   "target": "file:frontend/src/services/vector.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/WorkflowPage.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/WorkflowPage.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/WorkflowPage.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/WorkflowPage.tsx",
+   "target": "file:frontend/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/WorkflowPage.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/WorkflowPage.tsx",
+   "target": "file:frontend/src/components/ui/progress.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/WorkflowPage.tsx",
+   "target": "file:frontend/src/components/ui/scroll-area.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/WorkflowPage.tsx",
+   "target": "file:frontend/src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/WorkflowPage.tsx",
+   "target": "file:frontend/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/WorkflowPage.tsx",
+   "target": "file:frontend/src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/WorkflowPage.tsx",
+   "target": "file:frontend/src/components/ui/tabs.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/WorkflowPage.tsx",
+   "target": "file:frontend/src/components/common/EmptyState.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/WorkflowPage.tsx",
+   "target": "file:frontend/src/services/tasks.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/WorkflowPage.tsx",
+   "target": "file:frontend/src/services/knowledge.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/CollectionGrid.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/CollectionGrid.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/CollectionGrid.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/CollectionGrid.tsx",
+   "target": "file:frontend/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/CollectionGrid.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/CollectionGrid.tsx",
+   "target": "file:frontend/src/components/ui/progress.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/CollectionGrid.tsx",
+   "target": "file:frontend/src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/CollectionGrid.tsx",
+   "target": "file:frontend/src/components/common/EmptyState.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/CollectionGrid.tsx",
+   "target": "file:frontend/src/services/knowledge.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/CollectionGrid.tsx",
+   "target": "file:frontend/src/services/tasks.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/EntityBrowser.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/EntityBrowser.tsx",
+   "target": "file:frontend/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/EntityBrowser.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/EntityBrowser.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/EntityBrowser.tsx",
+   "target": "file:frontend/src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/EntityBrowser.tsx",
+   "target": "file:frontend/src/components/common/EmptyState.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/EntityBrowser.tsx",
+   "target": "file:frontend/src/services/knowledge.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/EntityDetailDialog.tsx",
+   "target": "file:frontend/src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/EntityDetailDialog.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/EntityDetailDialog.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/EntityDetailDialog.tsx",
+   "target": "file:frontend/src/components/ui/separator.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/EntityDetailDialog.tsx",
+   "target": "file:frontend/src/components/common/EmptyState.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeDashboard.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeDashboard.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeDashboard.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeDashboard.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeDashboard.tsx",
+   "target": "file:frontend/src/components/ui/progress.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeDashboard.tsx",
+   "target": "file:frontend/src/components/common/EmptyState.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeDashboard.tsx",
+   "target": "file:frontend/src/services/knowledge.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeDashboard.tsx",
+   "target": "file:frontend/src/services/health.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+   "target": "file:frontend/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+   "target": "file:frontend/src/components/ui/scroll-area.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+   "target": "file:frontend/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+   "target": "file:frontend/src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+   "target": "file:frontend/src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+   "target": "file:frontend/src/components/common/EmptyState.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+   "target": "file:frontend/src/services/tasks.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/SemanticSearchPanel.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/SemanticSearchPanel.tsx",
+   "target": "file:frontend/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/SemanticSearchPanel.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/SemanticSearchPanel.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/SemanticSearchPanel.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/SemanticSearchPanel.tsx",
+   "target": "file:frontend/src/components/common/EmptyState.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/knowledge/SemanticSearchPanel.tsx",
+   "target": "file:frontend/src/services/knowledge.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/layout/CommandPalette.tsx",
+   "target": "file:frontend/src/components/ui/command.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/layout/CommandPalette.tsx",
+   "target": "file:frontend/src/hooks/useDebounce.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/layout/CommandPalette.tsx",
+   "target": "file:frontend/src/services/news.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/layout/Sidebar.tsx",
+   "target": "file:frontend/src/stores/app-store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/layout/StatusBar.tsx",
+   "target": "file:frontend/src/services/health.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/layout/StatusBar.tsx",
+   "target": "file:frontend/src/services/models.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/ArticleDetailDialog.tsx",
+   "target": "file:frontend/src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/ArticleDetailDialog.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/ArticleDetailDialog.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/ArticleDetailDialog.tsx",
+   "target": "file:frontend/src/services/news.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/EventsTab.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/EventsTab.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/EventsTab.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/EventsTab.tsx",
+   "target": "file:frontend/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/EventsTab.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/EventsTab.tsx",
+   "target": "file:frontend/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/EventsTab.tsx",
+   "target": "file:frontend/src/services/news.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/ImpactTab.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/ImpactTab.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/ImpactTab.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/ImpactTab.tsx",
+   "target": "file:frontend/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/ImpactTab.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/ImpactTab.tsx",
+   "target": "file:frontend/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/ImpactTab.tsx",
+   "target": "file:frontend/src/services/news.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/NewsListTab.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/NewsListTab.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/NewsListTab.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/NewsListTab.tsx",
+   "target": "file:frontend/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/NewsListTab.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/NewsListTab.tsx",
+   "target": "file:frontend/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/NewsListTab.tsx",
+   "target": "file:frontend/src/services/news.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/TimelineTab.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/TimelineTab.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/TimelineTab.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/TimelineTab.tsx",
+   "target": "file:frontend/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/TimelineTab.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/news/TimelineTab.tsx",
+   "target": "file:frontend/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  }
+ ]
+}

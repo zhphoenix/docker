@@ -1,0 +1,651 @@
+{
+ "nodes": [
+  {
+   "id": "file:frontend/src/services/knowledge.ts",
+   "type": "file",
+   "name": "knowledge.ts",
+   "filePath": "frontend/src/services/knowledge.ts",
+   "summary": "knowledge.ts（frontend/src/services）",
+   "tags": [
+    "frontend",
+    "service",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/services/models.ts",
+   "type": "file",
+   "name": "models.ts",
+   "filePath": "frontend/src/services/models.ts",
+   "summary": "models.ts（frontend/src/services）",
+   "tags": [
+    "frontend",
+    "service",
+    "function"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/services/news.ts",
+   "type": "file",
+   "name": "news.ts",
+   "filePath": "frontend/src/services/news.ts",
+   "summary": "news.ts（frontend/src/services）",
+   "tags": [
+    "frontend",
+    "service",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/services/query-client.ts",
+   "type": "file",
+   "name": "query-client.ts",
+   "filePath": "frontend/src/services/query-client.ts",
+   "summary": "query-client.ts（frontend/src/services）",
+   "tags": [
+    "frontend",
+    "service",
+    "function"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/services/reports.ts",
+   "type": "file",
+   "name": "reports.ts",
+   "filePath": "frontend/src/services/reports.ts",
+   "summary": "reports.ts（frontend/src/services）",
+   "tags": [
+    "frontend",
+    "service",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/services/research.ts",
+   "type": "file",
+   "name": "research.ts",
+   "filePath": "frontend/src/services/research.ts",
+   "summary": "research.ts（frontend/src/services）",
+   "tags": [
+    "frontend",
+    "service",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/services/tasks.ts",
+   "type": "file",
+   "name": "tasks.ts",
+   "filePath": "frontend/src/services/tasks.ts",
+   "summary": "tasks.ts（frontend/src/services）",
+   "tags": [
+    "frontend",
+    "service",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/services/vector.ts",
+   "type": "file",
+   "name": "vector.ts",
+   "filePath": "frontend/src/services/vector.ts",
+   "summary": "vector.ts（frontend/src/services）",
+   "tags": [
+    "frontend",
+    "service",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/stores/app-store.ts",
+   "type": "file",
+   "name": "app-store.ts",
+   "filePath": "frontend/src/stores/app-store.ts",
+   "summary": "app-store.ts（frontend/src/stores）",
+   "tags": [
+    "frontend",
+    "function"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/stores/chat-store.ts",
+   "type": "file",
+   "name": "chat-store.ts",
+   "filePath": "frontend/src/stores/chat-store.ts",
+   "summary": "chat-store.ts（frontend/src/stores）",
+   "tags": [
+    "frontend",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/theme/ThemeProvider.tsx",
+   "type": "file",
+   "name": "ThemeProvider.tsx",
+   "filePath": "frontend/src/theme/ThemeProvider.tsx",
+   "summary": "ThemeProvider.tsx（frontend/src/theme）",
+   "tags": [
+    "frontend",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/vite.config.ts",
+   "type": "file",
+   "name": "vite.config.ts",
+   "filePath": "frontend/vite.config.ts",
+   "summary": "vite.config.ts（frontend）",
+   "tags": [
+    "frontend"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/agents/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/agents/__init__.py",
+   "summary": "__init__.py（langgraph/agents）",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/agents/base_agent.py",
+   "type": "file",
+   "name": "base_agent.py",
+   "filePath": "langgraph/agents/base_agent.py",
+   "summary": "Base Agent - Agent 基类",
+   "tags": [
+    "langgraph",
+    "class",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/agents/chat_agent.py",
+   "type": "file",
+   "name": "chat_agent.py",
+   "filePath": "langgraph/agents/chat_agent.py",
+   "summary": "Chat Agent - 简单问答 + RAG",
+   "tags": [
+    "langgraph",
+    "class"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/agents/investment_agent.py",
+   "type": "file",
+   "name": "investment_agent.py",
+   "filePath": "langgraph/agents/investment_agent.py",
+   "summary": "Investment Agent - 价值投资分析（大师方法论）",
+   "tags": [
+    "langgraph",
+    "class"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/agents/kb_agent.py",
+   "type": "file",
+   "name": "kb_agent.py",
+   "filePath": "langgraph/agents/kb_agent.py",
+   "summary": "KB Agent - 知识库管理（RAG 检索）",
+   "tags": [
+    "langgraph",
+    "class"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/agents/research_agent.py",
+   "type": "file",
+   "name": "research_agent.py",
+   "filePath": "langgraph/agents/research_agent.py",
+   "summary": "Research Agent - 研究分析（年报、行业）",
+   "tags": [
+    "langgraph",
+    "class"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/api/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/api/__init__.py",
+   "summary": "__init__.py（langgraph/api）",
+   "tags": [
+    "langgraph",
+    "api"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/api/agents.py",
+   "type": "file",
+   "name": "agents.py",
+   "filePath": "langgraph/api/agents.py",
+   "summary": "Agents API - Agent 只读列表（合并 DB 配置 + 运行时注册表）",
+   "tags": [
+    "langgraph",
+    "api",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/api/approvals.py",
+   "type": "file",
+   "name": "approvals.py",
+   "filePath": "langgraph/api/approvals.py",
+   "summary": "Approvals API - 人审管理",
+   "tags": [
+    "langgraph",
+    "api",
+    "class",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/api/chat.py",
+   "type": "file",
+   "name": "chat.py",
+   "filePath": "langgraph/api/chat.py",
+   "summary": "Chat 路由 - /v1/chat/completions",
+   "tags": [
+    "langgraph",
+    "api",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/api/documents.py",
+   "type": "file",
+   "name": "documents.py",
+   "filePath": "langgraph/api/documents.py",
+   "summary": "Documents API - 文档列表、统计、详情、分块、实体与生命周期管理",
+   "tags": [
+    "langgraph",
+    "api",
+    "class",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/api/health.py",
+   "type": "file",
+   "name": "health.py",
+   "filePath": "langgraph/api/health.py",
+   "summary": "Health & Monitoring 路由 - 健康检查 + 系统监控",
+   "tags": [
+    "langgraph",
+    "api",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/api/knowledge.py",
+   "type": "file",
+   "name": "knowledge.py",
+   "filePath": "langgraph/api/knowledge.py",
+   "summary": "Knowledge API - 知识库管理（Collection 统计 + 知识图谱查询 + Hybrid 检索）",
+   "tags": [
+    "langgraph",
+    "api",
+    "class",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:langgraph/agents/base_agent.py",
+   "target": "file:langgraph/schemas/chat.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/agents/base_agent.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/agents/base_agent.py",
+   "target": "file:langgraph/nodes/research/planner.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/agents/base_agent.py",
+   "target": "file:langgraph/nodes/research/retrieve.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/agents/base_agent.py",
+   "target": "file:langgraph/nodes/research/rerank.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/agents/base_agent.py",
+   "target": "file:langgraph/prompts/loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/agents/chat_agent.py",
+   "target": "file:langgraph/agents/base_agent.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/agents/investment_agent.py",
+   "target": "file:langgraph/agents/base_agent.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/agents/kb_agent.py",
+   "target": "file:langgraph/agents/base_agent.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/agents/research_agent.py",
+   "target": "file:langgraph/agents/base_agent.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/agents.py",
+   "target": "file:langgraph/services/router.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/agents.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/approvals.py",
+   "target": "file:langgraph/services/approval.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/approvals.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/approvals.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/chat.py",
+   "target": "file:langgraph/schemas/chat.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/chat.py",
+   "target": "file:langgraph/services/router.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/documents.py",
+   "target": "file:langgraph/api/path_utils.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/documents.py",
+   "target": "file:langgraph/pipelines/document_pipeline.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/documents.py",
+   "target": "file:langgraph/tools/minio.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/documents.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/documents.py",
+   "target": "file:langgraph/tools/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/documents.py",
+   "target": "file:langgraph/runtime/queue.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/health.py",
+   "target": "file:langgraph/config/settings.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/health.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/health.py",
+   "target": "file:langgraph/tools/minio.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/knowledge.py",
+   "target": "file:langgraph/config/settings.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/knowledge.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/knowledge.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/knowledge.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/knowledge.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/knowledge.py",
+   "target": "file:langgraph/storage/knowledge/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/knowledge.py",
+   "target": "file:langgraph/runtime/queue.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/knowledge.py",
+   "target": "file:langgraph/pipelines/document_pipeline.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/knowledge.py",
+   "target": "file:langgraph/api/path_utils.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/knowledge.py",
+   "target": "file:langgraph/tools/chunker.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/knowledge.py",
+   "target": "file:langgraph/tools/embedding.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/knowledge.py",
+   "target": "file:langgraph/tools/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  }
+ ]
+}

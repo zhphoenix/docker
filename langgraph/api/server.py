@@ -22,6 +22,7 @@ from api.reports import router as reports_router
 from api.knowledge import router as knowledge_router
 from api.vector import router as vector_router
 from api.news import news_router
+from api.watchlist import watchlist_router
 from tools.postgres import postgres_tool
 
 # 配置日志
@@ -155,3 +156,4 @@ app.include_router(reports_router)
 app.include_router(knowledge_router)
 app.include_router(vector_router)
 app.include_router(news_router)
+app.include_router(watchlist_router)

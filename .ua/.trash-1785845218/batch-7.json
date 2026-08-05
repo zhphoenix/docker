@@ -1,0 +1,41 @@
+{
+ "nodes": [
+  {
+   "id": "resource:docling/Dockerfile.cuda13",
+   "type": "resource",
+   "name": "Dockerfile.cuda13",
+   "filePath": "docling/Dockerfile.cuda13",
+   "summary": "Dockerfile.cuda13（docling）",
+   "tags": [
+    "docling"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:docling/compose.yml",
+   "type": "resource",
+   "name": "compose.yml",
+   "filePath": "docling/compose.yml",
+   "summary": "compose.yml（docling）",
+   "tags": [
+    "docling"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:docling/entrypoint.sh",
+   "type": "file",
+   "name": "entrypoint.sh",
+   "filePath": "docling/entrypoint.sh",
+   "summary": "entrypoint.sh（docling）",
+   "tags": [
+    "docling"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

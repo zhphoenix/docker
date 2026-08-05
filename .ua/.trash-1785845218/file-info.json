@@ -1,0 +1,2913 @@
+{
+ "frontend/vite.config.ts": {
+  "path": "./frontend/vite.config.ts",
+  "ext": ".ts",
+  "total": 36,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/main.tsx": {
+  "path": "./frontend/src/main.tsx",
+  "ext": ".tsx",
+  "total": 22,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/app/router.tsx": {
+  "path": "./frontend/src/app/router.tsx",
+  "ext": ".tsx",
+  "total": 149,
+  "doc": "",
+  "funcs": [
+   "router"
+  ]
+ },
+ "frontend/src/app/pages/AgentsPage.tsx": {
+  "path": "./frontend/src/app/pages/AgentsPage.tsx",
+  "ext": ".tsx",
+  "total": 157,
+  "doc": "",
+  "funcs": [
+   "AgentsPage"
+  ]
+ },
+ "frontend/src/app/pages/ChatPage.tsx": {
+  "path": "./frontend/src/app/pages/ChatPage.tsx",
+  "ext": ".tsx",
+  "total": 268,
+  "doc": "",
+  "funcs": [
+   "ChatPage"
+  ]
+ },
+ "frontend/src/app/pages/DashboardPage.tsx": {
+  "path": "./frontend/src/app/pages/DashboardPage.tsx",
+  "ext": ".tsx",
+  "total": 204,
+  "doc": "",
+  "funcs": [
+   "DashboardPage"
+  ]
+ },
+ "frontend/src/app/pages/DocumentsPage.tsx": {
+  "path": "./frontend/src/app/pages/DocumentsPage.tsx",
+  "ext": ".tsx",
+  "total": 1832,
+  "doc": "",
+  "funcs": [
+   "DocumentsPage"
+  ]
+ },
+ "frontend/src/app/pages/KnowledgePage.tsx": {
+  "path": "./frontend/src/app/pages/KnowledgePage.tsx",
+  "ext": ".tsx",
+  "total": 69,
+  "doc": "",
+  "funcs": [
+   "KnowledgePage"
+  ]
+ },
+ "frontend/src/app/pages/KnowledgeReviewPage.tsx": {
+  "path": "./frontend/src/app/pages/KnowledgeReviewPage.tsx",
+  "ext": ".tsx",
+  "total": 260,
+  "doc": "",
+  "funcs": [
+   "KnowledgeReviewPage"
+  ]
+ },
+ "frontend/src/app/pages/ModelsPage.tsx": {
+  "path": "./frontend/src/app/pages/ModelsPage.tsx",
+  "ext": ".tsx",
+  "total": 168,
+  "doc": "",
+  "funcs": [
+   "ModelsPage"
+  ]
+ },
+ "frontend/src/app/pages/MonitorPage.tsx": {
+  "path": "./frontend/src/app/pages/MonitorPage.tsx",
+  "ext": ".tsx",
+  "total": 338,
+  "doc": "",
+  "funcs": [
+   "MonitorPage"
+  ]
+ },
+ "frontend/src/app/pages/NewsPage.tsx": {
+  "path": "./frontend/src/app/pages/NewsPage.tsx",
+  "ext": ".tsx",
+  "total": 52,
+  "doc": "",
+  "funcs": [
+   "NewsPage"
+  ]
+ },
+ "frontend/src/app/pages/ResearchPage.tsx": {
+  "path": "./frontend/src/app/pages/ResearchPage.tsx",
+  "ext": ".tsx",
+  "total": 700,
+  "doc": "",
+  "funcs": [
+   "ResearchPage"
+  ]
+ },
+ "frontend/src/app/pages/SettingsPage.tsx": {
+  "path": "./frontend/src/app/pages/SettingsPage.tsx",
+  "ext": ".tsx",
+  "total": 133,
+  "doc": "",
+  "funcs": [
+   "SettingsPage"
+  ]
+ },
+ "frontend/src/app/pages/VectorDbPage.tsx": {
+  "path": "./frontend/src/app/pages/VectorDbPage.tsx",
+  "ext": ".tsx",
+  "total": 197,
+  "doc": "",
+  "funcs": [
+   "VectorDbPage"
+  ]
+ },
+ "frontend/src/app/pages/WorkflowPage.tsx": {
+  "path": "./frontend/src/app/pages/WorkflowPage.tsx",
+  "ext": ".tsx",
+  "total": 918,
+  "doc": "",
+  "funcs": [
+   "WorkflowPage"
+  ]
+ },
+ "frontend/src/components/common/EmptyState.tsx": {
+  "path": "./frontend/src/components/common/EmptyState.tsx",
+  "ext": ".tsx",
+  "total": 35,
+  "doc": "",
+  "funcs": [
+   "EmptyState"
+  ]
+ },
+ "frontend/src/components/health/HealthProvider.tsx": {
+  "path": "./frontend/src/components/health/HealthProvider.tsx",
+  "ext": ".tsx",
+  "total": 26,
+  "doc": "",
+  "funcs": [
+   "HEALTH_QUERY_KEY",
+   "HealthProvider"
+  ]
+ },
+ "frontend/src/components/knowledge/CollectionGrid.tsx": {
+  "path": "./frontend/src/components/knowledge/CollectionGrid.tsx",
+  "ext": ".tsx",
+  "total": 365,
+  "doc": "",
+  "funcs": [
+   "CollectionGrid"
+  ]
+ },
+ "frontend/src/components/knowledge/EntityBrowser.tsx": {
+  "path": "./frontend/src/components/knowledge/EntityBrowser.tsx",
+  "ext": ".tsx",
+  "total": 138,
+  "doc": "",
+  "funcs": [
+   "EntityBrowser"
+  ]
+ },
+ "frontend/src/components/knowledge/EntityDetailDialog.tsx": {
+  "path": "./frontend/src/components/knowledge/EntityDetailDialog.tsx",
+  "ext": ".tsx",
+  "total": 141,
+  "doc": "",
+  "funcs": [
+   "EntityDetailDialog"
+  ]
+ },
+ "frontend/src/components/knowledge/KnowledgeDashboard.tsx": {
+  "path": "./frontend/src/components/knowledge/KnowledgeDashboard.tsx",
+  "ext": ".tsx",
+  "total": 544,
+  "doc": "",
+  "funcs": [
+   "KnowledgeDashboard"
+  ]
+ },
+ "frontend/src/components/knowledge/KnowledgeTasksPanel.tsx": {
+  "path": "./frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+  "ext": ".tsx",
+  "total": 637,
+  "doc": "",
+  "funcs": [
+   "KnowledgeTasksPanel"
+  ]
+ },
+ "frontend/src/components/knowledge/SemanticSearchPanel.tsx": {
+  "path": "./frontend/src/components/knowledge/SemanticSearchPanel.tsx",
+  "ext": ".tsx",
+  "total": 371,
+  "doc": "",
+  "funcs": [
+   "SemanticSearchPanel"
+  ]
+ },
+ "frontend/src/components/layout/AppShell.tsx": {
+  "path": "./frontend/src/components/layout/AppShell.tsx",
+  "ext": ".tsx",
+  "total": 29,
+  "doc": "",
+  "funcs": [
+   "AppShell"
+  ]
+ },
+ "frontend/src/components/layout/CommandPalette.tsx": {
+  "path": "./frontend/src/components/layout/CommandPalette.tsx",
+  "ext": ".tsx",
+  "total": 190,
+  "doc": "",
+  "funcs": [
+   "CommandPalette"
+  ]
+ },
+ "frontend/src/components/layout/Header.tsx": {
+  "path": "./frontend/src/components/layout/Header.tsx",
+  "ext": ".tsx",
+  "total": 55,
+  "doc": "",
+  "funcs": [
+   "Header"
+  ]
+ },
+ "frontend/src/components/layout/Sidebar.tsx": {
+  "path": "./frontend/src/components/layout/Sidebar.tsx",
+  "ext": ".tsx",
+  "total": 135,
+  "doc": "",
+  "funcs": [
+   "Sidebar"
+  ]
+ },
+ "frontend/src/components/layout/StatusBar.tsx": {
+  "path": "./frontend/src/components/layout/StatusBar.tsx",
+  "ext": ".tsx",
+  "total": 66,
+  "doc": "",
+  "funcs": [
+   "StatusBar"
+  ]
+ },
+ "frontend/src/components/news/ArticleDetailDialog.tsx": {
+  "path": "./frontend/src/components/news/ArticleDetailDialog.tsx",
+  "ext": ".tsx",
+  "total": 153,
+  "doc": "",
+  "funcs": [
+   "ArticleDetailDialog"
+  ]
+ },
+ "frontend/src/components/news/EventsTab.tsx": {
+  "path": "./frontend/src/components/news/EventsTab.tsx",
+  "ext": ".tsx",
+  "total": 192,
+  "doc": "",
+  "funcs": [
+   "EventsTab"
+  ]
+ },
+ "frontend/src/components/news/ImpactTab.tsx": {
+  "path": "./frontend/src/components/news/ImpactTab.tsx",
+  "ext": ".tsx",
+  "total": 203,
+  "doc": "",
+  "funcs": [
+   "ImpactTab"
+  ]
+ },
+ "frontend/src/components/news/NewsListTab.tsx": {
+  "path": "./frontend/src/components/news/NewsListTab.tsx",
+  "ext": ".tsx",
+  "total": 336,
+  "doc": "",
+  "funcs": [
+   "NewsListTab"
+  ]
+ },
+ "frontend/src/components/news/TimelineTab.tsx": {
+  "path": "./frontend/src/components/news/TimelineTab.tsx",
+  "ext": ".tsx",
+  "total": 186,
+  "doc": "",
+  "funcs": [
+   "TimelineTab"
+  ]
+ },
+ "frontend/src/components/ui/badge.tsx": {
+  "path": "./frontend/src/components/ui/badge.tsx",
+  "ext": ".tsx",
+  "total": 53,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/components/ui/button.tsx": {
+  "path": "./frontend/src/components/ui/button.tsx",
+  "ext": ".tsx",
+  "total": 59,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/components/ui/card.tsx": {
+  "path": "./frontend/src/components/ui/card.tsx",
+  "ext": ".tsx",
+  "total": 104,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/components/ui/command.tsx": {
+  "path": "./frontend/src/components/ui/command.tsx",
+  "ext": ".tsx",
+  "total": 171,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/components/ui/dialog.tsx": {
+  "path": "./frontend/src/components/ui/dialog.tsx",
+  "ext": ".tsx",
+  "total": 159,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/components/ui/input.tsx": {
+  "path": "./frontend/src/components/ui/input.tsx",
+  "ext": ".tsx",
+  "total": 21,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/components/ui/progress.tsx": {
+  "path": "./frontend/src/components/ui/progress.tsx",
+  "ext": ".tsx",
+  "total": 82,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/components/ui/resizable.tsx": {
+  "path": "./frontend/src/components/ui/resizable.tsx",
+  "ext": ".tsx",
+  "total": 44,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/components/ui/scroll-area.tsx": {
+  "path": "./frontend/src/components/ui/scroll-area.tsx",
+  "ext": ".tsx",
+  "total": 53,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/components/ui/select.tsx": {
+  "path": "./frontend/src/components/ui/select.tsx",
+  "ext": ".tsx",
+  "total": 202,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/components/ui/separator.tsx": {
+  "path": "./frontend/src/components/ui/separator.tsx",
+  "ext": ".tsx",
+  "total": 26,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/components/ui/skeleton.tsx": {
+  "path": "./frontend/src/components/ui/skeleton.tsx",
+  "ext": ".tsx",
+  "total": 14,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/components/ui/table.tsx": {
+  "path": "./frontend/src/components/ui/table.tsx",
+  "ext": ".tsx",
+  "total": 115,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/components/ui/tabs.tsx": {
+  "path": "./frontend/src/components/ui/tabs.tsx",
+  "ext": ".tsx",
+  "total": 81,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/components/ui/textarea.tsx": {
+  "path": "./frontend/src/components/ui/textarea.tsx",
+  "ext": ".tsx",
+  "total": 19,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/components/ui/tooltip.tsx": {
+  "path": "./frontend/src/components/ui/tooltip.tsx",
+  "ext": ".tsx",
+  "total": 65,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/hooks/useDebounce.ts": {
+  "path": "./frontend/src/hooks/useDebounce.ts",
+  "ext": ".ts",
+  "total": 17,
+  "doc": "",
+  "funcs": [
+   "useDebounce"
+  ]
+ },
+ "frontend/src/lib/utils.ts": {
+  "path": "./frontend/src/lib/utils.ts",
+  "ext": ".ts",
+  "total": 7,
+  "doc": "",
+  "funcs": [
+   "cn"
+  ]
+ },
+ "frontend/src/services/agents.ts": {
+  "path": "./frontend/src/services/agents.ts",
+  "ext": ".ts",
+  "total": 21,
+  "doc": "",
+  "funcs": [
+   "fetchAgents"
+  ]
+ },
+ "frontend/src/services/api-client.ts": {
+  "path": "./frontend/src/services/api-client.ts",
+  "ext": ".ts",
+  "total": 51,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/services/approvals.ts": {
+  "path": "./frontend/src/services/approvals.ts",
+  "ext": ".ts",
+  "total": 41,
+  "doc": "",
+  "funcs": [
+   "fetchPendingApprovals",
+   "approveApproval",
+   "rejectApproval"
+  ]
+ },
+ "frontend/src/services/chat.ts": {
+  "path": "./frontend/src/services/chat.ts",
+  "ext": ".ts",
+  "total": 104,
+  "doc": "",
+  "funcs": []
+ },
+ "frontend/src/services/documents.ts": {
+  "path": "./frontend/src/services/documents.ts",
+  "ext": ".ts",
+  "total": 224,
+  "doc": "",
+  "funcs": [
+   "DOCUMENT_STATUS_LABELS",
+   "fetchDocuments",
+   "fetchDocumentStats",
+   "fetchDocumentDetail",
+   "fetchDocumentChunks",
+   "fetchDocumentEntities",
+   "deleteDocument",
+   "uploadDocumentPdf",
+   "uploadFolderPdf"
+  ]
+ },
+ "frontend/src/services/health.ts": {
+  "path": "./frontend/src/services/health.ts",
+  "ext": ".ts",
+  "total": 11,
+  "doc": "",
+  "funcs": [
+   "fetchHealth"
+  ]
+ },
+ "frontend/src/services/knowledge.ts": {
+  "path": "./frontend/src/services/knowledge.ts",
+  "ext": ".ts",
+  "total": 323,
+  "doc": "",
+  "funcs": [
+   "fetchKnowledgeCollections",
+   "fetchKnowledgeStats",
+   "fetchEntities",
+   "fetchEntityDetail",
+   "fetchEntityNeighbors",
+   "fetchFacts",
+   "searchKnowledge",
+   "graphragSearch",
+   "triggerIngest",
+   "triggerExtraction"
+  ]
+ },
+ "frontend/src/services/models.ts": {
+  "path": "./frontend/src/services/models.ts",
+  "ext": ".ts",
+  "total": 18,
+  "doc": "",
+  "funcs": [
+   "fetchModels"
+  ]
+ },
+ "frontend/src/services/news.ts": {
+  "path": "./frontend/src/services/news.ts",
+  "ext": ".ts",
+  "total": 207,
+  "doc": "",
+  "funcs": [
+   "fetchNewsArticles",
+   "fetchNewsArticle",
+   "fetchNewsEvents",
+   "fetchEventImpact",
+   "fetchNewsImpact",
+   "fetchNewsTimeline",
+   "fetchNewsSources",
+   "triggerNewsCollect"
+  ]
+ },
+ "frontend/src/services/query-client.ts": {
+  "path": "./frontend/src/services/query-client.ts",
+  "ext": ".ts",
+  "total": 12,
+  "doc": "",
+  "funcs": [
+   "queryClient"
+  ]
+ },
+ "frontend/src/services/reports.ts": {
+  "path": "./frontend/src/services/reports.ts",
+  "ext": ".ts",
+  "total": 59,
+  "doc": "",
+  "funcs": [
+   "fetchReports",
+   "fetchReportDetail",
+   "triggerAnalysis"
+  ]
+ },
+ "frontend/src/services/research.ts": {
+  "path": "./frontend/src/services/research.ts",
+  "ext": ".ts",
+  "total": 48,
+  "doc": "",
+  "funcs": [
+   "fetchResearch",
+   "fetchResearchDetail"
+  ]
+ },
+ "frontend/src/services/tasks.ts": {
+  "path": "./frontend/src/services/tasks.ts",
+  "ext": ".ts",
+  "total": 216,
+  "doc": "",
+  "funcs": [
+   "fetchTasks",
+   "fetchTaskDetail",
+   "retryTask",
+   "fetchTaskLogs",
+   "cancelTask",
+   "pauseTask",
+   "resumeTask",
+   "deleteTask",
+   "cloneTask",
+   "fetchTaskStats"
+  ]
+ },
+ "frontend/src/services/vector.ts": {
+  "path": "./frontend/src/services/vector.ts",
+  "ext": ".ts",
+  "total": 22,
+  "doc": "",
+  "funcs": [
+   "fetchVectorCollections"
+  ]
+ },
+ "frontend/src/stores/app-store.ts": {
+  "path": "./frontend/src/stores/app-store.ts",
+  "ext": ".ts",
+  "total": 14,
+  "doc": "",
+  "funcs": [
+   "useAppStore"
+  ]
+ },
+ "frontend/src/stores/chat-store.ts": {
+  "path": "./frontend/src/stores/chat-store.ts",
+  "ext": ".ts",
+  "total": 90,
+  "doc": "",
+  "funcs": [
+   "useChatStore"
+  ]
+ },
+ "frontend/src/theme/ThemeProvider.tsx": {
+  "path": "./frontend/src/theme/ThemeProvider.tsx",
+  "ext": ".tsx",
+  "total": 79,
+  "doc": "",
+  "funcs": [
+   "ThemeProvider",
+   "useTheme"
+  ]
+ },
+ "langgraph/main.py": {
+  "path": "./langgraph/main.py",
+  "ext": ".py",
+  "total": 18,
+  "doc": "入口文件 - uvicorn 启动",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/agents/base_agent.py": {
+  "path": "./langgraph/agents/base_agent.py",
+  "ext": ".py",
+  "total": 224,
+  "doc": "Base Agent - Agent 基类",
+  "classes": [
+   "BaseAgent"
+  ],
+  "funcs": [
+   "_build_context"
+  ]
+ },
+ "langgraph/agents/chat_agent.py": {
+  "path": "./langgraph/agents/chat_agent.py",
+  "ext": ".py",
+  "total": 18,
+  "doc": "Chat Agent - 简单问答 + RAG",
+  "classes": [
+   "ChatAgent"
+  ],
+  "funcs": []
+ },
+ "langgraph/agents/investment_agent.py": {
+  "path": "./langgraph/agents/investment_agent.py",
+  "ext": ".py",
+  "total": 26,
+  "doc": "Investment Agent - 价值投资分析（大师方法论）",
+  "classes": [
+   "InvestmentAgent"
+  ],
+  "funcs": []
+ },
+ "langgraph/agents/kb_agent.py": {
+  "path": "./langgraph/agents/kb_agent.py",
+  "ext": ".py",
+  "total": 22,
+  "doc": "KB Agent - 知识库管理（RAG 检索）",
+  "classes": [
+   "KBAgent"
+  ],
+  "funcs": []
+ },
+ "langgraph/agents/research_agent.py": {
+  "path": "./langgraph/agents/research_agent.py",
+  "ext": ".py",
+  "total": 19,
+  "doc": "Research Agent - 研究分析（年报、行业）",
+  "classes": [
+   "ResearchAgent"
+  ],
+  "funcs": []
+ },
+ "langgraph/agents/__init__.py": {
+  "path": "./langgraph/agents/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/api/agents.py": {
+  "path": "./langgraph/api/agents.py",
+  "ext": ".py",
+  "total": 64,
+  "doc": "Agents API - Agent 只读列表（合并 DB 配置 + 运行时注册表）",
+  "classes": [],
+  "funcs": [
+   "list_agents"
+  ]
+ },
+ "langgraph/api/approvals.py": {
+  "path": "./langgraph/api/approvals.py",
+  "ext": ".py",
+  "total": 84,
+  "doc": "Approvals API - 人审管理",
+  "classes": [
+   "RejectRequest"
+  ],
+  "funcs": [
+   "_get_approval_params",
+   "_approve_knowledge_inbox",
+   "get_approvals",
+   "approve_task",
+   "reject_task"
+  ]
+ },
+ "langgraph/api/chat.py": {
+  "path": "./langgraph/api/chat.py",
+  "ext": ".py",
+  "total": 60,
+  "doc": "Chat 路由 - /v1/chat/completions",
+  "classes": [],
+  "funcs": [
+   "chat_completions"
+  ]
+ },
+ "langgraph/api/documents.py": {
+  "path": "./langgraph/api/documents.py",
+  "ext": ".py",
+  "total": 821,
+  "doc": "Documents API - 文档列表、统计、详情、分块、实体与生命周期管理",
+  "classes": [
+   "CleanupRequest",
+   "RetryFailedRequest"
+  ],
+  "funcs": [
+   "_doc_row_to_dict",
+   "document_stats",
+   "list_documents",
+   "_get_document_or_404",
+   "get_document",
+   "get_document_chunks",
+   "get_document_entities",
+   "delete_document",
+   "_purge_document_resources",
+   "download_document_file"
+  ]
+ },
+ "langgraph/api/health.py": {
+  "path": "./langgraph/api/health.py",
+  "ext": ".py",
+  "total": 200,
+  "doc": "Health & Monitoring 路由 - 健康检查 + 系统监控",
+  "classes": [],
+  "funcs": [
+   "_check_http",
+   "_check_mcp",
+   "health_check",
+   "metrics",
+   "status_summary"
+  ]
+ },
+ "langgraph/api/knowledge.py": {
+  "path": "./langgraph/api/knowledge.py",
+  "ext": ".py",
+  "total": 1003,
+  "doc": "Knowledge API - 知识库管理（Collection 统计 + 知识图谱查询 + Hybrid 检索）",
+  "classes": [
+   "HybridSearchRequest",
+   "GraphRAGRequest",
+   "ExtractRequest",
+   "MinioIngestRequest",
+   "IngestRequest"
+  ],
+  "funcs": [
+   "list_collections",
+   "knowledge_stats",
+   "list_entities",
+   "get_entity_detail",
+   "get_entity_neighbors",
+   "list_facts",
+   "hybrid_search",
+   "_build_rag_context",
+   "graphrag_search",
+   "trigger_extraction"
+  ]
+ },
+ "langgraph/api/models.py": {
+  "path": "./langgraph/api/models.py",
+  "ext": ".py",
+  "total": 34,
+  "doc": "Models 路由 - 列出可用模型/Agent",
+  "classes": [],
+  "funcs": [
+   "list_models"
+  ]
+ },
+ "langgraph/api/news.py": {
+  "path": "./langgraph/api/news.py",
+  "ext": ".py",
+  "total": 270,
+  "doc": "News API Router - 新闻智能管线 REST 端点 提供新闻搜索、文章详情、事件浏览、影响分析、时间线等接口。 数据来源: PostgreSQL news schema（通过 services/news_storage.py）。",
+  "classes": [
+   "CollectRequest"
+  ],
+  "funcs": [
+   "_serialize",
+   "list_articles",
+   "get_article",
+   "list_events",
+   "get_event_impact",
+   "analyze_impact",
+   "get_timeline",
+   "_run_collection",
+   "trigger_collect",
+   "list_sources"
+  ]
+ },
+ "langgraph/api/path_utils.py": {
+  "path": "./langgraph/api/path_utils.py",
+  "ext": ".py",
+  "total": 138,
+  "doc": "路径转换工具 - 处理 Windows / WSL / 容器三种环境的路径差异 路径映射链: Windows: E:\\\\ai-platform\\\\data\\\\stock_a WSL: /mnt/e/ai-platform/data/stock_a Container: /data/stock_a browse-dirs API 返回容器路径，用户通过目录浏览器选择时无需转换。 用户手动输入 Win",
+  "classes": [],
+  "funcs": [
+   "_is_windows_path",
+   "_windows_to_wsl",
+   "_wsl_to_container",
+   "normalize_path",
+   "validate_container_path",
+   "get_volume_mapping_info"
+  ]
+ },
+ "langgraph/api/providers.py": {
+  "path": "./langgraph/api/providers.py",
+  "ext": ".py",
+  "total": 77,
+  "doc": "Provider Registry API - 数据源管理",
+  "classes": [
+   "ProviderOut"
+  ],
+  "funcs": [
+   "list_providers",
+   "get_provider",
+   "test_provider"
+  ]
+ },
+ "langgraph/api/reports.py": {
+  "path": "./langgraph/api/reports.py",
+  "ext": ".py",
+  "total": 248,
+  "doc": "Reports API - 大师分析报告（文件系统）+ 触发分析 报告数据源: REPORT_SOURCE_DIR 环境变量指定的目录（容器内 /data/analysis_reports）",
+  "classes": [
+   "AnalyzeRequest"
+  ],
+  "funcs": [
+   "parse_filename",
+   "build_report_id",
+   "scan_reports",
+   "list_reports",
+   "get_report",
+   "trigger_analysis",
+   "_run_analysis"
+  ]
+ },
+ "langgraph/api/research.py": {
+  "path": "./langgraph/api/research.py",
+  "ext": ".py",
+  "total": 100,
+  "doc": "Research API - 研究任务历史（只读）",
+  "classes": [],
+  "funcs": [
+   "list_research",
+   "get_research"
+  ]
+ },
+ "langgraph/api/server.py": {
+  "path": "./langgraph/api/server.py",
+  "ext": ".py",
+  "total": 158,
+  "doc": "FastAPI 应用入口 - 实例化、中间件、生命周期",
+  "classes": [],
+  "funcs": [
+   "lifespan",
+   "add_request_id",
+   "global_exception_handler"
+  ]
+ },
+ "langgraph/api/tasks.py": {
+  "path": "./langgraph/api/tasks.py",
+  "ext": ".py",
+  "total": 256,
+  "doc": "Tasks API - 任务管理与 Pipeline 触发",
+  "classes": [
+   "TriggerPipelineRequest",
+   "ReembedRequest",
+   "BatchEmbedRequest"
+  ],
+  "funcs": [
+   "list_tasks",
+   "pipeline_status",
+   "trigger_pipeline",
+   "trigger_batch_embed",
+   "reembed_document",
+   "worker_status",
+   "schedule_list",
+   "task_stats",
+   "get_task",
+   "get_task_logs"
+  ]
+ },
+ "langgraph/api/vector.py": {
+  "path": "./langgraph/api/vector.py",
+  "ext": ".py",
+  "total": 59,
+  "doc": "Vector API - Qdrant 向量数据库统计（只读）",
+  "classes": [],
+  "funcs": [
+   "list_vector_collections"
+  ]
+ },
+ "langgraph/api/__init__.py": {
+  "path": "./langgraph/api/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/collectors/rss_collector.py": {
+  "path": "./langgraph/collectors/rss_collector.py",
+  "ext": ".py",
+  "total": 75,
+  "doc": "RSS Collector — RSS/Atom Feed 新闻采集 使用 feedparser 解析 RSS/Atom feeds，返回标准化文章列表。",
+  "classes": [],
+  "funcs": [
+   "collect_rss"
+  ]
+ },
+ "langgraph/collectors/source_registry.py": {
+  "path": "./langgraph/collectors/source_registry.py",
+  "ext": ".py",
+  "total": 106,
+  "doc": "Source Registry — 新闻源配置加载器 从 registry/news_sources.yaml 加载新闻源配置。 支持按 priority 过滤和排序。",
+  "classes": [
+   "NewsSource",
+   "SourceRegistry"
+  ],
+  "funcs": []
+ },
+ "langgraph/collectors/web_collector.py": {
+  "path": "./langgraph/collectors/web_collector.py",
+  "ext": ".py",
+  "total": 121,
+  "doc": "Web Collector — Crawl4AI 网页新闻采集 复用 providers/web/crawl4ai_provider.py（Crawl4AI HTTP API）。 支持列表页 → 文章链接提取 → 逐篇抓取。",
+  "classes": [],
+  "funcs": [
+   "_get_provider",
+   "collect_web",
+   "close"
+  ]
+ },
+ "langgraph/collectors/__init__.py": {
+  "path": "./langgraph/collectors/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/config/policy_loader.py": {
+  "path": "./langgraph/config/policy_loader.py",
+  "ext": ".py",
+  "total": 103,
+  "doc": "Policy Center - 策略配置加载与热更新",
+  "classes": [],
+  "funcs": [
+   "_load_policies",
+   "get_policy",
+   "get_routing_rules",
+   "get_rate_limit",
+   "get_retry_config",
+   "_load_yaml_file",
+   "get_agents_registry",
+   "get_workflows_registry"
+  ]
+ },
+ "langgraph/config/settings.py": {
+  "path": "./langgraph/config/settings.py",
+  "ext": ".py",
+  "total": 96,
+  "doc": "配置管理 - Pydantic Settings，从 .env 加载所有环境变量",
+  "classes": [
+   "Settings"
+  ],
+  "funcs": []
+ },
+ "langgraph/config/__init__.py": {
+  "path": "./langgraph/config/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/graphs/document_graph.py": {
+  "path": "./langgraph/graphs/document_graph.py",
+  "ext": ".py",
+  "total": 51,
+  "doc": "Document Graph - 文档处理流程（LangGraph 编排层） 流程: process → END 说明: 实际的文档处理逻辑（MinIO PDF → Docling 解析 → Chunk → Embedding → Qdrant → PostgreSQL） 已在 pipelines/document_pipeline.py 的 doc_pipeline 中成熟实现。 本 Graph",
+  "classes": [],
+  "funcs": [
+   "process",
+   "build_document_graph"
+  ]
+ },
+ "langgraph/graphs/knowledge_graph.py": {
+  "path": "./langgraph/graphs/knowledge_graph.py",
+  "ext": ".py",
+  "total": 77,
+  "doc": "Knowledge Ingestion Agent Graph - LangGraph StateGraph 定义 流水线: Parser → Entity → [Relation || Fact] → Validator → Merger → END 性能优化: Entity 完成后 Relation/Fact 并行执行（fan-out/fan-in）",
+  "classes": [],
+  "funcs": [
+   "_timed",
+   "build_knowledge_ingestion_graph"
+  ]
+ },
+ "langgraph/graphs/news_analysis_graph.py": {
+  "path": "./langgraph/graphs/news_analysis_graph.py",
+  "ext": ".py",
+  "total": 98,
+  "doc": "News Intelligence Agent Graph - LangGraph StateGraph 定义 流水线: Cleaner → Deduplicator → EmbeddingDedup → Classifier → [Entity || Event] → Impact → Publisher → END 性能优化: Classifier 完成后 Entity/Event 并行执行（",
+  "classes": [],
+  "funcs": [
+   "_timed",
+   "build_news_intelligence_graph",
+   "get_news_graph"
+  ]
+ },
+ "langgraph/graphs/research_graph.py": {
+  "path": "./langgraph/graphs/research_graph.py",
+  "ext": ".py",
+  "total": 123,
+  "doc": "Graph 定义 - LangGraph StateGraph 构建",
+  "classes": [],
+  "funcs": [
+   "should_continue",
+   "build_research_graph",
+   "build_chat_graph",
+   "build_kb_graph"
+  ]
+ },
+ "langgraph/graphs/__init__.py": {
+  "path": "./langgraph/graphs/__init__.py",
+  "ext": ".py",
+  "total": 100,
+  "doc": "Graphs Registry - 工作流定义统一入口 依据 config/workflows.yaml 声明式注册表，按需导入对应模块的 builder 编译 Graph 并缓存。所有调用方应从这里获取编译后的 Graph， 而不要直接 import 各 graph 模块，以便统一管理生命周期。 Usage: from graphs import get_research_graph graph",
+  "classes": [],
+  "funcs": [
+   "_resolve_builder",
+   "get_graph",
+   "get_research_graph",
+   "get_chat_graph",
+   "get_kb_graph",
+   "get_news_graph",
+   "get_knowledge_graph",
+   "get_document_graph",
+   "list_workflows"
+  ]
+ },
+ "langgraph/memory/checkpoint.py": {
+  "path": "./langgraph/memory/checkpoint.py",
+  "ext": ".py",
+  "total": 25,
+  "doc": "Checkpoint 配置 - PostgreSQL AsyncPostgresSaver",
+  "classes": [],
+  "funcs": [
+   "get_checkpointer"
+  ]
+ },
+ "langgraph/memory/memory_store.py": {
+  "path": "./langgraph/memory/memory_store.py",
+  "ext": ".py",
+  "total": 174,
+  "doc": "Memory System - 三层记忆架构 工作记忆 (Working Memory): LangGraph Checkpoint → PostgreSQL langgraph 库 自动管理，无需手动操作。 情景记忆 (Episodic Memory): PostgreSQL research_tasks 表 记录每次研究任务的输入/输出/质量/耗时。 知识记忆 (Knowledge Memor",
+  "classes": [
+   "MemoryManager"
+  ],
+  "funcs": []
+ },
+ "langgraph/memory/thread_manager.py": {
+  "path": "./langgraph/memory/thread_manager.py",
+  "ext": ".py",
+  "total": 34,
+  "doc": "Thread Manager - LangGraph 会话线程管理 负责生成 thread_id 与组装 RunnableConfig，供带 Checkpointer 的 对话型 Graph 实现多轮会话的状态持久化。 Usage: from memory.thread_manager import build_run_config config = build_run_config(thread",
+  "classes": [],
+  "funcs": [
+   "new_thread_id",
+   "build_run_config"
+  ]
+ },
+ "langgraph/memory/__init__.py": {
+  "path": "./langgraph/memory/__init__.py",
+  "ext": ".py",
+  "total": 15,
+  "doc": "Memory System - 三层记忆架构 + Checkpoint + Thread 管理 Usage: from memory import memory_manager # 情景记忆 task_id = await memory_manager.start_episode(\"腾讯护城河分析\", market=\"hk\") await memory_manager.complete_episo",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/nodes/__init__.py": {
+  "path": "./langgraph/nodes/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/nodes/knowledge/entity.py": {
+  "path": "./langgraph/nodes/knowledge/entity.py",
+  "ext": ".py",
+  "total": 116,
+  "doc": "Node 2: Entity Extractor - 实体提取 并发从每个 chunk 提取实体（Semaphore 限流），内存去重。",
+  "classes": [],
+  "funcs": [
+   "entity_extractor",
+   "_parse_entities"
+  ]
+ },
+ "langgraph/nodes/knowledge/fact.py": {
+  "path": "./langgraph/nodes/knowledge/fact.py",
+  "ext": ".py",
+  "total": 161,
+  "doc": "Node 4: Fact Extractor - 事实提取 提取结构化事实 (subject/predicate/object/time) + 证据。",
+  "classes": [],
+  "funcs": [
+   "fact_extractor",
+   "_parse_facts"
+  ]
+ },
+ "langgraph/nodes/knowledge/merger.py": {
+  "path": "./langgraph/nodes/knowledge/merger.py",
+  "ext": ".py",
+  "total": 341,
+  "doc": "Node 6: Knowledge Merger - 知识合并 + 存储 合并重复实体/关系，批量写入 PostgreSQL + Qdrant + Apache AGE。",
+  "classes": [],
+  "funcs": [
+   "knowledge_merger"
+  ]
+ },
+ "langgraph/nodes/knowledge/parser.py": {
+  "path": "./langgraph/nodes/knowledge/parser.py",
+  "ext": ".py",
+  "total": 47,
+  "doc": "Node 1: Document Parser - 文档解析与分片 输入: raw_text 输出: chunks",
+  "classes": [],
+  "funcs": [
+   "document_parser"
+  ]
+ },
+ "langgraph/nodes/knowledge/relation.py": {
+  "path": "./langgraph/nodes/knowledge/relation.py",
+  "ext": ".py",
+  "total": 149,
+  "doc": "Node 3: Relation Extractor - 关系提取 基于已识别实体 + 原文，提取实体间关系。",
+  "classes": [],
+  "funcs": [
+   "relation_extractor",
+   "_parse_relations"
+  ]
+ },
+ "langgraph/nodes/knowledge/validator.py": {
+  "path": "./langgraph/nodes/knowledge/validator.py",
+  "ext": ".py",
+  "total": 160,
+  "doc": "Node 5: Knowledge Validator - 知识校验 实体消歧（Qdrant 向量检索）+ 冲突检测（批量查询优化）。 性能优化： - 实体消歧从 PG 全表扫描改为 Qdrant 向量检索 - 事实冲突检测从 N+1 查询改为 ANY($1) 批量查询 - Embeddings 写入 State 供 Merger 复用",
+  "classes": [],
+  "funcs": [
+   "knowledge_validator"
+  ]
+ },
+ "langgraph/nodes/knowledge/__init__.py": {
+  "path": "./langgraph/nodes/knowledge/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/nodes/news/classifier.py": {
+  "path": "./langgraph/nodes/news/classifier.py",
+  "ext": ".py",
+  "total": 131,
+  "doc": "Node 3: News Classifier — 新闻分类 + 重要性评分 职责： - 调用 LLM 对每篇文章进行分类（macro/stock/company/geopolitics/policy/technology） - 评估重要性分数（0~1） - 标记市场/行业关联 使用 prompts/news/classification.md 模板。",
+  "classes": [],
+  "funcs": [
+   "_score_to_tier",
+   "news_classifier"
+  ]
+ },
+ "langgraph/nodes/news/cleaner.py": {
+  "path": "./langgraph/nodes/news/cleaner.py",
+  "ext": ".py",
+  "total": 89,
+  "doc": "Node 1: News Cleaner — 语言检测 + 清洗 + 标准化 职责： - 检测文章语言（zh/en） - 清洗 HTML 标签、多余空白 - 计算 content_hash（SHA-256，供去重使用） - 过滤过短/无效文章",
+  "classes": [],
+  "funcs": [
+   "_detect_language",
+   "_clean_content",
+   "_content_hash",
+   "news_cleaner"
+  ]
+ },
+ "langgraph/nodes/news/deduplicator.py": {
+  "path": "./langgraph/nodes/news/deduplicator.py",
+  "ext": ".py",
+  "total": 72,
+  "doc": "Node 2: News Deduplicator — 两级去重 策略： - 第一层：content_hash 精确去重（同批次内） - 第二层：标题相似度去重（简单 Jaccard 相似） 注：Embedding 语义去重（Qdrant）在 Publisher 阶段执行（需要存储后才能比对历史）。",
+  "classes": [],
+  "funcs": [
+   "_title_similarity",
+   "news_deduplicator"
+  ]
+ },
+ "langgraph/nodes/news/embedding_dedup.py": {
+  "path": "./langgraph/nodes/news/embedding_dedup.py",
+  "ext": ".py",
+  "total": 138,
+  "doc": "Node 2b: Embedding Deduplication — 跨批次语义去重 DLM §9 去重机制第二层：Embedding Similarity > 0.92 视为重复。 对所有进入该节点的文章执行（位于 classifier 之前，尚无 tier 信息）。 位置：deduplicator（Hash 去重）之后、classifier 之前。 失败不阻塞：如果 Qdrant/Embedd",
+  "classes": [],
+  "funcs": [
+   "embedding_dedup",
+   "_ensure_collection"
+  ]
+ },
+ "langgraph/nodes/news/entity.py": {
+  "path": "./langgraph/nodes/news/entity.py",
+  "ext": ".py",
+  "total": 143,
+  "doc": "Node 4a: News Entity Extractor — 新闻实体识别 职责： - 从分类后的文章中提取金融实体 - 实体类型引用 ontology.yaml 10 种 Entity Types - 并发处理多篇文章（Semaphore 限流） - 同时提取实体间关系 使用 prompts/news/entity_extraction.md 模板。",
+  "classes": [],
+  "funcs": [
+   "news_entity_extractor"
+  ]
+ },
+ "langgraph/nodes/news/event.py": {
+  "path": "./langgraph/nodes/news/event.py",
+  "ext": ".py",
+  "total": 118,
+  "doc": "Node 4b: News Event Extractor — 新闻事件抽取 职责： - 从分类后的文章中提取结构化事件 - 事件类型引用 ontology.yaml 9 种 Event Types - 评估事件影响方向（positive/negative/neutral） - 并发处理（与 Entity Extractor 并行执行） 使用 prompts/news/event_extracti",
+  "classes": [],
+  "funcs": [
+   "news_event_extractor"
+  ]
+ },
+ "langgraph/nodes/news/impact.py": {
+  "path": "./langgraph/nodes/news/impact.py",
+  "ext": ".py",
+  "total": 145,
+  "doc": "Node 5: News Impact Analyzer — 投资影响分析 职责： - 综合实体 + 事件信息，评估投资影响 - 对高重要性文章（importance >= 0.7）进行深度影响分析 - 输出结构化的影响评估（影响方向、程度、时间范围、受益/受损标的） 使用 prompts/news/impact_analysis.md 模板。 Fan-in 节点：等待 Entity Extrac",
+  "classes": [],
+  "funcs": [
+   "news_impact_analyzer"
+  ]
+ },
+ "langgraph/nodes/news/publisher.py": {
+  "path": "./langgraph/nodes/news/publisher.py",
+  "ext": ".py",
+  "total": 333,
+  "doc": "Node 6: News Publisher — 存储 + 触发 Knowledge Agent 职责： - 批量存储文章、实体、事件、关系到 PostgreSQL（news schema） - 上传原始文章到 MinIO news-raw bucket（DLM Raw News Layer） - 高置信度实体/关系触发 Knowledge Agent 合并到 core schema - 更新文章",
+  "classes": [],
+  "funcs": [
+   "news_publisher",
+   "_trigger_knowledge_agent",
+   "_upload_raw_to_minio",
+   "_sync_events_to_age"
+  ]
+ },
+ "langgraph/nodes/news/utils.py": {
+  "path": "./langgraph/nodes/news/utils.py",
+  "ext": ".py",
+  "total": 77,
+  "doc": "News Agent 共享工具函数",
+  "classes": [],
+  "funcs": [
+   "extract_json_array"
+  ]
+ },
+ "langgraph/nodes/news/__init__.py": {
+  "path": "./langgraph/nodes/news/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/nodes/research/finish.py": {
+  "path": "./langgraph/nodes/research/finish.py",
+  "ext": ".py",
+  "total": 25,
+  "doc": "Finish Node - 结束处理，准备返回",
+  "classes": [],
+  "funcs": [
+   "finish"
+  ]
+ },
+ "langgraph/nodes/research/planner.py": {
+  "path": "./langgraph/nodes/research/planner.py",
+  "ext": ".py",
+  "total": 78,
+  "doc": "Planner Node - 理解用户问题，生成执行计划",
+  "classes": [],
+  "funcs": [
+   "planner",
+   "_extract_json"
+  ]
+ },
+ "langgraph/nodes/research/query_rewrite.py": {
+  "path": "./langgraph/nodes/research/query_rewrite.py",
+  "ext": ".py",
+  "total": 116,
+  "doc": "QueryRewrite Node - 查询改写（LLM 驱动） 合规要点（08_Node设计.md）: - Query 改写是业务逻辑（Prompt 编排 + LLM 调用 + 结果解析），属于 Node 层职责 - 调用 llm_tool（基础设施）完成改写，Tool 层不含改写逻辑 - 单一职责：只负责改写，不负责检索 流程位置: Planner → QueryRewrite → Retri",
+  "classes": [],
+  "funcs": [
+   "query_rewrite",
+   "_extract_json"
+  ]
+ },
+ "langgraph/nodes/research/reason.py": {
+  "path": "./langgraph/nodes/research/reason.py",
+  "ext": ".py",
+  "total": 80,
+  "doc": "Reason Node - LLM 推理生成回答",
+  "classes": [],
+  "funcs": [
+   "reason",
+   "_build_context"
+  ]
+ },
+ "langgraph/nodes/research/reflect.py": {
+  "path": "./langgraph/nodes/research/reflect.py",
+  "ext": ".py",
+  "total": 80,
+  "doc": "Reflect Node - 检查答案质量，决定是否需要重新检索",
+  "classes": [],
+  "funcs": [
+   "reflect",
+   "_extract_json"
+  ]
+ },
+ "langgraph/nodes/research/rerank.py": {
+  "path": "./langgraph/nodes/research/rerank.py",
+  "ext": ".py",
+  "total": 68,
+  "doc": "Rerank Node - 文档重排序节点（极简） 职责仅限于： 读取 State → 调用 RerankerTool → 更新 State 截断、Top-K、Retry、超时等全部由 RerankerTool 处理。",
+  "classes": [],
+  "funcs": [
+   "rerank"
+  ]
+ },
+ "langgraph/nodes/research/retrieve.py": {
+  "path": "./langgraph/nodes/research/retrieve.py",
+  "ext": ".py",
+  "total": 238,
+  "doc": "Retrieve Node - 语义检索（Embedding + Qdrant）",
+  "classes": [],
+  "funcs": [
+   "retrieve",
+   "_build_filter",
+   "_detect_market",
+   "_normalize_market",
+   "_normalize_symbol"
+  ]
+ },
+ "langgraph/nodes/research/writer.py": {
+  "path": "./langgraph/nodes/research/writer.py",
+  "ext": ".py",
+  "total": 23,
+  "doc": "Writer Node - 格式化最终输出（可选）",
+  "classes": [],
+  "funcs": [
+   "writer"
+  ]
+ },
+ "langgraph/nodes/research/__init__.py": {
+  "path": "./langgraph/nodes/research/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/pipelines/document_pipeline.py": {
+  "path": "./langgraph/pipelines/document_pipeline.py",
+  "ext": ".py",
+  "total": 480,
+  "doc": "Document Pipeline - 文档处理全链路 流程: MinIO PDF → Docling 解析 → Chunk 分片 → Embedding → Qdrant → PostgreSQL 状态更新 支持: - 批量处理（limit 控制） - 断点续传（通过 tasks 表 stage/current_item） - 失败重试（task_queue retry_count） - Doc",
+  "classes": [
+   "DocumentPipeline"
+  ],
+  "funcs": []
+ },
+ "langgraph/pipelines/web_pipeline.py": {
+  "path": "./langgraph/pipelines/web_pipeline.py",
+  "ext": ".py",
+  "total": 880,
+  "doc": "Web Pipeline — 网页抓取数据流 基于 Crawl4AI 集成设计规范: - 第10节: 数据流规范（网页 → Crawl4AI → Markdown → MinIO → Metadata → Chunk → Embedding → Qdrant） - 第13节: Pipeline 规范 - 第18.2节: Phase 1 弹性抓取 - 第18.3节: Phase 2 增量变更检测 职",
+  "classes": [
+   "PipelineStats",
+   "WebPipeline"
+  ],
+  "funcs": []
+ },
+ "langgraph/pipelines/__init__.py": {
+  "path": "./langgraph/pipelines/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/pipelines/web/chunker.py": {
+  "path": "./langgraph/pipelines/web/chunker.py",
+  "ext": ".py",
+  "total": 303,
+  "doc": "Web Markdown 分块器 基于 Crawl4AI 集成设计规范 第10节: - 按 Markdown 标题层级切分 - 超长段落二次切分（滑动窗口） - 保留标题上下文（面包屑） 用法: chunker = WebChunker(max_chars=800, overlap_chars=100) chunks = chunker.chunk(markdown_text) for c in ",
+  "classes": [
+   "Chunk",
+   "WebChunker"
+  ],
+  "funcs": [
+   "clean_markdown",
+   "_is_nav_link_line"
+  ]
+ },
+ "langgraph/pipelines/web/diff_detector.py": {
+  "path": "./langgraph/pipelines/web/diff_detector.py",
+  "ext": ".py",
+  "total": 283,
+  "doc": "增量变更检测模块 基于 Crawl4AI 集成设计规范 第18.3节 Phase 2: - 内容 Hash 对比检测变化 - 变更状态判定（unchanged / changed / new / removed） - 页面下线检测 用法: detector = DiffDetector.from_config(config) # 检测单个 URL 的变更状态 status = await dete",
+  "classes": [
+   "ChangeStatus",
+   "ChangeDetectionResult",
+   "DiffDetector"
+  ],
+  "funcs": []
+ },
+ "langgraph/pipelines/web/link_extractor.py": {
+  "path": "./langgraph/pipelines/web/link_extractor.py",
+  "ext": ".py",
+  "total": 184,
+  "doc": "列表页链接提取器 从 Crawl4AI 返回的页面链接中提取文章 URL。 支持： - URL 模式过滤（include/exclude 正则） - 按日期降序排序（从 URL 路径提取 YYYYMM/YYYYMMDD） - 同域过滤 - 去重 - 最大数量限制 用法: extractor = LinkExtractor( include_patterns=[r\"/2026/\", r\"/2025/",
+  "classes": [
+   "ExtractedArticle",
+   "LinkExtractor"
+  ],
+  "funcs": [
+   "_extract_date_from_url"
+  ]
+ },
+ "langgraph/pipelines/web/rate_limiter.py": {
+  "path": "./langgraph/pipelines/web/rate_limiter.py",
+  "ext": ".py",
+  "total": 172,
+  "doc": "弹性抓取 — 域名级速率限制模块 基于 Crawl4AI 集成设计规范 第18.2节 Phase 1: - 令牌桶算法实现域名级限速 - 支持全局默认 + 按域名覆盖 - 异步安全（asyncio.Lock） 用法: limiter = RateLimiter.from_config(config_dict) # 在请求前等待 await limiter.acquire(\"cninfo.com.c",
+  "classes": [
+   "TokenBucket",
+   "RateLimiter"
+  ],
+  "funcs": []
+ },
+ "langgraph/pipelines/web/retry.py": {
+  "path": "./langgraph/pipelines/web/retry.py",
+  "ext": ".py",
+  "total": 147,
+  "doc": "弹性抓取 — 重试策略模块 基于 Crawl4AI 集成设计规范 第18.2节 Phase 1: - 指数退避重试 - 可重试状态码判定 - 死信检测 - 域名级配置覆盖 用法: policy = RetryPolicy.from_config(config_dict) policy = policy.with_domain_override(\"cninfo.com.cn\", {\"max_atte",
+  "classes": [
+   "RetryPolicy"
+  ],
+  "funcs": []
+ },
+ "langgraph/pipelines/web/summarizer.py": {
+  "path": "./langgraph/pipelines/web/summarizer.py",
+  "ext": ".py",
+  "total": 184,
+  "doc": "文章摘要生成器 调用 LLM（OpenAI Compatible API）为单篇文章生成结构化摘要。 支持两种调用方式： 1. 独立使用（通过 httpx 直接调用 LLM API） 2. 在 LangGraph Agent 内使用（复用 tools.llm.llm_tool 单例） 用法: summarizer = ArticleSummarizer(llm_url=\"http://localh",
+  "classes": [
+   "ArticleSummarizer"
+  ],
+  "funcs": []
+ },
+ "langgraph/pipelines/web/__init__.py": {
+  "path": "./langgraph/pipelines/web/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/prompts/loader.py": {
+  "path": "./langgraph/prompts/loader.py",
+  "ext": ".py",
+  "total": 73,
+  "doc": "Prompt Hub - 统一加载 prompts/ 目录下的 .md 模板文件 目录结构: prompts/ ├── planner.md # 通用 Planner ├── reason.md # 通用 Reason ├── reflect.md # 通用 Reflect ├── writer.md # 通用 Writer ├── chat/system.md # Chat Agent 专用 ├",
+  "classes": [],
+  "funcs": [
+   "_read_prompt_file",
+   "load_prompt",
+   "list_prompts"
+  ]
+ },
+ "langgraph/providers/__init__.py": {
+  "path": "./langgraph/providers/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/providers/web/crawl4ai_provider.py": {
+  "path": "./langgraph/providers/web/crawl4ai_provider.py",
+  "ext": ".py",
+  "total": 332,
+  "doc": "Crawl4AI Provider — Web 抓取提供者 基于 Crawl4AI 集成设计规范: - 第12节: Provider 规范（Agent 仅调用 Provider） - 第18.2节: Phase 1 弹性抓取（集成重试 + 限速） 职责: - 封装 Crawl4AI HTTP API 调用 - 集成 RetryPolicy（指数退避） - 集成 RateLimiter（域名级限速）",
+  "classes": [
+   "CrawlResult",
+   "Crawl4AIProvider"
+  ],
+  "funcs": []
+ },
+ "langgraph/providers/web/__init__.py": {
+  "path": "./langgraph/providers/web/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/runtime/executor.py": {
+  "path": "./langgraph/runtime/executor.py",
+  "ext": ".py",
+  "total": 60,
+  "doc": "Runtime Executor - Graph 执行统一入口 封装 Graph 的调用（ainvoke / astream），屏蔽调用方对具体 Graph 实例与编译细节的依赖。配合 memory.checkpoint 可为需要多轮会话的 Graph 注入 Checkpointer。 Usage: from runtime.executor import run_graph, stream_gr",
+  "classes": [],
+  "funcs": [
+   "run_graph",
+   "stream_graph",
+   "get_compiled_graph"
+  ]
+ },
+ "langgraph/runtime/queue.py": {
+  "path": "./langgraph/runtime/queue.py",
+  "ext": ".py",
+  "total": 314,
+  "doc": "Task Queue - 基于 PostgreSQL tasks 表的简单任务队列 支持： - 任务创建、状态更新、进度追踪 - 断点续传（通过 stage/current_item） - 重试（retry_count + 指数退避） - 优先级排序",
+  "classes": [
+   "TaskQueue"
+  ],
+  "funcs": []
+ },
+ "langgraph/runtime/scheduler.py": {
+  "path": "./langgraph/runtime/scheduler.py",
+  "ext": ".py",
+  "total": 354,
+  "doc": "Resource Scheduler - 基于 APScheduler 的定时任务 Jobs: - daily_pipeline: 每日处理 pending 文档（触发 Pipeline） - weekly_consistency: 每周 Embedding 一致性检查 - monthly_cleanup: 每月清理 staging + 过期数据 - task_retry: 每 5 分钟重试失败任",
+  "classes": [],
+  "funcs": [
+   "_job_daily_pipeline",
+   "_job_task_retry",
+   "_job_weekly_consistency",
+   "_job_monthly_cleanup",
+   "_job_news_collect",
+   "_job_news_lifecycle",
+   "start_scheduler",
+   "get_scheduler_jobs",
+   "stop_scheduler"
+  ]
+ },
+ "langgraph/runtime/worker.py": {
+  "path": "./langgraph/runtime/worker.py",
+  "ext": ".py",
+  "total": 255,
+  "doc": "Task Worker - 后台任务处理器 职责: - 轮询 tasks 表中 pending 状态的任务 - 根据 task_type 分发到对应处理器 - 控制并发（同时只运行 1 个 Pipeline 任务） - 失败自动标记（由 Scheduler 负责重试）",
+  "classes": [],
+  "funcs": [
+   "get_worker_status",
+   "register_handler",
+   "_handle_doc_pipeline",
+   "_handle_reembed",
+   "_handle_batch_embed",
+   "_handle_knowledge_extraction",
+   "_worker_loop",
+   "start_worker",
+   "stop_worker"
+  ]
+ },
+ "langgraph/runtime/__init__.py": {
+  "path": "./langgraph/runtime/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/schemas/authority.py": {
+  "path": "./langgraph/schemas/authority.py",
+  "ext": ".py",
+  "total": 100,
+  "doc": "权威度映射 - providers.yaml source_provider → AuthorityLevel 复用 providers.yaml 中已有的 official + status 字段组合， 将数据源 ID 映射到权威度级别。",
+  "classes": [],
+  "funcs": [
+   "get_authority_level",
+   "filter_by_authority"
+  ]
+ },
+ "langgraph/schemas/chat.py": {
+  "path": "./langgraph/schemas/chat.py",
+  "ext": ".py",
+  "total": 94,
+  "doc": "OpenAI Compatible API 请求/响应模型",
+  "classes": [
+   "ChatMessage",
+   "ChatRequest",
+   "UsageInfo",
+   "ChatChoice",
+   "ChatResponse",
+   "StreamDelta",
+   "StreamChoice",
+   "StreamChunk",
+   "ErrorDetail",
+   "ErrorResponse"
+  ],
+  "funcs": []
+ },
+ "langgraph/schemas/financial.py": {
+  "path": "./langgraph/schemas/financial.py",
+  "ext": ".py",
+  "total": 69,
+  "doc": "金融数据模型 - 结构化数据卡片 + 权威度 + 时效过滤 定义投资研究模块的核心数据模型： - ExchangeRateCard: 汇率数据卡片 - StockPriceCard: 股价数据卡片 - AuthorityLevel: 权威度分级枚举 - TimeRange: 时效过滤参数",
+  "classes": [
+   "ExchangeRateCard",
+   "StockPriceCard",
+   "AuthorityLevel",
+   "TimeRange"
+  ],
+  "funcs": []
+ },
+ "langgraph/schemas/__init__.py": {
+  "path": "./langgraph/schemas/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/scripts/clean_qdrant.py": {
+  "path": "./langgraph/scripts/clean_qdrant.py",
+  "ext": ".py",
+  "total": 51,
+  "doc": "",
+  "classes": [],
+  "funcs": [
+   "main"
+  ]
+ },
+ "langgraph/scripts/clear_minio.py": {
+  "path": "./langgraph/scripts/clear_minio.py",
+  "ext": ".py",
+  "total": 46,
+  "doc": "分 bucket 批量删除 MinIO 所有对象（流式分批，避免内存溢出）",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/scripts/mi_probe.py": {
+  "path": "./langgraph/scripts/mi_probe.py",
+  "ext": ".py",
+  "total": 36,
+  "doc": "",
+  "classes": [],
+  "funcs": [
+   "main"
+  ]
+ },
+ "langgraph/scripts/setup_probe.py": {
+  "path": "./langgraph/scripts/setup_probe.py",
+  "ext": ".py",
+  "total": 55,
+  "doc": "",
+  "classes": [],
+  "funcs": [
+   "main"
+  ]
+ },
+ "langgraph/scripts/verify_code.py": {
+  "path": "./langgraph/scripts/verify_code.py",
+  "ext": ".py",
+  "total": 40,
+  "doc": "",
+  "classes": [],
+  "funcs": [
+   "main"
+  ]
+ },
+ "langgraph/services/approval.py": {
+  "path": "./langgraph/services/approval.py",
+  "ext": ".py",
+  "total": 181,
+  "doc": "Human Approval - 人审机制 应用场景: - Agent 生成报告后等待人工确认再写入 Vault - 重要操作（删除、批量修改）需人工审批 实现: - 基于 tasks 表（task_type='approval', status='awaiting_approval'） - 审批通过后执行回调（如写入 Vault） - 审批拒绝后标记 rejected",
+  "classes": [],
+  "funcs": [
+   "register_approval_callback",
+   "create_approval",
+   "approve",
+   "reject",
+   "list_pending_approvals"
+  ]
+ },
+ "langgraph/services/batch_embed.py": {
+  "path": "./langgraph/services/batch_embed.py",
+  "ext": ".py",
+  "total": 235,
+  "doc": "Batch Embed - 批量向量化已有 chunks 将 PostgreSQL chunks 表中缺少 qdrant_point_id 的记录批量向量化并写入 Qdrant。 设计为后台长时任务，支持: - 断点续传（通过 qdrant_point_id IS NULL 自动跳过已处理） - 分批处理（batch_size 控制内存） - 进度追踪（tasks 表） - 优雅中断（cancel",
+  "classes": [],
+  "funcs": [
+   "cancel_batch_embed",
+   "run_batch_embed"
+  ]
+ },
+ "langgraph/services/lifecycle.py": {
+  "path": "./langgraph/services/lifecycle.py",
+  "ext": ".py",
+  "total": 210,
+  "doc": "News Lifecycle Service — DLM §14 Knowledge Maintenance Agent 每日定时运行（凌晨 3:30），负责： - Duplicate Detection: 跨批次 Hash + Embedding 重复检测 - Importance Rescoring: 重新评估未分级文章 - Archive: 归档过期 Tier 3 文章（>90天） - Gr",
+  "classes": [
+   "NewsLifecycleService"
+  ],
+  "funcs": []
+ },
+ "langgraph/services/news_storage.py": {
+  "path": "./langgraph/services/news_storage.py",
+  "ext": ".py",
+  "total": 257,
+  "doc": "News Storage Service - news schema 查询 复用 tools/postgres.py 连接池，提供 news schema 只读查询。 SQL 迁移自 mcp-news/server/storage/postgres.py。",
+  "classes": [
+   "NewsStorageService"
+  ],
+  "funcs": []
+ },
+ "langgraph/services/router.py": {
+  "path": "./langgraph/services/router.py",
+  "ext": ".py",
+  "total": 93,
+  "doc": "Agent Dispatcher - 基于策略配置的 Agent 路由 路由优先级： 1. 请求中显式指定 model/agent 2. policies.yaml 中的 routing.rules 正则匹配 3. 默认 fallback agent (chat)",
+  "classes": [],
+  "funcs": [
+   "_build_agent_registry",
+   "dispatch_agent",
+   "list_agents"
+  ]
+ },
+ "langgraph/services/__init__.py": {
+  "path": "./langgraph/services/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/skills/base_skill.py": {
+  "path": "./langgraph/skills/base_skill.py",
+  "ext": ".py",
+  "total": 61,
+  "doc": "Skill 基类 - 定义可复用能力的标准接口 每个 Skill 封装一个独立的分析/处理能力，可被任意 Agent 调用。 新增 Skill 只需： 1. 继承 BaseSkill 2. 实现 execute() 方法 3. 在 registry 中注册",
+  "classes": [
+   "BaseSkill"
+  ],
+  "funcs": []
+ },
+ "langgraph/skills/investment_research.py": {
+  "path": "./langgraph/skills/investment_research.py",
+  "ext": ".py",
+  "total": 170,
+  "doc": "InvestmentResearchSkill - 投资研究高级数据收集（编排层） 合规要点: - 市场路由、数据聚合等业务逻辑在 Skill 层实现（不在 Tool 层） - Tool 层只做纯 SDK 调用 - 聚合 RAGSearchSkill + FinancialDataTool 的能力 四大能力: 1. 结构化数据卡片（股价、汇率） 2. 权威度分级过滤 3. 时效过滤 4. Quer",
+  "classes": [
+   "InvestmentResearchSkill"
+  ],
+  "funcs": []
+ },
+ "langgraph/skills/master_analysis.py": {
+  "path": "./langgraph/skills/master_analysis.py",
+  "ext": ".py",
+  "total": 381,
+  "doc": "Master Analysis Skill - 投资大师分析框架 封装巴菲特/芒格/费雪/林奇方法论，结合 RAG 检索 + 电话会议记录 生成结构化投资分析报告。",
+  "classes": [
+   "MasterAnalysisSkill"
+  ],
+  "funcs": []
+ },
+ "langgraph/skills/rag_search.py": {
+  "path": "./langgraph/skills/rag_search.py",
+  "ext": ".py",
+  "total": 129,
+  "doc": "RAG Search Skill - 向量检索 + 重排序 使用模块级单例 Tool，避免重复创建连接。",
+  "classes": [
+   "RAGSearchSkill"
+  ],
+  "funcs": []
+ },
+ "langgraph/skills/registry.py": {
+  "path": "./langgraph/skills/registry.py",
+  "ext": ".py",
+  "total": 87,
+  "doc": "Skill Registry - Skill 注册、发现与调用",
+  "classes": [
+   "SkillRegistry"
+  ],
+  "funcs": [
+   "get_skill",
+   "list_skills",
+   "register_skill",
+   "get_registry"
+  ]
+ },
+ "langgraph/skills/web_article_summary.py": {
+  "path": "./langgraph/skills/web_article_summary.py",
+  "ext": ".py",
+  "total": 431,
+  "doc": "Web Article Summary Skill - 网页文章自动摘要 从指定网站首页/栏目列表页提取文章链接，逐篇抓取正文， 调用 LLM 生成结构化摘要，写入 PostgreSQL + Obsidian Vault。 执行流程: 1. 调用 Crawl4AI 抓取列表页 → 获取页面内链接 2. LinkExtractor 过滤 + 按日期排序 → 文章 URL 列表 3. 逐篇调用 Cra",
+  "classes": [
+   "WebArticleSummarySkill"
+  ],
+  "funcs": [
+   "_extract_date",
+   "_clean_markdown",
+   "_filter_article_links"
+  ]
+ },
+ "langgraph/skills/__init__.py": {
+  "path": "./langgraph/skills/__init__.py",
+  "ext": ".py",
+  "total": 18,
+  "doc": "Skill Hub - 可复用能力模块",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/state/document_state.py": {
+  "path": "./langgraph/state/document_state.py",
+  "ext": ".py",
+  "total": 30,
+  "doc": "DocumentState 定义 - 文档处理流程（Document Graph）的数据载体 注意：不含 messages 字段（非对话型流程，是处理流水线）。 实际处理逻辑委托 pipelines/document_pipeline.py 执行， 本 State 仅承载编排所需的输入与阶段标记。",
+  "classes": [
+   "DocumentState"
+  ],
+  "funcs": []
+ },
+ "langgraph/state/knowledge_state.py": {
+  "path": "./langgraph/state/knowledge_state.py",
+  "ext": ".py",
+  "total": 44,
+  "doc": "KnowledgeState 定义 - Knowledge Ingestion Agent 的数据载体 注意：不含 messages 字段（非对话型 Agent，是处理流水线）。",
+  "classes": [
+   "KnowledgeState"
+  ],
+  "funcs": []
+ },
+ "langgraph/state/news_state.py": {
+  "path": "./langgraph/state/news_state.py",
+  "ext": ".py",
+  "total": 40,
+  "doc": "NewsState 定义 - News Intelligence Agent 的数据载体 注意：不含 messages 字段（非对话型 Agent，是处理流水线）。",
+  "classes": [
+   "NewsState"
+  ],
+  "funcs": []
+ },
+ "langgraph/state/research_state.py": {
+  "path": "./langgraph/state/research_state.py",
+  "ext": ".py",
+  "total": 37,
+  "doc": "AgentState 定义 - 所有 Node 的统一数据载体",
+  "classes": [
+   "AgentState"
+  ],
+  "funcs": []
+ },
+ "langgraph/state/__init__.py": {
+  "path": "./langgraph/state/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/storage/__init__.py": {
+  "path": "./langgraph/storage/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/storage/knowledge/age.py": {
+  "path": "./langgraph/storage/knowledge/age.py",
+  "ext": ".py",
+  "total": 241,
+  "doc": "Knowledge AGE Storage - Apache AGE 图同步（Knowledge Agent 专用） 复用 tools.postgres 的连接配置，独立连接池执行 Cypher 写入。 仅用于 Merger 节点双写（异步，失败不阻塞主流程）。 Graph: investment_knowledge_graph",
+  "classes": [
+   "KnowledgeAGEStorage"
+  ],
+  "funcs": [
+   "_escape"
+  ]
+ },
+ "langgraph/storage/knowledge/postgres.py": {
+  "path": "./langgraph/storage/knowledge/postgres.py",
+  "ext": ".py",
+  "total": 564,
+  "doc": "Knowledge PostgreSQL Storage - 批量优化写入 + 图查询 复用 tools.postgres.postgres_tool 单例， 所有操作针对多 Schema 架构下的表： core → entities, relations, facts, evidence document → documents",
+  "classes": [
+   "KnowledgePostgresStorage"
+  ],
+  "funcs": []
+ },
+ "langgraph/storage/knowledge/qdrant.py": {
+  "path": "./langgraph/storage/knowledge/qdrant.py",
+  "ext": ".py",
+  "total": 262,
+  "doc": "Knowledge Qdrant Storage - 批量向量索引 + 语义检索 复用 tools.qdrant.qdrant_tool + tools.embedding.embedding_tool 单例。 Collection: knowledge_entities / knowledge_facts",
+  "classes": [
+   "KnowledgeQdrantStorage"
+  ],
+  "funcs": []
+ },
+ "langgraph/storage/knowledge/__init__.py": {
+  "path": "./langgraph/storage/knowledge/__init__.py",
+  "ext": ".py",
+  "total": 2,
+  "doc": "Knowledge Storage - 知识存储层（PostgreSQL + Qdrant + Apache AGE）",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/storage/news/postgres.py": {
+  "path": "./langgraph/storage/news/postgres.py",
+  "ext": ".py",
+  "total": 323,
+  "doc": "News PostgreSQL Storage - news schema CRUD 复用 tools.postgres.postgres_tool 单例， 所有操作针对 news schema 下的表： news.sources / news.articles / news.entities / news.events / news.relations",
+  "classes": [
+   "NewsPostgresStorage"
+  ],
+  "funcs": []
+ },
+ "langgraph/storage/news/__init__.py": {
+  "path": "./langgraph/storage/news/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/tests/__init__.py": {
+  "path": "./langgraph/tests/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/tests/api/test_chat.py": {
+  "path": "./langgraph/tests/api/test_chat.py",
+  "ext": ".py",
+  "total": 57,
+  "doc": "API 端点测试 注意：需要环境变量配置正确。",
+  "classes": [],
+  "funcs": [
+   "test_app_imports",
+   "test_models_endpoint",
+   "test_health_endpoint_structure",
+   "test_chat_endpoint_structure"
+  ]
+ },
+ "langgraph/tests/api/__init__.py": {
+  "path": "./langgraph/tests/api/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/tests/integration/test_graph.py": {
+  "path": "./langgraph/tests/integration/test_graph.py",
+  "ext": ".py",
+  "total": 62,
+  "doc": "Graph 集成测试 - 完整流程测试 注意：需要所有下游服务运行才能执行。",
+  "classes": [],
+  "funcs": [
+   "test_chat_graph_builds",
+   "test_research_graph_builds",
+   "test_should_continue_good",
+   "test_should_continue_bad_retry",
+   "test_should_continue_force_finish"
+  ]
+ },
+ "langgraph/tests/integration/__init__.py": {
+  "path": "./langgraph/tests/integration/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/tests/unit/test_embedding_tool.py": {
+  "path": "./langgraph/tests/unit/test_embedding_tool.py",
+  "ext": ".py",
+  "total": 57,
+  "doc": "Embedding Tool 单元测试",
+  "classes": [],
+  "funcs": [
+   "test_embedding_embed",
+   "test_embedding_embed_single"
+  ]
+ },
+ "langgraph/tests/unit/test_planner.py": {
+  "path": "./langgraph/tests/unit/test_planner.py",
+  "ext": ".py",
+  "total": 57,
+  "doc": "Planner Node 单元测试",
+  "classes": [],
+  "funcs": [
+   "test_planner_generates_plan",
+   "test_planner_handles_invalid_json"
+  ]
+ },
+ "langgraph/tests/unit/test_qdrant_tool.py": {
+  "path": "./langgraph/tests/unit/test_qdrant_tool.py",
+  "ext": ".py",
+  "total": 45,
+  "doc": "Qdrant Tool 单元测试",
+  "classes": [],
+  "funcs": [
+   "test_qdrant_search",
+   "test_qdrant_search_empty"
+  ]
+ },
+ "langgraph/tests/unit/test_retrieve.py": {
+  "path": "./langgraph/tests/unit/test_retrieve.py",
+  "ext": ".py",
+  "total": 74,
+  "doc": "Retrieve Node 单元测试",
+  "classes": [],
+  "funcs": [
+   "test_retrieve_returns_documents",
+   "test_retrieve_empty_results"
+  ]
+ },
+ "langgraph/tests/unit/__init__.py": {
+  "path": "./langgraph/tests/unit/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "langgraph/tools/chunker.py": {
+  "path": "./langgraph/tools/chunker.py",
+  "ext": ".py",
+  "total": 156,
+  "doc": "Chunker - Markdown 文本分片工具 策略: - 按标题层级切分（## / ### 作为自然分界） - 超长段落按 chunk_size 滑动窗口切分 - 保留 overlap 确保上下文连贯 - 每个 chunk 携带 heading 元数据",
+  "classes": [],
+  "funcs": [
+   "chunk_markdown",
+   "_split_by_headings",
+   "_sliding_window",
+   "_find_cut_point"
+  ]
+ },
+ "langgraph/tools/docling.py": {
+  "path": "./langgraph/tools/docling.py",
+  "ext": ".py",
+  "total": 166,
+  "doc": "Docling Tool - 封装 Docling 文档解析服务 支持: - 同步转换（小文件 < 50 页） - 异步转换（大文件，轮询等待） - 连接池 + 超时配置化 - 健康检查",
+  "classes": [
+   "DoclingTool",
+   "DoclingError"
+  ],
+  "funcs": []
+ },
+ "langgraph/tools/document_tools.py": {
+  "path": "./langgraph/tools/document_tools.py",
+  "ext": ".py",
+  "total": 79,
+  "doc": "Document Tools - 文档处理语义封装（Docling 解析 + MinIO 存储 + 分片） 在 docling_tool / minio_tool / chunker 之上提供面向 Agent / Node 的 高层文档处理语义，屏蔽各底层工具的调用细节。",
+  "classes": [
+   "DocumentTools"
+  ],
+  "funcs": []
+ },
+ "langgraph/tools/embedding.py": {
+  "path": "./langgraph/tools/embedding.py",
+  "ext": ".py",
+  "total": 195,
+  "doc": "Embedding Tool - 统一 Embedding 调用层（Qwen3-Embedding-4B, :8001） 所有需要生成向量的模块必须通过 EmbeddingTool 调用， 禁止业务代码直接使用 httpx / requests / OpenAI SDK。",
+  "classes": [
+   "EmbeddingTool"
+  ],
+  "funcs": []
+ },
+ "langgraph/tools/knowledge_tools.py": {
+  "path": "./langgraph/tools/knowledge_tools.py",
+  "ext": ".py",
+  "total": 131,
+  "doc": "Knowledge Tools - Knowledge MCP Server 调用封装 通过 MCP 协议（JSON-RPC over HTTP POST /mcp, Streamable HTTP）调用 mcp-knowledge 服务（settings.MCP_KNOWLEDGE_URL, 默认 :8200）， 提供知识检索、实体/关系查询等能力。对上层 Agent / Node 隐藏 MCP",
+  "classes": [
+   "KnowledgeTools"
+  ],
+  "funcs": []
+ },
+ "langgraph/tools/llm.py": {
+  "path": "./langgraph/tools/llm.py",
+  "ext": ".py",
+  "total": 134,
+  "doc": "LLM Tool - 封装 llama.cpp LLM 服务调用 性能优化：添加指数退避重试，防止单次超时导致整个提取失败。",
+  "classes": [
+   "LLMTool"
+  ],
+  "funcs": []
+ },
+ "langgraph/tools/market_tools.py": {
+  "path": "./langgraph/tools/market_tools.py",
+  "ext": ".py",
+  "total": 187,
+  "doc": "FinancialDataTool - 金融数据基础设施 Tool（纯 SDK 封装） 合规要点（09_Tool设计.md）: - Tool 只做 SDK 调用封装，不含市场路由/数据聚合等业务逻辑 - 每个方法对应一个 SDK 调用，返回原始 dict - 使用 asyncio.to_thread() 避免阻塞事件循环 - SDK import 失败时返回 {\"error\": \"...\"}，不抛",
+  "classes": [
+   "FinancialDataTool"
+  ],
+  "funcs": []
+ },
+ "langgraph/tools/minio.py": {
+  "path": "./langgraph/tools/minio.py",
+  "ext": ".py",
+  "total": 118,
+  "doc": "MinIO Tool - 封装 MinIO 文件操作（:9000）",
+  "classes": [
+   "MinIOTool"
+  ],
+  "funcs": []
+ },
+ "langgraph/tools/postgres.py": {
+  "path": "./langgraph/tools/postgres.py",
+  "ext": ".py",
+  "total": 101,
+  "doc": "PostgreSQL Tool - 封装 PostgreSQL 查询（:5432）",
+  "classes": [
+   "PostgresTool"
+  ],
+  "funcs": []
+ },
+ "langgraph/tools/qdrant.py": {
+  "path": "./langgraph/tools/qdrant.py",
+  "ext": ".py",
+  "total": 92,
+  "doc": "Qdrant Tool - 封装 Qdrant 向量检索（:6333）",
+  "classes": [
+   "QdrantTool"
+  ],
+  "funcs": []
+ },
+ "langgraph/tools/reranker.py": {
+  "path": "./langgraph/tools/reranker.py",
+  "ext": ".py",
+  "total": 212,
+  "doc": "Reranker Tool - 统一 Reranker 调用层（Qwen3-Reranker-0.6B, :8002） 所有需要文档重排序的模块必须通过 RerankerTool 调用， 禁止业务代码直接使用 httpx / requests 调用 Reranker 服务。",
+  "classes": [
+   "RerankerTool"
+  ],
+  "funcs": []
+ },
+ "langgraph/tools/search_tools.py": {
+  "path": "./langgraph/tools/search_tools.py",
+  "ext": ".py",
+  "total": 97,
+  "doc": "Search Tools - 语义检索与重排序组合封装 在 qdrant_tool / embedding_tool / reranker_tool 之上提供面向 Agent / Node 的高层检索语义：query → embedding → Qdrant 向量检索 → Rerank。 Node 层无需再关心向量生成、检索与重排的编排细节。",
+  "classes": [
+   "SearchTools"
+  ],
+  "funcs": []
+ },
+ "langgraph/tools/__init__.py": {
+  "path": "./langgraph/tools/__init__.py",
+  "ext": ".py",
+  "total": 1,
+  "doc": "",
+  "classes": [],
+  "funcs": []
+ },
+ "mcp-knowledge/verify_b4.py": {
+  "path": "./mcp-knowledge/verify_b4.py",
+  "ext": ".py",
+  "total": 60,
+  "doc": "通过真实 MCP 协议（Streamable HTTP）验证 B4 新工具实际调用。",
+  "classes": [],
+  "funcs": [
+   "main",
+   "_print"
+  ]
+ },
+ "mcp-knowledge/verify_graphrag_tmp.py": {
+  "path": "./mcp-knowledge/verify_graphrag_tmp.py",
+  "ext": ".py",
+  "total": 31,
+  "doc": "",
+  "classes": [],
+  "funcs": [
+   "run",
+   "main"
+  ]
+ },
+ "mcp-knowledge/server/cache.py": {
+  "path": "./mcp-knowledge/server/cache.py",
+  "ext": ".py",
+  "total": 91,
+  "doc": "TTL 缓存层 - 进程内热数据缓存 策略： - get_entity / get_entity_graph: 缓存（实体变更频率低） - get_company_profile / get_supply_chain: 缓存（聚合查询代价高） - search_* / semantic_search: 不缓存（查询组合多） - create_* / update_*: 触发失效",
+  "classes": [
+   "KnowledgeCache"
+  ],
+  "funcs": []
+ },
+ "mcp-knowledge/server/config.py": {
+  "path": "./mcp-knowledge/server/config.py",
+  "ext": ".py",
+  "total": 60,
+  "doc": "Knowledge MCP Server 配置 - Pydantic Settings",
+  "classes": [
+   "MCPSettings"
+  ],
+  "funcs": []
+ },
+ "mcp-knowledge/server/llm.py": {
+  "path": "./mcp-knowledge/server/llm.py",
+  "ext": ".py",
+  "total": 146,
+  "doc": "轻量 LLM client（OpenAI 兼容，GraphRAG 融合推理用） 复用 langgraph/agent/tools/llm.py 的调用模式（httpx + 指数退避重试）， 但与 langgraph 服务解耦独立初始化，供 Knowledge MCP Server 内部调用。",
+  "classes": [
+   "LLMClient"
+  ],
+  "funcs": []
+ },
+ "mcp-knowledge/server/main.py": {
+  "path": "./mcp-knowledge/server/main.py",
+  "ext": ".py",
+  "total": 100,
+  "doc": "Knowledge MCP Server - FastMCP 入口 基于 32_Knowledge_Agent接口规范.md 实现 16 个知识工具。 Transport: Streamable HTTP (:8200)",
+  "classes": [],
+  "funcs": [
+   "lifespan",
+   "health_check"
+  ]
+ },
+ "mcp-knowledge/server/utils.py": {
+  "path": "./mcp-knowledge/server/utils.py",
+  "ext": ".py",
+  "total": 18,
+  "doc": "共享工具函数",
+  "classes": [],
+  "funcs": [
+   "serialize"
+  ]
+ },
+ "mcp-knowledge/server/__init__.py": {
+  "path": "./mcp-knowledge/server/__init__.py",
+  "ext": ".py",
+  "total": 2,
+  "doc": "Knowledge MCP Server - 知识系统统一访问层",
+  "classes": [],
+  "funcs": []
+ },
+ "mcp-knowledge/server/adapters/__init__.py": {
+  "path": "./mcp-knowledge/server/adapters/__init__.py",
+  "ext": ".py",
+  "total": 5,
+  "doc": "外部系统适配层 当前包含 SiYuan（知识展示层）适配器。所有适配器仅封装对外 API， 不直接读写 PostgreSQL（PG 为唯一 SoT，经 storage 层访问）。",
+  "classes": [],
+  "funcs": []
+ },
+ "mcp-knowledge/server/adapters/siyuan/client.py": {
+  "path": "./mcp-knowledge/server/adapters/siyuan/client.py",
+  "ext": ".py",
+  "total": 208,
+  "doc": "SiYuan HTTP API 客户端 封装 SiYuan 文档/笔记本 CRUD，内置： - 限流：asyncio.Semaphore 控制并发 + 队列背压 - 幂等：upsert（按路径存在则更新，否则创建） - 重试：指数退避 + 抖动（429 / 5xx / 网络错误） 参考 SiYuan HTTP API（b3log/siyuan -> /api/...）： - /api/filetr",
+  "classes": [
+   "SiYuanError",
+   "SiYuanClient"
+  ],
+  "funcs": []
+ },
+ "mcp-knowledge/server/adapters/siyuan/config.py": {
+  "path": "./mcp-knowledge/server/adapters/siyuan/config.py",
+  "ext": ".py",
+  "total": 42,
+  "doc": "SiYuan Adapter 连接配置 从 server.config.settings 读取（其值来自 .env / 环境变量）， 提供集中式的 SiYuan 连接与限流参数。",
+  "classes": [
+   "SiYuanConfig"
+  ],
+  "funcs": [
+   "get_siyuan_config"
+  ]
+ },
+ "mcp-knowledge/server/adapters/siyuan/mapper.py": {
+  "path": "./mcp-knowledge/server/adapters/siyuan/mapper.py",
+  "ext": ".py",
+  "total": 99,
+  "doc": "Knowledge Object ↔ SiYuan 文档映射 定义： - Notebook 命名约定（Companies/Industries/Events/Knowledge Inbox） - 对象类型 → 文档路径规则 - 对象字段 → 模板上下文映射 设计红线：PG 为 SoT，SiYuan 仅展示。本模块只负责\"如何展示\"， 不含任何业务状态写入。",
+  "classes": [],
+  "funcs": [
+   "_sanitize_path_segment",
+   "entity_to_path",
+   "notebook_for",
+   "section_path",
+   "entity_to_template_context",
+   "fact_to_section"
+  ]
+ },
+ "mcp-knowledge/server/adapters/siyuan/sync.py": {
+  "path": "./mcp-knowledge/server/adapters/siyuan/sync.py",
+  "ext": ".py",
+  "total": 115,
+  "doc": "SiYuan 增量同步 + 版本 Diff 将 PostgreSQL 中的知识对象增量同步到 SiYuan 展示层。 核心流程： 1. 读取实体及其最新版本（audit.knowledge_versions） 2. 计算\"已同步版本\"与\"最新版本\"的差值 → 变更 Section 3. 仅渲染变更 Section，经 SiYuanClient 幂等写入 4. 更新 core.entities 的 ",
+  "classes": [
+   "SiYuanSync"
+  ],
+  "funcs": []
+ },
+ "mcp-knowledge/server/adapters/siyuan/templates.py": {
+  "path": "./mcp-knowledge/server/adapters/siyuan/templates.py",
+  "ext": ".py",
+  "total": 75,
+  "doc": "Jinja2 模板渲染 — 知识对象 → Markdown 文档 遵循设计红线：页面由模板渲染，非 LLM 拼接。模板定义在 server/adapters/siyuan/templates/ 目录（company.md / industry.md / event.md）。 渲染输入为 mapper 产出的统一上下文，输出为 SiYuan Markdown 文档。",
+  "classes": [
+   "TemplateRenderer"
+  ],
+  "funcs": []
+ },
+ "mcp-knowledge/server/adapters/siyuan/__init__.py": {
+  "path": "./mcp-knowledge/server/adapters/siyuan/__init__.py",
+  "ext": ".py",
+  "total": 21,
+  "doc": "SiYuan Knowledge Workspace 适配器 将 PostgreSQL 中的知识对象渲染为 SiYuan 文档并增量同步。 遵循设计红线：SiYuan 仅展示层，PG 为唯一 SoT。 对外暴露： - SiYuanClient : HTTP 客户端（限流 / 幂等 / 重试） - render_templates : Jinja2 模板渲染 - SiYuanSync : 增量同步 ",
+  "classes": [],
+  "funcs": []
+ },
+ "mcp-knowledge/server/rendering/diff.py": {
+  "path": "./mcp-knowledge/server/rendering/diff.py",
+  "ext": ".py",
+  "total": 82,
+  "doc": "版本 Diff — 基于 audit.knowledge_versions 计算变更 Section 设计：Section 级增量，仅刷新变更区，避免全量重渲染。 Diff 依据：实体已同步版本（sync_version）与最新版本的差值。",
+  "classes": [
+   "KnowledgeDiff"
+  ],
+  "funcs": []
+ },
+ "mcp-knowledge/server/rendering/engine.py": {
+  "path": "./mcp-knowledge/server/rendering/engine.py",
+  "ext": ".py",
+  "total": 134,
+  "doc": "Rendering Engine — 消费 knowledge_render_jobs 并对每个 job 执行渲染+同步 流程：claim job → 读实体 → Diff 变更 Section → 渲染 → SiYuan 幂等写入 → 更新状态。 设计：复用 core.knowledge_render_jobs 表（Phase 1 建立），状态机 pending/running/done/fai",
+  "classes": [
+   "RenderEngine"
+  ],
+  "funcs": []
+ },
+ "mcp-knowledge/server/rendering/metrics.py": {
+  "path": "./mcp-knowledge/server/rendering/metrics.py",
+  "ext": ".py",
+  "total": 108,
+  "doc": "Rendering Metrics — 轻量进程内指标采集 不引入 prometheus_client 依赖，用结构化日志输出，便于未来对接 Prometheus / SLA。 每个指标以 `[RenderMetric]` 前缀输出，字段为 key=value 形式。 指标： - jobs_claimed 累计领取任务数 - jobs_done 累计完成数 - jobs_failed 累计失败数 ",
+  "classes": [
+   "RenderMetrics"
+  ],
+  "funcs": []
+ },
+ "mcp-knowledge/server/rendering/renderer.py": {
+  "path": "./mcp-knowledge/server/rendering/renderer.py",
+  "ext": ".py",
+  "total": 92,
+  "doc": "Renderer — 从 PostgreSQL 取数并渲染知识页面 职责： - 读取实体 + 事实 + 关系，构建模板上下文 - 按对象类型渲染完整文档或单个 Section - 只读 PG，经 SiYuan Adapter 输出",
+  "classes": [
+   "KnowledgeRenderer"
+  ],
+  "funcs": [
+   "_group_facts",
+   "_fact_row"
+  ]
+ },
+ "mcp-knowledge/server/rendering/worker.py": {
+  "path": "./mcp-knowledge/server/rendering/worker.py",
+  "ext": ".py",
+  "total": 147,
+  "doc": "Render Worker — 后台消费渲染队列 架构：生产者/消费者 + 背压（Asyncio Queue maxsize） - producer：从 core.knowledge_render_jobs claim 任务入队（队列满则阻塞 → 背压） - consumer：N 个并发 worker 从队列取任务并渲染（由 SiYuanClient 的 Semaphore 控制器限流） 与单 w",
+  "classes": [
+   "RenderWorker"
+  ],
+  "funcs": [
+   "main"
+  ]
+ },
+ "mcp-knowledge/server/rendering/__init__.py": {
+  "path": "./mcp-knowledge/server/rendering/__init__.py",
+  "ext": ".py",
+  "total": 13,
+  "doc": "Knowledge Rendering Engine 消费 core.knowledge_render_jobs，将 PostgreSQL 知识对象渲染为 Markdown 并经 SiYuan Adapter 增量同步到 SiYuan 展示层。 设计红线：PG 为唯一 SoT，渲染源只读 PG；SiYuan 仅展示。 性能：按 Section 增量渲染 + 版本 Diff + 队列背压 + 限流。",
+  "classes": [],
+  "funcs": []
+ },
+ "mcp-knowledge/server/storage/age.py": {
+  "path": "./mcp-knowledge/server/storage/age.py",
+  "ext": ".py",
+  "total": 437,
+  "doc": "Apache AGE 图存储层 - Cypher 查询引擎 通过 PostgreSQL 的 AGE 扩展执行 Cypher 查询。 复用 pg_storage 的连接池（同一 PostgreSQL 实例）。 Graph: investment_knowledge_graph Fallback: AGE 不可用时由调用方降级为 PG CTE。",
+  "classes": [
+   "AGEStorage"
+  ],
+  "funcs": []
+ },
+ "mcp-knowledge/server/storage/postgres.py": {
+  "path": "./mcp-knowledge/server/storage/postgres.py",
+  "ext": ".py",
+  "total": 581,
+  "doc": "PostgreSQL 存储层 - asyncpg 连接池 + 知识查询 多 Schema 架构：core / document / vector / audit / taxonomy",
+  "classes": [
+   "PostgresStorage"
+  ],
+  "funcs": []
+ },
+ "mcp-knowledge/server/storage/qdrant.py": {
+  "path": "./mcp-knowledge/server/storage/qdrant.py",
+  "ext": ".py",
+  "total": 155,
+  "doc": "Qdrant + Embedding 存储层 - 语义向量检索 Collection: knowledge_entities / knowledge_facts / knowledge_chunks / knowledge_reports",
+  "classes": [
+   "QdrantStorage"
+  ],
+  "funcs": []
+ },
+ "mcp-knowledge/server/storage/__init__.py": {
+  "path": "./mcp-knowledge/server/storage/__init__.py",
+  "ext": ".py",
+  "total": 2,
+  "doc": "Storage layer - PostgreSQL + Qdrant",
+  "classes": [],
+  "funcs": []
+ },
+ "mcp-knowledge/server/tools/analysis.py": {
+  "path": "./mcp-knowledge/server/tools/analysis.py",
+  "ext": ".py",
+  "total": 254,
+  "doc": "Analysis Tools - 公司全景 / 供应链 / 风险因素 Tools: 13. get_company_profile — 公司全景（并行聚合） 14. get_supply_chain — 供应链分析 15. get_risk_factors — 风险因素",
+  "classes": [],
+  "funcs": [
+   "register_analysis_tools"
+  ]
+ },
+ "mcp-knowledge/server/tools/entity.py": {
+  "path": "./mcp-knowledge/server/tools/entity.py",
+  "ext": ".py",
+  "total": 119,
+  "doc": "Entity Tools - 实体搜索 / 详情 / 关系图谱 Tools: 1. search_entity — 搜索实体（名称 + 类型） 2. get_entity — 获取实体详情 3. get_entity_graph — 获取关系图谱",
+  "classes": [],
+  "funcs": [
+   "register_entity_tools"
+  ]
+ },
+ "mcp-knowledge/server/tools/fact.py": {
+  "path": "./mcp-knowledge/server/tools/fact.py",
+  "ext": ".py",
+  "total": 131,
+  "doc": "Fact Tools - 事实查询 / 版本历史 / 事件时间线 Tools: 4. search_facts — 查询实体事实 5. get_fact_history — 获取事实版本历史 6. get_timeline — 获取实体事件时间线",
+  "classes": [],
+  "funcs": [
+   "register_fact_tools"
+  ]
+ },
+ "mcp-knowledge/server/tools/graph.py": {
+  "path": "./mcp-knowledge/server/tools/graph.py",
+  "ext": ".py",
+  "total": 345,
+  "doc": "Graph Tools - 事件影响链 / 事件搜索（Apache AGE Cypher） Tools: 16. trace_event_impact — 事件影响链追踪 17. search_event — 事件搜索 + 影响实体 依赖: Apache AGE 图存储（不可用时返回错误提示）",
+  "classes": [],
+  "funcs": [
+   "_resolve_entity_name_map",
+   "_resolve_entity_names",
+   "register_graph_tools"
+  ]
+ },
+ "mcp-knowledge/server/tools/inbox.py": {
+  "path": "./mcp-knowledge/server/tools/inbox.py",
+  "ext": ".py",
+  "total": 135,
+  "doc": "Inbox Tools - Knowledge Inbox（HITL 审核流） Tools: 13. list_inbox — 查询 Inbox 记录（按状态过滤） 14. review_inbox — 人工审核 Inbox 记录（approve / reject） 15. archive_inbox — 归档 Inbox 记录 对应 core.knowledge_inbox 表（Phase 1 ",
+  "classes": [],
+  "funcs": [
+   "register_inbox_tools"
+  ]
+ },
+ "mcp-knowledge/server/tools/semantic.py": {
+  "path": "./mcp-knowledge/server/tools/semantic.py",
+  "ext": ".py",
+  "total": 81,
+  "doc": "Semantic Tools - 语义向量检索 Tools: 7. semantic_search — 语义搜索（Qdrant） 8. similar_documents — 混合检索（并行多 Collection）",
+  "classes": [],
+  "funcs": [
+   "register_semantic_tools"
+  ]
+ },
+ "mcp-knowledge/server/tools/siyuan.py": {
+  "path": "./mcp-knowledge/server/tools/siyuan.py",
+  "ext": ".py",
+  "total": 274,
+  "doc": "SiYuan / Knowledge Object Tools - 知识对象与展示层交互 Tools: 16. search_notes — 搜索知识笔记（基于 PG SoT，返回笔记元数据） 17. get_note — 获取知识笔记详情（含 SiYuan 展示路径） 18. create_knowledge_object — 创建知识对象并渲染到 SiYuan 19. update_knowl",
+  "classes": [],
+  "funcs": [
+   "_escape_markdown",
+   "_render_entity",
+   "register_siyuan_tools"
+  ]
+ },
+ "mcp-knowledge/server/tools/write.py": {
+  "path": "./mcp-knowledge/server/tools/write.py",
+  "ext": ".py",
+  "total": 177,
+  "doc": "Write Tools - 知识写入（创建实体/事实/关系 + 版本化更新） Tools: 9. create_entity — 创建实体 10. create_fact — 创建事实 11. create_relation — 创建关系 12. update_knowledge — 版本化更新",
+  "classes": [],
+  "funcs": [
+   "register_write_tools"
+  ]
+ },
+ "mcp-knowledge/server/tools/__init__.py": {
+  "path": "./mcp-knowledge/server/tools/__init__.py",
+  "ext": ".py",
+  "total": 2,
+  "doc": "MCP Tools - 知识系统 16 个标准工具",
+  "classes": [],
+  "funcs": []
+ },
+ "mcp-knowledge/tests/test_inbox.py": {
+  "path": "./mcp-knowledge/tests/test_inbox.py",
+  "ext": ".py",
+  "total": 166,
+  "doc": "Inbox Tools 单元测试 覆盖 Knowledge Inbox 状态机： - list_inbox 状态过滤与非法状态校验 - review_inbox 审核通过/拒绝 + 审核日志 - archive_inbox 归档 - 状态机非法跳转校验",
+  "classes": [],
+  "funcs": [
+   "fake_pg",
+   "fake_cache",
+   "mcp",
+   "_capture_tools",
+   "_run",
+   "test_list_inbox_valid",
+   "test_list_inbox_invalid_status",
+   "test_review_inbox_approve",
+   "test_review_inbox_reject",
+   "test_review_inbox_invalid_action"
+  ]
+ },
+ "mcp-knowledge/tests/test_render_metrics.py": {
+  "path": "./mcp-knowledge/tests/test_render_metrics.py",
+  "ext": ".py",
+  "total": 65,
+  "doc": "Render Metrics 单元测试 覆盖 Phase 9 监控埋点： 1. 计数：claim/done/fail 累计正确 2. 平均耗时：record_done 后 avg_duration_ms 正确 3. 重试统计：record_fail(retried=True) 计入 retried 4. 快照输出：snapshot() 结构完整、字段为非负 5. 队列深度：record_queue",
+  "classes": [],
+  "funcs": [
+   "test_claim_done_count",
+   "test_avg_duration",
+   "test_fail_retry_counting",
+   "test_snapshot_structure",
+   "test_running_never_negative"
+  ]
+ },
+ "mcp-knowledge/tests/test_render_worker.py": {
+  "path": "./mcp-knowledge/tests/test_render_worker.py",
+  "ext": ".py",
+  "total": 142,
+  "doc": "Render Worker 单元测试 覆盖 Phase 8 性能优化： 1. 背压：队列满时 producer 阻塞，内存中任务数不超过 queue_size 2. 多消费者：并发消费任务，吞吐量正确 3. 失败重试：消费者异常 → 调用 engine._fail 回退 pending 架构：producer（claim → 入队）+ consumer（取出 → process_job）。",
+  "classes": [],
+  "funcs": [
+   "worker",
+   "fake_job",
+   "test_queue_maxsize_backpressure",
+   "test_consumer_processes_job",
+   "test_consumer_failure_calls_fail",
+   "test_producer_claims_batch",
+   "test_start_creates_workers"
+  ]
+ },
+ "mcp-knowledge/tests/test_siyuan.py": {
+  "path": "./mcp-knowledge/tests/test_siyuan.py",
+  "ext": ".py",
+  "total": 291,
+  "doc": "SiYuan / Knowledge Object Tools 单元测试 覆盖 Phase 6 的 6 个工具： - search_notes / get_note 检索与详情（含 SiYuan 展示路径） - create_knowledge_object 创建 + 渲染到 SiYuan - update_knowledge_object 版本化更新 + 增量同步 - create_resear",
+  "classes": [
+   "_Spec"
+  ],
+  "funcs": [
+   "mcp",
+   "fake_pg",
+   "fake_cache",
+   "fake_sync",
+   "fake_client",
+   "_run",
+   "_patch",
+   "test_search_notes",
+   "test_get_note_found",
+   "test_get_note_not_found"
+  ]
+ },
+ "mcp-knowledge/tests/test_siyuan_client.py": {
+  "path": "./mcp-knowledge/tests/test_siyuan_client.py",
+  "ext": ".py",
+  "total": 199,
+  "doc": "SiYuan Adapter 单元测试 覆盖： 1. 限流：并发上限（Semaphore）阻塞超限请求 2. 幂等：getDocByPath 已存在 → 更新而非创建 3. 重试：429/5xx 指数退避后成功 4. 模板渲染与路径映射",
+  "classes": [],
+  "funcs": [
+   "client",
+   "test_concurrency_limited",
+   "test_upsert_idempotent_updates_existing",
+   "test_upsert_idempotent_creates_when_missing",
+   "test_retry_on_429",
+   "test_business_error_not_retried",
+   "test_429_retry_then_success",
+   "test_mapper_paths",
+   "test_template_render_company",
+   "test_content_hash_stable"
+  ]
+ },
+ "mcp-news/server/config.py": {
+  "path": "./mcp-news/server/config.py",
+  "ext": ".py",
+  "total": 33,
+  "doc": "MCP News Server 配置 - Pydantic Settings",
+  "classes": [
+   "NewsMCPSettings"
+  ],
+  "funcs": []
+ },
+ "mcp-news/server/main.py": {
+  "path": "./mcp-news/server/main.py",
+  "ext": ".py",
+  "total": 76,
+  "doc": "MCP News Server - FastMCP 入口 News Intelligence Pipeline 对外查询接口，7 个 Tools。 Transport: Streamable HTTP (:8201)",
+  "classes": [],
+  "funcs": [
+   "lifespan",
+   "health_check"
+  ]
+ },
+ "mcp-news/server/__init__.py": {
+  "path": "./mcp-news/server/__init__.py",
+  "ext": ".py",
+  "total": 2,
+  "doc": "MCP News Server - 新闻智能系统 MCP 接口",
+  "classes": [],
+  "funcs": []
+ },
+ "mcp-news/server/storage/postgres.py": {
+  "path": "./mcp-news/server/storage/postgres.py",
+  "ext": ".py",
+  "total": 261,
+  "doc": "MCP News PostgreSQL Storage - news schema 查询 独立连接池，针对 news schema 的只读查询。 遵循 MCP-001/002：Tools 不含业务逻辑，通过 storage/ 访问 DB。",
+  "classes": [
+   "NewsPostgresStorage"
+  ],
+  "funcs": []
+ },
+ "mcp-news/server/storage/__init__.py": {
+  "path": "./mcp-news/server/storage/__init__.py",
+  "ext": ".py",
+  "total": 2,
+  "doc": "MCP News Server Storage - 新闻数据访问层",
+  "classes": [],
+  "funcs": []
+ },
+ "mcp-news/server/tools/analysis.py": {
+  "path": "./mcp-news/server/tools/analysis.py",
+  "ext": ".py",
+  "total": 88,
+  "doc": "Analysis Tools - 新闻影响分析 / 时间线 Tools: 5. analyze_news_impact — 聚合分析实体近期新闻影响 6. get_news_timeline — 获取实体新闻时间线",
+  "classes": [],
+  "funcs": [
+   "_serialize",
+   "register_analysis_tools"
+  ]
+ },
+ "mcp-news/server/tools/article.py": {
+  "path": "./mcp-news/server/tools/article.py",
+  "ext": ".py",
+  "total": 72,
+  "doc": "Article Tools - 新闻搜索 / 详情 Tools: 1. search_news — 关键词 + 时间范围 + 分类搜索新闻 2. get_news_article — 获取文章详情（含实体/事件）",
+  "classes": [],
+  "funcs": [
+   "_serialize",
+   "register_article_tools"
+  ]
+ },
+ "mcp-news/server/tools/event.py": {
+  "path": "./mcp-news/server/tools/event.py",
+  "ext": ".py",
+  "total": 66,
+  "doc": "Event Tools - 事件搜索 / 影响评估 Tools: 3. search_news_event — 按类型/时间/实体搜索事件 4. get_event_impact — 获取事件影响评估",
+  "classes": [],
+  "funcs": [
+   "_serialize",
+   "register_event_tools"
+  ]
+ },
+ "mcp-news/server/tools/source.py": {
+  "path": "./mcp-news/server/tools/source.py",
+  "ext": ".py",
+  "total": 42,
+  "doc": "Source Tools - 新闻源管理 Tools: 7. list_news_sources — 列出新闻源及状态",
+  "classes": [],
+  "funcs": [
+   "_serialize",
+   "register_source_tools"
+  ]
+ },
+ "mcp-news/server/tools/__init__.py": {
+  "path": "./mcp-news/server/tools/__init__.py",
+  "ext": ".py",
+  "total": 2,
+  "doc": "MCP News Server Tools - 新闻查询工具集",
+  "classes": [],
+  "funcs": []
+ },
+ "qdrant/init_qdrant.py": {
+  "path": "./qdrant/init_qdrant.py",
+  "ext": ".py",
+  "total": 165,
+  "doc": "Qdrant Collection 初始化脚本 ============================ 基于 24_数据底座规范.md 第五章，创建 documents_{market} Collection。 用法: pip install qdrant-client python init_qdrant.py 环境变量: QDRANT_HOST (默认: localhost) QDRANT_",
+  "classes": [],
+  "funcs": [
+   "create_client",
+   "create_collections",
+   "verify",
+   "main"
+  ]
+ },
+ "scripts/batch_embed_to_qdrant.py": {
+  "path": "./scripts/batch_embed_to_qdrant.py",
+  "ext": ".py",
+  "total": 309,
+  "doc": "高性能批量 Embedding → Qdrant v3 (async 合并版) 合并 phase4_embedding.py 的异步架构 + batch_embed_to_qdrant.py 的 CLI 接口。 核心优化： - asyncpg 异步连接池（消除 GIL + OFFSET 退化） - httpx AsyncClient + asyncio.gather 并发 embedding - ",
+  "classes": [],
+  "funcs": [
+   "embed_batch",
+   "embed_concurrent",
+   "main"
+  ]
+ },
+ "scripts/check_architecture.py": {
+  "path": "./scripts/check_architecture.py",
+  "ext": ".py",
+  "total": 275,
+  "doc": "Architecture Compliance Checker — 架构合规自动检查 基于 specs/architecture.yaml 中的规则，自动扫描代码检测违规。 检查规则: - ARCH-003: rag_nodes/ 不得直接 import 基础设施库 - MCP-002: mcp-*/server/tools/ 不得直接 import asyncpg/qdrant_client -",
+  "classes": [
+   "Violation"
+  ],
+  "funcs": [
+   "get_python_files",
+   "get_imports",
+   "check_arch_003",
+   "check_mcp_002",
+   "check_prm_004",
+   "check_dep_002",
+   "main"
+  ]
+ },
+ "scripts/dedupe_vault.py": {
+  "path": "./scripts/dedupe_vault.py",
+  "ext": ".py",
+  "total": 168,
+  "doc": "vault companies 目录治理脚本（安全去重） 背景： data/vault/companies/ 存在 7894 个目录，严重混乱： - 同一公司重复：000001 / 000001_平安银行 / 000001_長和 - 全角空格/多余空格：000002_万 科Ａ / 000012_南 玻Ａ - 6 位 A 股代码与 5 位港股代码混存（000001 平安银行 vs 00001 長和）",
+  "classes": [],
+  "funcs": [
+   "extract_code",
+   "normalize_name",
+   "is_canonical",
+   "scan",
+   "plan",
+   "apply",
+   "main"
+  ]
+ },
+ "scripts/import_company_basic.py": {
+  "path": "./scripts/import_company_basic.py",
+  "ext": ".py",
+  "total": 147,
+  "doc": "从本地 PDF 文件名提取公司基本信息 → PostgreSQL company_basic 无需网络，直接从 data/stock_a/, stock_h/, stock_us/ 文件名解析。",
+  "classes": [],
+  "funcs": [
+   "parse_filename",
+   "get_exchange",
+   "main"
+  ]
+ },
+ "scripts/import_providers.py": {
+  "path": "./scripts/import_providers.py",
+  "ext": ".py",
+  "total": 125,
+  "doc": "导入 providers.yaml 到 PostgreSQL providers 表 用法: python scripts/import_providers.py 环境变量: PROVIDERS_YAML - providers.yaml 文件路径 (默认: {PROJECT_ROOT}/data/providers.yaml) PG_DSN - PostgreSQL 连接串 (默认: postg",
+  "classes": [],
+  "funcs": [
+   "main"
+  ]
+ },
+ "scripts/init_news_qdrant.py": {
+  "path": "./scripts/init_news_qdrant.py",
+  "ext": ".py",
+  "total": 98,
+  "doc": "News Intelligence Pipeline — Qdrant Collections 初始化 创建新闻管线所需的向量集合： - news_embeddings: 文章 embedding（去重 + 语义搜索） - news_events: 事件 embedding（事件语义检索） 用法: python3 scripts/init_news_qdrant.py python3 script",
+  "classes": [],
+  "funcs": [
+   "main"
+  ]
+ },
+ "scripts/sync_to_age.py": {
+  "path": "./scripts/sync_to_age.py",
+  "ext": ".py",
+  "total": 279,
+  "doc": "PostgreSQL → Apache AGE 数据同步脚本 将 core.entities + core.relations 现有数据同步到 AGE Graph。 幂等：使用 MERGE（ON MATCH 更新属性）。 用法： python3 scripts/sync_to_age.py python3 scripts/sync_to_age.py --batch-size 100 --dry-",
+  "classes": [],
+  "funcs": [
+   "escape_cypher",
+   "verify_age",
+   "sync_entities",
+   "sync_relations",
+   "print_graph_stats",
+   "main"
+  ]
+ },
+ "scripts/upload_analysis_reports.py": {
+  "path": "./scripts/upload_analysis_reports.py",
+  "ext": ".py",
+  "total": 118,
+  "doc": "上传大师分析报告到 MinIO artifacts/research/ Bucket 路径规范: artifacts/research/{market}/{symbol}/master_analysis_{year}.md 环境变量: MINIO_ENDPOINT - MinIO 服务地址 (默认: localhost:9000) MINIO_ROOT_USER - MinIO 访问密钥 MINI",
+  "classes": [],
+  "funcs": [
+   "parse_filename",
+   "upload_reports"
+  ]
+ },
+ "scripts/web_scheduler.py": {
+  "path": "./scripts/web_scheduler.py",
+  "ext": ".py",
+  "total": 591,
+  "doc": "Web Crawl Scheduler — 定时增量抓取 + 向量化同步 + 数据清理 基于 Crawl4AI 集成设计规范 第18节: - 周期性增量抓取（检测内容变化） - 自动向量化同步（Chunk → Embedding → Qdrant） - 死信重跑 - 定时数据清理（死信/孤儿/过期数据） 调度策略: - 增量抓取: 每 6 小时 - 向量化同步: 每 30 分钟（处理 pendin",
+  "classes": [],
+  "funcs": [
+   "create_pipeline",
+   "load_target_urls",
+   "job_incremental_crawl",
+   "job_sync_vectors",
+   "job_dead_letter_retry",
+   "job_cleanup",
+   "_find_orphan_qdrant_points",
+   "run_scheduler",
+   "run_once",
+   "main"
+  ]
+ },
+ "scripts/archive/crawl_qiushi_summary.py": {
+  "path": "./scripts/archive/crawl_qiushi_summary.py",
+  "ext": ".py",
+  "total": 269,
+  "doc": "求是网文章自动摘要 Pipeline（独立脚本） 流程: 1. 抓取列表页 → 提取文章链接（按日期降序） 2. 逐篇抓取正文 → Markdown 清洗 3. 调用 LLM 生成结构化摘要 4. 存储: PostgreSQL (web_pages.metadata.summary) + 本地 Markdown 文件 用法: # 默认：抓取求是网首页最新 20 篇文章 python3 script",
+  "classes": [],
+  "funcs": [
+   "run_pipeline",
+   "main"
+  ]
+ },
+ "scripts/archive/test_downstream_pipeline.py": {
+  "path": "./scripts/archive/test_downstream_pipeline.py",
+  "ext": ".py",
+  "total": 191,
+  "doc": "下游 Pipeline 集成测试: Chunk → Embedding → Qdrant 验证完整向量化流程: 1. 从 MinIO 读取已抓取的 Markdown 2. 分块 → 写入 web_chunks 3. Embedding → Qdrant 向量化 4. 相似性搜索验证可检索 用法: python3 scripts/test_downstream_pipeline.py",
+  "classes": [],
+  "funcs": [
+   "main",
+   "cleanup"
+  ]
+ },
+ "scripts/archive/test_pipeline_integration.py": {
+  "path": "./scripts/archive/test_pipeline_integration.py",
+  "ext": ".py",
+  "total": 169,
+  "doc": "Web Pipeline 完整集成测试 测试完整数据流: URL → Crawl4AI → Markdown → MinIO → PostgreSQL 用法: python3 scripts/test_pipeline_integration.py",
+  "classes": [],
+  "funcs": [
+   "main",
+   "cleanup"
+  ]
+ },
+ "scripts/archive/test_web_ingestion.py": {
+  "path": "./scripts/archive/test_web_ingestion.py",
+  "ext": ".py",
+  "total": 185,
+  "doc": "Web Ingestion Layer 端到端测试 测试内容: 1. Crawl4AI Provider 抓取 2. RetryPolicy 重试逻辑 3. RateLimiter 限速 4. DiffDetector 变更检测 5. PostgreSQL 数据写入 用法: python3 scripts/test_web_ingestion.py",
+  "classes": [],
+  "funcs": [
+   "test_retry_policy",
+   "test_rate_limiter",
+   "test_diff_detector",
+   "test_crawl4ai_provider",
+   "main"
+  ]
+ }
+}

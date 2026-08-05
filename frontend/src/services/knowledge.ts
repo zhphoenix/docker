@@ -1,5 +1,12 @@
 import { apiFetch } from './api-client'
 
+// ─── SiYuan 展示层配置 ───────────────────────────────
+// 知识图谱以 SiYuan 关系图作为展示层（PG 为唯一数据源 SoT）
+export const SIYUAN_URL = import.meta.env.VITE_SIYUAN_URL || 'http://localhost:6806'
+
+export const SIYUAN_GRAPH_GUIDE =
+  '打开 SiYuan 后，点击顶部工具栏的「关系图」图标，即可查看基于实体文档链接生成的关联图谱。'
+
 // ─── Collection ───────────────────────────────────────────
 
 export interface KnowledgeCollection {
@@ -269,8 +276,10 @@ export function triggerExtraction(documentIds: string[], rawTexts?: Record<strin
 
 export interface MinioIngestResponse {
   status: string
-  registered: Record<string, unknown>
-  pipeline_task_id: string | null
+  task_id?: string
+  async_mode?: boolean
+  registered?: Record<string, unknown>
+  pipeline_task_id?: string | null
 }
 
 export function triggerIngestMinio(params: {

@@ -1,0 +1,267 @@
+{
+  "meta": {
+    "skill": "glossary",
+    "category": "code-analysis",
+    "analysis": "structure + semantic",
+    "pipeline": "Tree-sitter(结构层) + LLM(语义层)",
+    "target": "/mnt/e/ai-platform",
+    "generated_at": "2026-08-04",
+    "output_dir": "scripts/collect_out/"
+  },
+  "extracted": [
+    {
+      "file": "frontend/src/app/pages/DocumentsPage.tsx",
+      "line": 88,
+      "layer": "UI",
+      "kind": "state_enum",
+      "value": "pending/waiting_parser/parse_failed/parsed/indexed/error",
+      "context": "documentStatus",
+      "status": "consistent"
+    },
+    {
+      "file": "frontend/src/services/tasks.ts",
+      "line": 4,
+      "layer": "UI",
+      "kind": "state_enum",
+      "value": "pending/running/done/failed",
+      "context": "taskStatus",
+      "status": "consistent"
+    },
+    {
+      "file": "frontend/src/components/layout/Sidebar.tsx",
+      "line": 27,
+      "layer": "UI",
+      "kind": "page_naming",
+      "value": "Knowledge Hub",
+      "context": "/knowledge nav label",
+      "status": "consistent"
+    },
+    {
+      "file": "frontend/src/components/layout/Header.tsx",
+      "line": 10,
+      "layer": "UI",
+      "kind": "page_naming",
+      "value": "Knowledge Hub",
+      "context": "'/knowledge' page title",
+      "status": "resolved",
+      "note": "P3 已整改：禁止别名 → Knowledge Hub，与 Sidebar 一致"
+    },
+    {
+      "file": "frontend/src/app/pages/DocumentsPage.tsx",
+      "line": 1572,
+      "layer": "UI",
+      "kind": "page_naming",
+      "value": "文档中心",
+      "context": "h1 title",
+      "status": "consistent"
+    },
+    {
+      "file": "frontend/src/app/pages/WorkflowPage.tsx",
+      "line": 564,
+      "layer": "UI",
+      "kind": "page_naming",
+      "value": "处理中心",
+      "context": "badge",
+      "status": "consistent"
+    },
+    {
+      "file": "frontend/src/app/pages/KnowledgePage.tsx",
+      "line": 25,
+      "layer": "UI",
+      "kind": "page_naming",
+      "value": "知识中台",
+      "context": "description",
+      "status": "consistent"
+    },
+    {
+      "file": "frontend/src/services/tasks.ts",
+      "line": 202,
+      "layer": "UI",
+      "kind": "action_verb",
+      "value": "reembedDocument",
+      "context": "api call",
+      "status": "resolved",
+      "note": "已整改为 reembedDocument / /api/tasks/re-embed"
+    },
+    {
+      "file": "frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+      "line": 49,
+      "layer": "UI",
+      "kind": "action_verb",
+      "value": "re-embed: '重新向量化'",
+      "context": "select option",
+      "status": "resolved",
+      "note": "已整改为 re-embed / '重新向量化'"
+    },
+    {
+      "file": "frontend/src/app/pages/WorkflowPage.tsx",
+      "line": 89,
+      "layer": "UI",
+      "kind": "action_verb",
+      "value": "re-embed: '重新向量化'",
+      "context": "workflow task value",
+      "status": "resolved",
+      "note": "已整改为 re-embed / '重新向量化'"
+    },
+    {
+      "file": "langgraph/api/tasks.py",
+      "line": 106,
+      "layer": "API",
+      "kind": "action_verb",
+      "value": "POST /re-embed",
+      "context": "route",
+      "status": "resolved",
+      "note": "已整改为 POST /re-embed"
+    },
+    {
+      "file": "langgraph/runtime/worker.py",
+      "line": 171,
+      "layer": "SERVICE",
+      "kind": "action_verb",
+      "value": "register_handler('re-embed')",
+      "context": "task handler",
+      "status": "resolved",
+      "note": "已整改为 register_handler('re-embed')"
+    },
+    {
+      "file": "langgraph/state/knowledge_state.py",
+      "line": 1,
+      "layer": "MODEL",
+      "kind": "agent_naming",
+      "value": "Knowledge Ingestion Agent",
+      "context": "docstring",
+      "status": "resolved",
+      "note": "P1 已整改：旧名映射 → Knowledge Ingestion Agent"
+    },
+    {
+      "file": "langgraph/graphs/knowledge_graph.py",
+      "line": 1,
+      "layer": "GRAPH",
+      "kind": "agent_naming",
+      "value": "build_knowledge_ingestion_graph()",
+      "context": "docstring + build_knowledge_ingestion_graph()",
+      "status": "resolved",
+      "note": "P1 已整改：函数名与 docstring → Knowledge Ingestion Agent"
+    },
+    {
+      "file": "langgraph/runtime/worker.py",
+      "line": 99,
+      "layer": "SERVICE",
+      "kind": "agent_naming",
+      "value": "build_knowledge_ingestion_graph",
+      "context": "function call",
+      "status": "resolved",
+      "note": "P1 已整改：worker/worker.yaml 同步 → knowledge_ingestion graph"
+    },
+    {
+      "file": "langgraph/tools/knowledge_tools.py",
+      "line": 1,
+      "layer": "SERVICE",
+      "kind": "service_naming",
+      "value": "Knowledge MCP Server",
+      "context": "docstring",
+      "status": "resolved",
+      "note": "P1 已整改：词序 → Knowledge MCP Server"
+    },
+    {
+      "file": "mcp-knowledge/server/main.py",
+      "line": 1,
+      "layer": "MCP",
+      "kind": "service_naming",
+      "value": "MCP Knowledge Server",
+      "context": "module docstring + logs",
+      "status": "conflict",
+      "note": "规范词序 → Knowledge MCP Server"
+    },
+    {
+      "file": "mcp-knowledge/server/config.py",
+      "line": 1,
+      "layer": "MCP",
+      "kind": "service_naming",
+      "value": "MCP Knowledge Server",
+      "context": "module docstring",
+      "status": "conflict",
+      "note": "规范词序 → Knowledge MCP Server"
+    },
+    {
+      "file": "mcp-knowledge/server/tools/siyuan.py",
+      "line": 12,
+      "layer": "MCP",
+      "kind": "service_naming",
+      "value": "Knowledge MCP Server",
+      "context": "docstring",
+      "status": "consistent",
+      "note": "与规范一致，但与其他文件自相矛盾"
+    },
+    {
+      "file": "langgraph/api/knowledge.py",
+      "line": 40,
+      "layer": "API",
+      "kind": "stat_field",
+      "value": "embedded_count",
+      "context": "DB count",
+      "status": "new_concept",
+      "note": "统计字段(已向量化数量)，非状态枚举；与规范禁止的旧值 embedded 同名需澄清"
+    },
+    {
+      "file": "langgraph/services/batch_embed.py",
+      "line": 170,
+      "layer": "SERVICE",
+      "kind": "stat_field",
+      "value": "embedded = true",
+      "context": "chunks 布尔列",
+      "status": "new_concept",
+      "note": "chunks 表布尔列，非文档状态枚举；需澄清与规范 embedded 的区分"
+    }
+  ],
+  "analysis": [
+    {
+      "term": "Knowledge Organization Agent",
+      "canonical": "Knowledge Ingestion Agent",
+      "status": "resolved",
+      "note": "P1 已整改：graphs/state/worker/config 全部改为 Knowledge Ingestion Agent"
+    },
+    {
+      "term": "MCP Knowledge Server",
+      "canonical": "Knowledge MCP Server",
+      "status": "resolved",
+      "note": "P1 已整改：mcp-knowledge 与 knowledge_tools 统一为 Knowledge MCP Server"
+    },
+    {
+      "term": "reindex / Reindex / 重新索引",
+      "canonical": "Re-embed (重新向量化)",
+      "status": "resolved",
+      "note": "P0 已整改：前后端 reindex→re-embed，中文→重新向量化"
+    },
+    {
+      "term": "Knowledge Base (页面标题)",
+      "canonical": "Knowledge Hub",
+      "status": "resolved",
+      "note": "P3 已整改：Header.tsx 页面标题 → Knowledge Hub，与 Sidebar 一致"
+    },
+    {
+      "term": "embedded (统计字段)",
+      "canonical": "未定义（新概念）",
+      "status": "new_concept",
+      "note": "统计字段/布尔列与状态枚举 embedded 同名，建议规范澄清"
+    },
+    {
+      "term": "文档状态6态 / 任务状态4态",
+      "canonical": "pending..error / pending..failed",
+      "status": "consistent",
+      "note": "前端与后端一致，无 parsing/embedded 状态误用"
+    },
+    {
+      "term": "页面命名 文档中心/处理中心/知识中台",
+      "canonical": "一致",
+      "status": "consistent",
+      "note": "三大核心页面命名正确"
+    },
+    {
+      "term": "架构术语 Knowledge Graph / Vector Index",
+      "canonical": "一致",
+      "status": "consistent",
+      "note": "知识图谱/向量索引命名正确"
+    }
+  ]
+}

@@ -16,7 +16,7 @@ class TriggerPipelineRequest(BaseModel):
     async_mode: bool = True  # True=入队等待 Worker 处理，False=同步执行
 
 
-class ReindexRequest(BaseModel):
+class ReembedRequest(BaseModel):
     document_id: str
 
 
@@ -103,16 +103,16 @@ async def trigger_batch_embed(req: BatchEmbedRequest):
     return {"status": "queued", "task_id": task_id}
 
 
-@router.post("/reindex")
-async def reindex_document(req: ReindexRequest):
-    """重新索引单个文档"""
-    success = await doc_pipeline.reindex_document(req.document_id)
+@router.post("/re-embed")
+async def reembed_document(req: ReembedRequest):
+    """重新向量化单个文档"""
+    success = await doc_pipeline.reembed_document(req.document_id)
     if not success:
-        raise HTTPException(status_code=400, detail="Reindex failed")
+        raise HTTPException(status_code=400, detail="Re-embed failed")
     # 创建任务入队
     task_id = await task_queue.create_task(
         task_type="doc_pipeline",
-        title=f"重新索引 {req.document_id[:8]}",
+        title=f"重新向量化 {req.document_id[:8]}",
         params={"limit": 1},
         total_items=1,
         created_by="api",
@@ -177,9 +177,33 @@ async def get_task_logs(task_id: str, limit: int = 200):
     return {"logs": logs, "total": len(logs)}
 
 
+@router.post("/{task_id}/pause")
+async def pause_task(task_id: str):
+    """暂停运行中的任务（仅支持协作式暂停的任务，如 upload_folder / ingest_minio）"""
+    task = await task_queue.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    if task["status"] != "running":
+        raise HTTPException(status_code=400, detail="Task is not running")
+    if task["task_type"] not in ("upload_folder", "ingest_minio"):
+        raise HTTPException(status_code=400, detail="Task type not pausable")
+    task_queue.set_paused(task_id, True)
+    return {"status": "ok", "message": "Task paused"}
+
+
+@router.post("/{task_id}/resume")
+async def resume_task(task_id: str):
+    """恢复被暂停的任务"""
+    task = await task_queue.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    task_queue.set_paused(task_id, False)
+    return {"status": "ok", "message": "Task resumed"}
+
+
 @router.post("/{task_id}/cancel")
 async def cancel_task(task_id: str):
-    """取消运行中的任务（batch_embed 支持优雅中断，其余不支持的返回 400）"""
+    """取消运行中的任务（batch_embed / upload_folder / ingest_minio 支持优雅中断）"""
     task = await task_queue.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -191,7 +215,11 @@ async def cancel_task(task_id: str):
         cancel_batch_embed()
         return {"status": "ok", "message": "Cancel requested for batch_embed"}
 
-    raise HTTPException(status_code=400, detail="Task type not cancellable (use Cancel via batch_embed)")
+    if task["task_type"] in ("upload_folder", "ingest_minio"):
+        task_queue.set_cancelled(task_id)
+        return {"status": "ok", "message": f"Cancel requested for {task['task_type']}"}
+
+    raise HTTPException(status_code=400, detail="Task type not cancellable")
 
 
 @router.delete("/{task_id}")

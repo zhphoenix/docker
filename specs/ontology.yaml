@@ -225,6 +225,98 @@ event_types:
     examples: ["GPT-5 Release"]
 
 # ============================================================
+# Watchlist 监控范围维度（6 种）
+# 来源：docs/design/Watchlist_Intelligence_Module_Design.md §5
+# ============================================================
+watch_monitoring_scopes:
+
+  - id: company
+    label: 公司
+    description: "公司新闻、公告、财报、高管/股权变动、并购重组"
+
+  - id: industry
+    label: 行业
+    description: "行业新闻、行业指数、产业政策、技术突破、原材料价格"
+
+  - id: supply_chain
+    label: 供应链
+    description: "产业链上下游关联事件自动串联"
+
+  - id: policy
+    label: 政策
+    description: "国务院/证监会/财政部/工信部/商务部等政策"
+
+  - id: macro
+    label: 宏观
+    description: "美联储、CPI、PPI、PMI、GDP、汇率、利率"
+
+  - id: market
+    label: 市场
+    description: "龙虎榜、大宗交易、融资融券、北向/南向资金"
+
+# ============================================================
+# Watchlist AI 事件分析枚举（§6）
+# 来源：docs/design/Watchlist_Intelligence_Module_Design.md §6
+# ============================================================
+watch_analysis_enums:
+
+  importance_levels:
+    - id: important_5
+      label: "★★★★★"
+      description: "重要性最高"
+    - id: important_4
+      label: "★★★★☆"
+      description: "重要性高"
+    - id: important_3
+      label: "★★★☆☆"
+      description: "重要性中"
+    - id: important_2
+      label: "★★☆☆☆"
+      description: "重要性低"
+    - id: important_1
+      label: "★☆☆☆☆"
+      description: "重要性最低"
+
+  sentiment_types:
+    - id: bullish
+      label: "Bullish"
+      description: "看多/利好"
+    - id: bearish
+      label: "Bearish"
+      description: "看空/利空"
+    - id: neutral
+      label: "Neutral"
+      description: "中性"
+
+  confidence_levels:
+    - id: official
+      label: "Official"
+      description: "官方确认"
+    - id: high
+      label: "High"
+      description: "置信度高"
+    - id: medium
+      label: "Medium"
+      description: "置信度中"
+    - id: low
+      label: "Low"
+      description: "置信度低"
+    - id: rumor
+      label: "Rumor"
+      description: "传闻/未证实"
+
+  impact_horizons:
+    - id: short_term
+      label: "Short-term"
+      description: "短期影响"
+    - id: mid_term
+      label: "Mid-term"
+      description: "中期影响"
+    - id: long_term
+      label: "Long-term"
+      description: "长期影响"
+
+# ============================================================
 # 已知不一致（待修复）
 # ============================================================
 

@@ -70,8 +70,10 @@ scheduler:
 worker:
   poll_interval_seconds: 30
   max_concurrent_tasks: 1
+  # 启动时回收僵尸 running 任务：仅回收 started_at 距今超过该秒数的 running 任务
+  stale_after_seconds: 300
 
-# Knowledge Organization Agent
+# Knowledge Ingestion Agent
 knowledge:
   extraction:
     max_concurrent_llm: 4

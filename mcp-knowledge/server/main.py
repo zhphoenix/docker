@@ -1,4 +1,4 @@
-"""MCP Knowledge Server - FastMCP 入口
+"""Knowledge MCP Server - FastMCP 入口
 
 基于 32_Knowledge_Agent接口规范.md 实现 16 个知识工具。
 Transport: Streamable HTTP (:8200)
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(server):
     """生命周期管理：启动初始化 / 关闭释放"""
-    logger.info("MCP Knowledge Server starting...")
+    logger.info("Knowledge MCP Server starting...")
     await pg_storage.connect()
     # AGE 图存储（可选，失败不阻塞启动）
     try:
@@ -33,7 +33,7 @@ async def lifespan(server):
     except Exception as e:
         logger.warning("AGE storage init failed (non-fatal): %s", e)
     logger.info(
-        "MCP Knowledge Server ready (port=%d, age=%s)",
+        "Knowledge MCP Server ready (port=%d, age=%s)",
         settings.MCP_PORT,
         "available" if age_storage.available else "unavailable",
     )
@@ -42,7 +42,7 @@ async def lifespan(server):
     await pg_storage.close()
     await qdrant_storage.close()
     await llm_client.close()
-    logger.info("MCP Knowledge Server stopped")
+    logger.info("Knowledge MCP Server stopped")
 
 
 # 创建 FastMCP 实例

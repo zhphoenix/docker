@@ -22,7 +22,6 @@
 #   - Sisyphus (Qwythos-9B)   :8080
 #   - OpenWebUI                :3000
 #   - LangGraph                :8100
-#   - Obsidian (remote)        :3002 (Web UI) / :27123 (REST API)
 #
 # 前置: 需先创建 ai-platform 网络
 #   docker network create ai-platform
@@ -40,6 +39,5 @@ include:
   - openwebui/compose.yml
   - langgraph/compose.yml
   - crawl4ai/compose.yml
-  - obsidian/compose.yml
   - mcp-knowledge/compose.yml
   - mcp-news/compose.yml

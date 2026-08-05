@@ -39,7 +39,7 @@ Daily Monitoring
 
 ↓
 
-Knowledge Organization
+Knowledge Ingestion
 
 ↓
 
@@ -93,7 +93,7 @@ Watchlist Manager   Monitoring Engine     Alert Engine
 
                      │
 
-            Investment Knowledge Graph
+            Knowledge Graph
 
                      │
 
@@ -175,7 +175,7 @@ Collect Macro Events
 
 ↓
 
-Knowledge Organization
+Knowledge Ingestion
 
 ↓
 
@@ -189,7 +189,7 @@ Generate Daily Report
 
 ---
 
-## 4.3 Intelligence Agent
+## 4.3 News Intelligence Agent
 
 负责：
 

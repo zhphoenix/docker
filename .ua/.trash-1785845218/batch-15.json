@@ -1,0 +1,70 @@
+{
+ "nodes": [
+  {
+   "id": "document:langgraph/prompts/news/classification.md",
+   "type": "document",
+   "name": "classification.md",
+   "filePath": "langgraph/prompts/news/classification.md",
+   "summary": "文档：classification.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/news/entity_extraction.md",
+   "type": "document",
+   "name": "entity_extraction.md",
+   "filePath": "langgraph/prompts/news/entity_extraction.md",
+   "summary": "文档：entity_extraction.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/news/event_extraction.md",
+   "type": "document",
+   "name": "event_extraction.md",
+   "filePath": "langgraph/prompts/news/event_extraction.md",
+   "summary": "文档：event_extraction.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/news/impact_analysis.md",
+   "type": "document",
+   "name": "impact_analysis.md",
+   "filePath": "langgraph/prompts/news/impact_analysis.md",
+   "summary": "文档：impact_analysis.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/prompts/news/system.md",
+   "type": "document",
+   "name": "system.md",
+   "filePath": "langgraph/prompts/news/system.md",
+   "summary": "文档：system.md",
+   "tags": [
+    "langgraph",
+    "prompt"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

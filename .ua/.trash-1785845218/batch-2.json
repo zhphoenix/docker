@@ -1,0 +1,17 @@
+{
+ "nodes": [
+  {
+   "id": "resource:mcp-knowledge/Dockerfile",
+   "type": "resource",
+   "name": "Dockerfile",
+   "filePath": "mcp-knowledge/Dockerfile",
+   "summary": "Dockerfile（mcp-knowledge）",
+   "tags": [
+    "mcp-knowledge"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

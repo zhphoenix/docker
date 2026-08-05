@@ -1,0 +1,43 @@
+{
+  "reviewedAt": "2025-08-04T20:10:00+08:00",
+  "overall": "PASS",
+  "summary": "组装审查通过。403 个节点、797 条边，无重复 ID、无悬空引用。修复了 3 个缺失字段的节点，并补充了包 contains、Dockerfile serves、配置 depends_on、数据库模式 defines_schema 等语义边，将孤立节点从 153 降至 105。",
+  "nodeCount": 403,
+  "edgeCount": 797,
+  "nodeTypes": {
+    "file": 279,
+    "document": 65,
+    "resource": 34,
+    "config": 25
+  },
+  "edgeTypes": {
+    "imports": 598,
+    "contains": 141,
+    "deploys": 13,
+    "configures": 6,
+    "tested_by": 6,
+    "documents": 5,
+    "serves": 8,
+    "calls": 4,
+    "defines_schema": 12,
+    "depends_on": 2,
+    "triggers": 2
+  },
+  "issues": [],
+  "fixesApplied": [
+    "为 config:.env.example、document:CLAUDE.md、resource:compose.yml 补充 summary 与 tags",
+    "为 36 个 __init__.py 包标记添加 contains 边（包包含模块）",
+    "为 langgraph/mcp-knowledge/mcp-news 的 Dockerfile 添加 serves 边",
+    "为 pyproject.toml/package.json/vite.config.ts 添加 depends_on 边",
+    "为 postgres/init/*.sql 添加 defines_schema 边至 postgres 服务",
+    "补充根 compose.yml 语义描述"
+  ],
+  "warnings": [
+    "105 个孤立节点（无任何边），主要为文档（prompts、plans、docs/architecture）、独立配置与脚本，属正常现象，不影响图完整性",
+    "importMap 源扫描为空，imports 边由提取脚本重建，个别跨框架解析可能遗漏"
+  ],
+  "danglingEdges": 0,
+  "duplicateIds": 0,
+  "orphanNodes": 105,
+  "recommendation": "继续进入 Phase 4 架构分层，将全部文件级节点归入逻辑层。"
+}

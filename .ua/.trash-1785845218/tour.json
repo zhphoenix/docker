@@ -1,0 +1,62 @@
+[
+  {
+    "order": 1,
+    "title": "项目概览",
+    "description": "从项目文档了解 AI 投研平台的定位：基于 LangGraph 的多 Agent 投研平台，提供 OpenAI 兼容 API，支持 RAG 检索增强、多 Agent 路由与真实流式输出。",
+    "nodeIds": ["document:langgraph/README.md", "document:docs/00_Project_Inventory.md", "document:docs/architecture/System_Architecture.md"]
+  },
+  {
+    "order": 2,
+    "title": "前端应用入口",
+    "description": "从前端入口开始：main.tsx 挂载 React 根组件，router.tsx 定义页面路由，将用户带到各功能页面（研究、新闻、知识库、文档等）。",
+    "nodeIds": ["file:frontend/src/main.tsx", "file:frontend/src/app/router.tsx", "file:frontend/src/app/pages/DashboardPage.tsx"]
+  },
+  {
+    "order": 3,
+    "title": "后端服务入口",
+    "description": "后端入口 main.py 启动 uvicorn，加载 FastAPI 应用（api/server.py）。server.py 注册全部 API 路由并管理生命周期依赖（PostgreSQL/AGE/技能/调度器/Worker）。",
+    "nodeIds": ["file:langgraph/main.py", "file:langgraph/api/server.py"]
+  },
+  {
+    "order": 4,
+    "title": "API 路由层",
+    "description": "api/ 目录实现 FastAPI 路由，chat.py 是核心的 OpenAI 兼容 /v1/chat/completions 端点，其余路由分别服务研究、新闻、知识库、文档、向量检索等能力。",
+    "nodeIds": ["file:langgraph/api/chat.py", "file:langgraph/api/research.py", "file:langgraph/api/documents.py"]
+  },
+  {
+    "order": 5,
+    "title": "Agent 路由与声明式配置",
+    "description": "services/router.py 依据 config/agents.yaml 的 Agent 注册表动态路由请求到对应 Agent；config/workflows.yaml 定义工作流注册表，驱动 graphs/__init__.py 动态加载图。",
+    "nodeIds": ["file:langgraph/services/router.py", "config:langgraph/config/agents.yaml", "config:langgraph/config/workflows.yaml", "file:langgraph/graphs/__init__.py"]
+  },
+  {
+    "order": 6,
+    "title": "研究图工作流",
+    "description": "核心研究流程 research_graph.py 编排节点：Planner 规划 → Retrieve 检索 → Rerank 重排 → Reason 推理 → Reflect 反思，质量不佳时自动重试。state/research_state.py 定义 AgentState。",
+    "nodeIds": ["file:langgraph/graphs/research_graph.py", "file:langgraph/nodes/research/planner.py", "file:langgraph/nodes/research/retrieve.py", "file:langgraph/state/research_state.py"]
+  },
+  {
+    "order": 7,
+    "title": "工具层",
+    "description": "tools/ 封装基础设施访问：LLM、Embedding、Reranker、Qdrant 向量检索、PostgreSQL、MinIO 对象存储、Docling 文档解析等，供各节点复用。",
+    "nodeIds": ["file:langgraph/tools/qdrant.py", "file:langgraph/tools/llm.py", "file:langgraph/tools/embedding.py"]
+  },
+  {
+    "order": 8,
+    "title": "存储与持久化层",
+    "description": "storage/ 实现数据持久化：知识库分别写入 PostgreSQL（结构化）、Qdrant（向量）与 Apache AGE（图谱），layer 化的数据架构支撑检索与图谱分析。",
+    "nodeIds": ["file:langgraph/storage/knowledge/postgres.py", "file:langgraph/storage/knowledge/qdrant.py", "file:langgraph/storage/knowledge/age.py"]
+  },
+  {
+    "order": 9,
+    "title": "新闻采集与调度",
+    "description": "runtime/scheduler.py 定时触发 collectors 采集新闻（RSS/网页），经新闻流水线处理后入库，供新闻分析图使用。",
+    "nodeIds": ["file:langgraph/runtime/scheduler.py", "file:langgraph/collectors/rss_collector.py", "file:langgraph/graphs/news_analysis_graph.py"]
+  },
+  {
+    "order": 10,
+    "title": "基础设施编排",
+    "description": "根 compose.yml 通过 include 编排 14 个子服务（PostgreSQL、MinIO、Qdrant、Docling、Embedding、Reranker、PaddleOCR、Sisyphus、OpenWebUI、LangGraph、Crawl4AI、Obsidian 及 MCP 服务），统一启动整个平台。",
+    "nodeIds": ["resource:compose.yml", "resource:postgres/compose.yml", "resource:qdrant/compose.yml"]
+  }
+]

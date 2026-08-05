@@ -139,7 +139,7 @@ function ReportsPanel() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={market || 'all'} onValueChange={(v) => setMarket(v === 'all' ? '' : v)}>
+        <Select value={market || 'all'} onValueChange={(v) => setMarket(v === 'all' ? '' : (v ?? ''))}>
           <SelectTrigger className="w-28">
             <SelectValue placeholder="市场" />
           </SelectTrigger>
@@ -318,7 +318,7 @@ function AnalyzePanel() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">市场</label>
-              <Select value={market} onValueChange={setMarket}>
+              <Select value={market} onValueChange={(v) => setMarket(v ?? '')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -332,7 +332,7 @@ function AnalyzePanel() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">分析维度</label>
-              <Select value={dimension} onValueChange={setDimension}>
+              <Select value={dimension} onValueChange={(v) => setDimension(v ?? '')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

@@ -1,0 +1,113 @@
+{
+ "nodes": [
+  {
+   "id": "document:docs/architecture/API_Design_Guide.md",
+   "type": "document",
+   "name": "API_Design_Guide.md",
+   "filePath": "docs/architecture/API_Design_Guide.md",
+   "summary": "文档：API_Design_Guide.md",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:docs/architecture/Agent_Architecture.md",
+   "type": "document",
+   "name": "Agent_Architecture.md",
+   "filePath": "docs/architecture/Agent_Architecture.md",
+   "summary": "文档：Agent_Architecture.md",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:docs/architecture/Backend_Architecture.md",
+   "type": "document",
+   "name": "Backend_Architecture.md",
+   "filePath": "docs/architecture/Backend_Architecture.md",
+   "summary": "文档：Backend_Architecture.md",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:docs/architecture/Data_Architecture.md",
+   "type": "document",
+   "name": "Data_Architecture.md",
+   "filePath": "docs/architecture/Data_Architecture.md",
+   "summary": "文档：Data_Architecture.md",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:docs/architecture/Deployment_Architecture.md",
+   "type": "document",
+   "name": "Deployment_Architecture.md",
+   "filePath": "docs/architecture/Deployment_Architecture.md",
+   "summary": "文档：Deployment_Architecture.md",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:docs/architecture/Frontend_Architecture.md",
+   "type": "document",
+   "name": "Frontend_Architecture.md",
+   "filePath": "docs/architecture/Frontend_Architecture.md",
+   "summary": "文档：Frontend_Architecture.md",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:docs/architecture/README.md",
+   "type": "document",
+   "name": "README.md",
+   "filePath": "docs/architecture/README.md",
+   "summary": "文档：README.md",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:docs/architecture/System_Architecture.md",
+   "type": "document",
+   "name": "System_Architecture.md",
+   "filePath": "docs/architecture/System_Architecture.md",
+   "summary": "文档：System_Architecture.md",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:docs/architecture/UI_Guidelines.md",
+   "type": "document",
+   "name": "UI_Guidelines.md",
+   "filePath": "docs/architecture/UI_Guidelines.md",
+   "summary": "文档：UI_Guidelines.md",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

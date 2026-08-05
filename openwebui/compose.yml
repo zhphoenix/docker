@@ -4,12 +4,14 @@ services:
     container_name: open-webui
     restart: unless-stopped
     ports:
-      # 宿主机 3001 访问 open-webui；容器内部改用 8084 监听，
-      # 避免与 LLM 宿主机端口 8080 冲突导致容器内 localhost:8080 self-loop
-      - "3001:8084"
+      # 宿主机 3000 访问 open-webui（3001 留给前端 Vite 开发服务器）；
+      # 容器内部改用 8084 监听，避免与 LLM 宿主机端口 8080 冲突导致容器内 localhost:8080 self-loop
+      - "3000:8084"
     environment:
       # 服务间统一通过宿主机 localhost:端口 通信（见 extra_hosts 映射）
       PORT: "8084"
+      # 关闭登录认证（无登录页，直接可用）
+      WEBUI_AUTH: ""
       OPENAI_API_BASE_URL: http://localhost:8080/v1
       OPENAI_API_KEY: dummy
     volumes:

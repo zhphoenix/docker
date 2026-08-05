@@ -73,7 +73,7 @@ def get_news_graph():
 
 
 def get_knowledge_graph():
-    """获取 Knowledge Organization Graph"""
+    """获取 Knowledge Ingestion Graph"""
     return get_graph("knowledge")
 
 

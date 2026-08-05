@@ -1,0 +1,101 @@
+{
+ "nodes": [
+  {
+   "id": "config:frontend/.oxlintrc.json",
+   "type": "config",
+   "name": ".oxlintrc.json",
+   "filePath": "frontend/.oxlintrc.json",
+   "summary": "配置文件：.oxlintrc.json",
+   "tags": [
+    "frontend"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:frontend/README.md",
+   "type": "document",
+   "name": "README.md",
+   "filePath": "frontend/README.md",
+   "summary": "文档：README.md",
+   "tags": [
+    "frontend"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:frontend/components.json",
+   "type": "config",
+   "name": "components.json",
+   "filePath": "frontend/components.json",
+   "summary": "配置文件：components.json",
+   "tags": [
+    "frontend"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/index.html",
+   "type": "file",
+   "name": "index.html",
+   "filePath": "frontend/index.html",
+   "summary": "index.html（frontend）",
+   "tags": [
+    "frontend"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:frontend/package.json",
+   "type": "config",
+   "name": "package.json",
+   "filePath": "frontend/package.json",
+   "summary": "配置文件：package.json",
+   "tags": [
+    "frontend"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:frontend/tsconfig.app.json",
+   "type": "config",
+   "name": "tsconfig.app.json",
+   "filePath": "frontend/tsconfig.app.json",
+   "summary": "配置文件：tsconfig.app.json",
+   "tags": [
+    "frontend"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:frontend/tsconfig.json",
+   "type": "config",
+   "name": "tsconfig.json",
+   "filePath": "frontend/tsconfig.json",
+   "summary": "配置文件：tsconfig.json",
+   "tags": [
+    "frontend"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:frontend/tsconfig.node.json",
+   "type": "config",
+   "name": "tsconfig.node.json",
+   "filePath": "frontend/tsconfig.node.json",
+   "summary": "配置文件：tsconfig.node.json",
+   "tags": [
+    "frontend"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

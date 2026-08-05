@@ -1,0 +1,65 @@
+{
+ "nodes": [
+  {
+   "id": "document:mcp-knowledge/server/adapters/siyuan/templates/company.md",
+   "type": "document",
+   "name": "company.md",
+   "filePath": "mcp-knowledge/server/adapters/siyuan/templates/company.md",
+   "summary": "文档：company.md",
+   "tags": [
+    "mcp-knowledge"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:mcp-knowledge/server/adapters/siyuan/templates/default.md",
+   "type": "document",
+   "name": "default.md",
+   "filePath": "mcp-knowledge/server/adapters/siyuan/templates/default.md",
+   "summary": "文档：default.md",
+   "tags": [
+    "mcp-knowledge"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:mcp-knowledge/server/adapters/siyuan/templates/event.md",
+   "type": "document",
+   "name": "event.md",
+   "filePath": "mcp-knowledge/server/adapters/siyuan/templates/event.md",
+   "summary": "文档：event.md",
+   "tags": [
+    "mcp-knowledge"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:mcp-knowledge/server/adapters/siyuan/templates/industry.md",
+   "type": "document",
+   "name": "industry.md",
+   "filePath": "mcp-knowledge/server/adapters/siyuan/templates/industry.md",
+   "summary": "文档：industry.md",
+   "tags": [
+    "mcp-knowledge"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:mcp-knowledge/server/adapters/siyuan/templates/section.md",
+   "type": "document",
+   "name": "section.md",
+   "filePath": "mcp-knowledge/server/adapters/siyuan/templates/section.md",
+   "summary": "文档：section.md",
+   "tags": [
+    "mcp-knowledge"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

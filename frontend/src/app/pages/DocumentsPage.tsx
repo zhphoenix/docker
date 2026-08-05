@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import {
@@ -20,6 +20,8 @@ import {
   Layers,
   Network,
   Play,
+  Pause,
+  Square,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -69,8 +71,13 @@ import {
   retryTask,
   triggerPipeline,
   triggerBatchEmbed,
-  reindexDocument,
+  reembedDocument,
+  fetchTaskDetail,
+  pauseTask,
+  resumeTask,
+  cancelTask,
 } from '@/services/tasks'
+import type { TaskInfo } from '@/services/tasks'
 import { fetchKnowledgeStats, triggerIngestMinio, triggerIngest, fetchBrowseDirs, fetchPathMapping } from '@/services/knowledge'
 import { cn } from '@/lib/utils'
 
@@ -99,8 +106,8 @@ const STATUS_VARIANTS: Record<
 }
 
 const MARKET_OPTIONS = [
-  { value: 'a', label: 'A 股' },
-  { value: 'h', label: '港股' },
+  { value: 'cn', label: 'A 股' },
+  { value: 'hk', label: '港股' },
   { value: 'us', label: '美股' },
 ]
 
@@ -168,6 +175,20 @@ function ImportPanel() {
   const [upMarket, setUpMarket] = useState('')
   const [upTrigger, setUpTrigger] = useState(true)
   const [upFolderResult, setUpFolderResult] = useState<UploadFolderResponse | null>(null)
+  const [upFolderTaskId, setUpFolderTaskId] = useState<string | null>(null)
+  const [upFolderPaused, setUpFolderPaused] = useState(false)
+  const [upTab, setUpTab] = useState<'single' | 'folder'>('single')
+  const [upFile, setUpFile] = useState<File | null>(null)
+  const [upSymbol, setUpSymbol] = useState('')
+  const [upYear, setUpYear] = useState('2025')
+  const [upSingleMarket, setUpSingleMarket] = useState('cn')
+
+  // 从文件名解析股票代码与年份，如: 000001_平安银行_2023年年度报告.pdf → {symbol:'000001', year:'2023'}
+  const parseAnnualFromFilename = (name: string) => {
+    const m = name.match(/^([A-Za-z0-9]+)[_\-]+.+?[_\-]+(20\d{2})/)
+    if (!m) return null
+    return { symbol: m[1].toUpperCase(), year: m[2] }
+  }
 
   const uploadBrowseQuery = useQuery({
     queryKey: ['browse-dirs-upload', upFolderPath],
@@ -190,14 +211,96 @@ function ImportPanel() {
         folder_path: upFolderPath,
         market: upMarket || undefined,
         trigger: upTrigger,
+        async_mode: true,
       }),
     onSuccess: (res) => {
-      setUpFolderResult(res)
-      const s = res.stats
-      flash('success', `批量上传完成：发现 ${s.found}，新增 ${s.added}，跳过 ${s.skipped}，失败 ${s.failed}`)
+      if ('task_id' in res && res.async_mode) {
+        setUpFolderResult(null)
+        setUpFolderTaskId(res.task_id)
+        setUpFolderPaused(false)
+        flash('success', `批量上传任务已启动：发现 ${res.total} 个 PDF`)
+      } else {
+        // 同步模式（兼容旧逻辑）
+        setUpFolderResult(res as UploadFolderResponse)
+        const s = (res as UploadFolderResponse).stats
+        flash('success', `批量上传完成：发现 ${s.found}，新增 ${s.added}，跳过 ${s.skipped}，失败 ${s.failed}`)
+        queryClient.invalidateQueries({ queryKey: ['documents'] })
+        queryClient.invalidateQueries({ queryKey: ['document-stats'] })
+        queryClient.invalidateQueries({ queryKey: ['doc-tasks'] })
+      }
+    },
+    onError: (err: Error) => flash('error', err.message || '上传失败'),
+  })
+
+  // 批量上传任务进度轮询（复用 RunningTasksPanel 的轮询机制）
+  const folderTaskQuery = useQuery({
+    queryKey: ['doc-folder-task', upFolderTaskId],
+    queryFn: () => fetchTaskDetail(upFolderTaskId!),
+    enabled: !!upFolderTaskId,
+    refetchInterval: (q) => {
+      const s = q.state.data?.status
+      return s === 'running' || s === 'pending' ? 2000 : false
+    },
+    retry: 1,
+  })
+  const upTask: TaskInfo | undefined = folderTaskQuery.data
+  const upTaskActive = !!upTask && (upTask.status === 'running' || upTask.status === 'pending')
+  const upTaskPct = upTask ? Math.max(0, Math.min(100, upTask.progress ?? 0)) : 0
+
+  // 批量上传任务完成/失败后刷新文档列表
+  useEffect(() => {
+    const s = upTask?.status
+    if (s === 'done' || s === 'failed') {
       queryClient.invalidateQueries({ queryKey: ['documents'] })
       queryClient.invalidateQueries({ queryKey: ['document-stats'] })
       queryClient.invalidateQueries({ queryKey: ['doc-tasks'] })
+    }
+  }, [upTask?.status, queryClient])
+
+  // 暂停 / 恢复 / 终止
+  const pauseMutation = useMutation({
+    mutationFn: () => pauseTask(upFolderTaskId!),
+    onSuccess: () => {
+      setUpFolderPaused(true)
+      flash('success', '已暂停批量上传')
+    },
+    onError: (err: Error) => flash('error', err.message || '暂停失败'),
+  })
+  const resumeMutation = useMutation({
+    mutationFn: () => resumeTask(upFolderTaskId!),
+    onSuccess: () => {
+      setUpFolderPaused(false)
+      flash('success', '已恢复批量上传')
+    },
+    onError: (err: Error) => flash('error', err.message || '恢复失败'),
+  })
+  const terminateMutation = useMutation({
+    mutationFn: () => cancelTask(upFolderTaskId!),
+    onSuccess: () => {
+      setUpFolderPaused(false)
+      flash('success', '已请求终止批量上传，正在清理已上传的中间产物...')
+    },
+    onError: (err: Error) => flash('error', err.message || '终止失败'),
+  })
+
+  // Upload single PDF file
+  const uploadDocMutation = useMutation({
+    mutationFn: () =>
+      uploadDocumentPdf({
+        file: upFile!,
+        market: upSingleMarket || 'cn',
+        symbol: upSymbol,
+        year: Number(upYear),
+        trigger: upTrigger,
+      }),
+    onSuccess: (res) => {
+      flash('success', `年报上传成功：${res.object_key}`)
+      queryClient.invalidateQueries({ queryKey: ['documents'] })
+      queryClient.invalidateQueries({ queryKey: ['document-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['doc-tasks'] })
+      setUpFile(null)
+      setUpSymbol('')
+      setUploadOpen(false)
     },
     onError: (err: Error) => flash('error', err.message || '上传失败'),
   })
@@ -205,8 +308,10 @@ function ImportPanel() {
   // Import MinIO
   const [minioBucket, setMinioBucket] = useState('documents')
   const [minioPrefix, setMinioPrefix] = useState('')
-  const [minioMarket, setMinioMarket] = useState('a')
+  const [minioMarket, setMinioMarket] = useState('cn')
   const [minioTrigger, setMinioTrigger] = useState(true)
+  const [minioTaskId, setMinioTaskId] = useState<string | null>(null)
+  const [minioPaused, setMinioPaused] = useState(false)
 
   const minioMutation = useMutation({
     mutationFn: () =>
@@ -217,14 +322,73 @@ function ImportPanel() {
         trigger: minioTrigger,
       }),
     onSuccess: (res) => {
-      const r = (res.registered ?? {}) as Record<string, number>
-      flash('success', `MinIO 导入完成：新增 ${r.added ?? 0}，跳过 ${r.skipped ?? 0}，发现 ${r.found ?? 0}`)
-      setMinioOpen(false)
+      if (res.task_id) {
+        // 异步任务模式：绑定任务 ID 并轮询进度
+        setMinioTaskId(res.task_id)
+        setMinioPaused(false)
+        flash('success', 'MinIO 导入任务已启动，正在扫描并注册文档...')
+      } else {
+        // 兼容旧同步返回
+        const r = (res.registered ?? {}) as Record<string, number>
+        flash('success', `MinIO 导入完成：新增 ${r.added ?? 0}，跳过 ${r.skipped ?? 0}，发现 ${r.found ?? 0}`)
+        setMinioOpen(false)
+        queryClient.invalidateQueries({ queryKey: ['documents'] })
+        queryClient.invalidateQueries({ queryKey: ['document-stats'] })
+        queryClient.invalidateQueries({ queryKey: ['doc-tasks'] })
+      }
+    },
+    onError: (err: Error) => flash('error', err.message || 'MinIO 导入失败'),
+  })
+
+  // MinIO 导入任务进度轮询（复用批量上传的轮询机制）
+  const minioTaskQuery = useQuery({
+    queryKey: ['doc-minio-task', minioTaskId],
+    queryFn: () => fetchTaskDetail(minioTaskId!),
+    enabled: !!minioTaskId,
+    refetchInterval: (q) => {
+      const s = q.state.data?.status
+      return s === 'running' || s === 'pending' ? 2000 : false
+    },
+    retry: 1,
+  })
+  const minioTask: TaskInfo | undefined = minioTaskQuery.data
+  const minioTaskActive = !!minioTask && (minioTask.status === 'running' || minioTask.status === 'pending')
+  const minioTaskPct = minioTask ? Math.max(0, Math.min(100, minioTask.progress ?? 0)) : 0
+
+  // MinIO 导入任务完成/失败后刷新文档列表
+  useEffect(() => {
+    const s = minioTask?.status
+    if (s === 'done' || s === 'failed') {
       queryClient.invalidateQueries({ queryKey: ['documents'] })
       queryClient.invalidateQueries({ queryKey: ['document-stats'] })
       queryClient.invalidateQueries({ queryKey: ['doc-tasks'] })
+    }
+  }, [minioTask?.status, queryClient])
+
+  // MinIO 导入 暂停 / 恢复 / 终止
+  const minioPauseMutation = useMutation({
+    mutationFn: () => pauseTask(minioTaskId!),
+    onSuccess: () => {
+      setMinioPaused(true)
+      flash('success', '已暂停 MinIO 导入')
     },
-    onError: (err: Error) => flash('error', err.message || 'MinIO 导入失败'),
+    onError: (err: Error) => flash('error', err.message || '暂停失败'),
+  })
+  const minioResumeMutation = useMutation({
+    mutationFn: () => resumeTask(minioTaskId!),
+    onSuccess: () => {
+      setMinioPaused(false)
+      flash('success', '已恢复 MinIO 导入')
+    },
+    onError: (err: Error) => flash('error', err.message || '恢复失败'),
+  })
+  const minioTerminateMutation = useMutation({
+    mutationFn: () => cancelTask(minioTaskId!),
+    onSuccess: () => {
+      setMinioPaused(false)
+      flash('success', '已请求终止 MinIO 导入，正在停止扫描...')
+    },
+    onError: (err: Error) => flash('error', err.message || '终止失败'),
   })
 
   // Sync Folder
@@ -349,14 +513,92 @@ function ImportPanel() {
 
       <Feedback msg={msg} />
 
-      {/* ── Upload PDF Dialog (folder mode) ── */}
-      <Dialog open={uploadOpen} onOpenChange={(o) => { if (!o) { setUploadOpen(false); setUpFolderResult(null); } }}>
+      {/* ── Upload PDF Dialog ── */}
+      <Dialog open={uploadOpen} onOpenChange={(o) => { if (!o) { setUploadOpen(false); setUpFolderResult(null); setUpFile(null); setUpFolderTaskId(null); setUpFolderPaused(false); } }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>批量上传 PDF</DialogTitle>
-            <DialogDescription>指定服务器文件夹路径，自动递归扫描所有 PDF 并上传到 MinIO（从文件名解析 symbol/year，内置去重）</DialogDescription>
+            <DialogTitle>上传年报 PDF</DialogTitle>
+            <DialogDescription>上传年报 PDF 到 MinIO 并注册为文档，可触发后续处理 Pipeline</DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
+          <Tabs value={upTab} onValueChange={(v) => setUpTab(v as 'single' | 'folder')}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="single">上传单个文件</TabsTrigger>
+              <TabsTrigger value="folder">批量上传文件夹</TabsTrigger>
+            </TabsList>
+
+            {/* ── 单文件上传 ── */}
+            <TabsContent value="single" className="space-y-3">
+              <div>
+                <div className="mb-1 text-xs font-medium text-muted-foreground">选择 PDF 文件</div>
+                <Input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] ?? null
+                    setUpFile(f)
+                    // 自动从文件名解析股票代码与年份，减少手动填写
+                    if (f) {
+                      const parsed = parseAnnualFromFilename(f.name)
+                      if (parsed) {
+                        setUpSymbol(parsed.symbol)
+                        setUpYear(parsed.year)
+                      }
+                    }
+                  }}
+                />
+                {upFile && (
+                  <div className="mt-1.5 text-[11px] text-muted-foreground">
+                    已选择：<span className="text-foreground">{upFile.name}</span>（{(upFile.size / 1024).toFixed(1)} KB）
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <div className="mb-1 text-xs font-medium text-muted-foreground">市场</div>
+                  <Select value={upSingleMarket} onValueChange={(v) => setUpSingleMarket(v ?? 'cn')}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MARKET_OPTIONS.map((m) => (
+                        <SelectItem key={m.value} value={m.value}>
+                          {m.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <div className="mb-1 text-xs font-medium text-muted-foreground">股票代码</div>
+                  <Input
+                    value={upSymbol}
+                    onChange={(e) => setUpSymbol(e.target.value)}
+                    placeholder="如 000001"
+                  />
+                </div>
+                <div>
+                  <div className="mb-1 text-xs font-medium text-muted-foreground">年份</div>
+                  <Input
+                    value={upYear}
+                    onChange={(e) => setUpYear(e.target.value)}
+                    placeholder="如 2025"
+                  />
+                </div>
+              </div>
+              <div className="flex items-end pb-1">
+                <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={upTrigger}
+                    onChange={(e) => setUpTrigger(e.target.checked)}
+                  />
+                  上传后立即处理
+                </label>
+              </div>
+            </TabsContent>
+
+            {/* ── 文件夹批量上传 ── */}
+            <TabsContent value="folder" className="space-y-3">
             {/* 路径输入 + 浏览 */}
             <div>
               <div className="mb-1 text-xs font-medium text-muted-foreground">文件夹路径</div>
@@ -444,6 +686,78 @@ function ImportPanel() {
               </div>
             </div>
 
+            {/* 批量上传进度面板 */}
+            {upFolderTaskId && (
+              <div className="rounded-lg border bg-muted/50 p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-xs font-medium text-foreground">批量上传进度</span>
+                  <Badge
+                    variant={upTask?.status === 'failed' ? 'destructive' : upTask?.status === 'done' ? 'default' : 'secondary'}
+                  >
+                    {upTask?.status === 'failed'
+                      ? '失败'
+                      : upTask?.status === 'done'
+                        ? '完成'
+                        : upFolderPaused
+                          ? '已暂停'
+                          : '进行中'}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between gap-3 text-[11px] text-muted-foreground">
+                  <span className="truncate">
+                    {upTask?.stage || '初始化中...'}
+                    {upTask?.current_name ? ` · 当前：${upTask.current_name}` : ''}
+                  </span>
+                  <span className="shrink-0 tabular-nums font-medium text-foreground">
+                    {upTaskPct.toFixed(0)}%
+                  </span>
+                </div>
+                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{ width: `${upTaskPct}%` }}
+                  />
+                </div>
+                {upTask?.status === 'failed' && upTask.error_message && (
+                  <div className="mt-2 text-[11px] text-destructive">{upTask.error_message}</div>
+                )}
+                {upTaskActive && (
+                  <div className="mt-2.5 flex gap-2">
+                    {upFolderPaused ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5"
+                        onClick={() => resumeMutation.mutate()}
+                        disabled={resumeMutation.isPending}
+                      >
+                        <Play className="size-3.5" /> 恢复
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5"
+                        onClick={() => pauseMutation.mutate()}
+                        disabled={pauseMutation.isPending}
+                      >
+                        <Pause className="size-3.5" /> 暂停
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="gap-1.5"
+                      onClick={() => terminateMutation.mutate()}
+                      disabled={terminateMutation.isPending}
+                    >
+                      <Square className="size-3.5" /> 终止
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* 上传结果反馈 */}
             {upFolderResult && (
               <div className="rounded-lg border bg-muted/50 p-3">
@@ -482,27 +796,53 @@ function ImportPanel() {
                 )}
               </div>
             )}
-          </div>
+            </TabsContent>
+          </Tabs>
           <DialogFooter>
-            <Button
-              variant="default"
-              className="gap-1.5"
-              disabled={!upFolderPath.trim() || uploadMutation.isPending}
-              onClick={() => uploadMutation.mutate()}
-            >
-              {uploadMutation.isPending ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <Upload className="size-3.5" />
-              )}
-              {uploadMutation.isPending ? '上传中...' : '扫描并上传'}
-            </Button>
+            {upTab === 'single' ? (
+              <Button
+                variant="default"
+                className="gap-1.5"
+                disabled={!upFile || !upSymbol.trim() || !upYear.trim() || uploadDocMutation.isPending}
+                onClick={() => uploadDocMutation.mutate()}
+              >
+                {uploadDocMutation.isPending ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Upload className="size-3.5" />
+                )}
+                {uploadDocMutation.isPending ? '上传中...' : '上传文件'}
+              </Button>
+            ) : (
+              <Button
+                variant="default"
+                className="gap-1.5"
+                disabled={!upFolderPath.trim() || uploadMutation.isPending || upTaskActive}
+                onClick={() => uploadMutation.mutate()}
+              >
+                {uploadMutation.isPending || upTaskActive ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Upload className="size-3.5" />
+                )}
+                {upTaskActive ? '上传中...' : uploadMutation.isPending ? '启动中...' : '扫描并上传'}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* ── Import MinIO Dialog ── */}
-      <Dialog open={minioOpen} onOpenChange={(o) => !o && setMinioOpen(false)}>
+      <Dialog
+        open={minioOpen}
+        onOpenChange={(o) => {
+          if (!o) {
+            setMinioOpen(false)
+            setMinioTaskId(null)
+            setMinioPaused(false)
+          }
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>从 MinIO 导入</DialogTitle>
@@ -516,19 +856,20 @@ function ImportPanel() {
             <div>
               <div className="mb-1 text-xs font-medium text-muted-foreground">Prefix（可选）</div>
               <Input
-                placeholder="如 a/000001/annual_report/2025"
+                placeholder="如 cn/000001/annual_report/2025"
                 value={minioPrefix}
                 onChange={(e) => setMinioPrefix(e.target.value)}
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <div className="mb-1 text-xs font-medium text-muted-foreground">市场</div>
+                <div className="mb-1 text-xs font-medium text-muted-foreground">市场（可选，留空自动推断）</div>
                 <Select value={minioMarket} onValueChange={(v) => setMinioMarket(v ?? '')}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="自动推断" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="">自动推断</SelectItem>
                     {MARKET_OPTIONS.map((m) => (
                       <SelectItem key={m.value} value={m.value}>
                         {m.label}
@@ -548,20 +889,94 @@ function ImportPanel() {
                 </label>
               </div>
             </div>
+
+            {/* MinIO 导入进度面板 */}
+            {minioTaskId && (
+              <div className="rounded-lg border bg-muted/50 p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-xs font-medium text-foreground">MinIO 导入进度</span>
+                  <Badge
+                    variant={minioTask?.status === 'failed' ? 'destructive' : minioTask?.status === 'done' ? 'default' : 'secondary'}
+                  >
+                    {minioTask?.status === 'failed'
+                      ? '失败'
+                      : minioTask?.status === 'done'
+                        ? '完成'
+                        : minioPaused
+                          ? '已暂停'
+                          : '进行中'}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between gap-3 text-[11px] text-muted-foreground">
+                  <span className="truncate">
+                    {minioTask?.stage || '初始化中...'}
+                    {minioTask?.current_name ? ` · 当前：${minioTask.current_name}` : ''}
+                  </span>
+                  <span className="shrink-0 tabular-nums font-medium text-foreground">
+                    {minioTaskPct.toFixed(0)}%
+                  </span>
+                </div>
+                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{ width: `${minioTaskPct}%` }}
+                  />
+                </div>
+                {minioTask?.status === 'failed' && minioTask.error_message && (
+                  <div className="mt-2 text-[11px] text-destructive">{minioTask.error_message}</div>
+                )}
+                {minioTaskActive && (
+                  <div className="mt-2.5 flex gap-2">
+                    {minioPaused ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5"
+                        onClick={() => minioResumeMutation.mutate()}
+                        disabled={minioResumeMutation.isPending}
+                      >
+                        <Play className="size-3.5" /> 恢复
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5"
+                        onClick={() => minioPauseMutation.mutate()}
+                        disabled={minioPauseMutation.isPending}
+                      >
+                        <Pause className="size-3.5" /> 暂停
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="gap-1.5"
+                      onClick={() => minioTerminateMutation.mutate()}
+                      disabled={minioTerminateMutation.isPending}
+                    >
+                      <Square className="size-3.5" /> 终止
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button
               variant="default"
               className="gap-1.5"
-              disabled={minioMutation.isPending}
+              disabled={minioMutation.isPending || minioTaskActive}
               onClick={() => minioMutation.mutate()}
             >
-              {minioMutation.isPending ? (
+              {minioTaskActive ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : minioMutation.isPending ? (
                 <Loader2 className="size-3.5 animate-spin" />
               ) : (
                 <Database className="size-3.5" />
               )}
-              {minioMutation.isPending ? '导入中...' : '开始导入'}
+              {minioTaskActive ? '导入中...' : minioMutation.isPending ? '启动中...' : '开始导入'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1115,9 +1530,9 @@ export default function DocumentsPage() {
     onError: (err: Error) => alert(err.message || '删除失败'),
   })
 
-  // 重新处理 mutation
-  const reindexMutation = useMutation({
-    mutationFn: (id: string) => reindexDocument(id),
+  // 重新向量化 mutation
+  const reembedMutation = useMutation({
+    mutationFn: (id: string) => reembedDocument(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] })
       queryClient.invalidateQueries({ queryKey: ['doc-tasks'] })
@@ -1144,7 +1559,7 @@ export default function DocumentsPage() {
   }
 
   const handleDelete = (doc: DocumentInfo) => {
-    if (window.confirm(`确认删除 ${doc.symbol}（${doc.year}）？`)) {
+    if (window.confirm(`确认删除 ${doc.symbol}（${doc.year}）？该操作将同时删除文档及全部历史版本（MinIO 彻底删除），且不可恢复。`)) {
       deleteMutation.mutate(doc.id)
     }
   }
@@ -1346,9 +1761,9 @@ export default function DocumentsPage() {
                             <Button
                               variant="ghost"
                               size="icon-sm"
-                              title="重新处理"
-                              disabled={reindexMutation.isPending}
-                              onClick={() => reindexMutation.mutate(doc.id)}
+                              title="重新向量化"
+                              disabled={reembedMutation.isPending}
+                              onClick={() => reembedMutation.mutate(doc.id)}
                             >
                               <RotateCcw className="size-3.5" />
                             </Button>

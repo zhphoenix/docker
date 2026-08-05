@@ -1,0 +1,41 @@
+{
+ "nodes": [
+  {
+   "id": "document:docs/00_Architecture_Decisions.md",
+   "type": "document",
+   "name": "00_Architecture_Decisions.md",
+   "filePath": "docs/00_Architecture_Decisions.md",
+   "summary": "文档：00_Architecture_Decisions.md",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:docs/00_Glossary.md",
+   "type": "document",
+   "name": "00_Glossary.md",
+   "filePath": "docs/00_Glossary.md",
+   "summary": "文档：00_Glossary.md",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:docs/00_Project_Inventory.md",
+   "type": "document",
+   "name": "00_Project_Inventory.md",
+   "filePath": "docs/00_Project_Inventory.md",
+   "summary": "文档：00_Project_Inventory.md",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

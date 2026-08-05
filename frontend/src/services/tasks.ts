@@ -7,7 +7,7 @@ export type TaskStatus = 'pending' | 'running' | 'done' | 'failed'
 export type TaskType =
   | 'doc_pipeline'
   | 'batch_embed'
-  | 'reindex'
+  | 're-embed'
   | 'knowledge_extraction'
   | 'approval'
 
@@ -114,6 +114,22 @@ export function cancelTask(
   })
 }
 
+export function pauseTask(
+  taskId: string,
+): Promise<{ status: string; message: string }> {
+  return apiFetch<{ status: string; message: string }>(`/api/tasks/${taskId}/pause`, {
+    method: 'POST',
+  })
+}
+
+export function resumeTask(
+  taskId: string,
+): Promise<{ status: string; message: string }> {
+  return apiFetch<{ status: string; message: string }>(`/api/tasks/${taskId}/resume`, {
+    method: 'POST',
+  })
+}
+
 export function deleteTask(
   taskId: string,
 ): Promise<{ status: string; message: string }> {
@@ -178,13 +194,13 @@ export function triggerBatchEmbed(params?: {
   })
 }
 
-export interface ReindexResponse {
+export interface ReembedResponse {
   status: string
   task_id: string
 }
 
-export function reindexDocument(documentId: string): Promise<ReindexResponse> {
-  return apiFetch<ReindexResponse>('/api/tasks/reindex', {
+export function reembedDocument(documentId: string): Promise<ReembedResponse> {
+  return apiFetch<ReembedResponse>('/api/tasks/re-embed', {
     method: 'POST',
     body: JSON.stringify({ document_id: documentId }),
   })

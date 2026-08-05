@@ -1,0 +1,89 @@
+{
+ "nodes": [
+  {
+   "id": "config:langgraph/.env.example",
+   "type": "config",
+   "name": ".env.example",
+   "filePath": "langgraph/.env.example",
+   "summary": "配置文件：.env.example",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:langgraph/Dockerfile.dev",
+   "type": "resource",
+   "name": "Dockerfile.dev",
+   "filePath": "langgraph/Dockerfile.dev",
+   "summary": "Dockerfile.dev（langgraph）",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/README.md",
+   "type": "document",
+   "name": "README.md",
+   "filePath": "langgraph/README.md",
+   "summary": "文档：README.md",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:langgraph/compose.prod.yml",
+   "type": "config",
+   "name": "compose.prod.yml",
+   "filePath": "langgraph/compose.prod.yml",
+   "summary": "配置文件：compose.prod.yml",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:langgraph/compose.yml",
+   "type": "resource",
+   "name": "compose.yml",
+   "filePath": "langgraph/compose.yml",
+   "summary": "compose.yml（langgraph）",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:langgraph/pyproject.toml",
+   "type": "config",
+   "name": "pyproject.toml",
+   "filePath": "langgraph/pyproject.toml",
+   "summary": "配置文件：pyproject.toml",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:langgraph/requirements.txt",
+   "type": "document",
+   "name": "requirements.txt",
+   "filePath": "langgraph/requirements.txt",
+   "summary": "文档：requirements.txt",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

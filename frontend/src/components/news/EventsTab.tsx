@@ -69,7 +69,7 @@ export function EventsTab() {
         </div>
         <Select
           value={eventType}
-          onValueChange={(v) => setEventType(v === 'all' ? '' : v)}
+          onValueChange={(v) => setEventType(v === 'all' ? '' : (v ?? ''))}
         >
           <SelectTrigger className="w-[130px]">
             <SelectValue placeholder="事件类型" />
@@ -83,7 +83,7 @@ export function EventsTab() {
             ))}
           </SelectContent>
         </Select>
-        <Select value={days} onValueChange={setDays}>
+        <Select value={days} onValueChange={(v) => setDays(v ?? '')}>
           <SelectTrigger className="w-[120px]">
             <SelectValue />
           </SelectTrigger>

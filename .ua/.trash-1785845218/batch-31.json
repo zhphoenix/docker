@@ -1,0 +1,544 @@
+{
+ "nodes": [
+  {
+   "id": "file:mcp-news/server/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "mcp-news/server/__init__.py",
+   "summary": "MCP News Server - 新闻智能系统 MCP 接口",
+   "tags": [
+    "mcp-news"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-news/server/config.py",
+   "type": "file",
+   "name": "config.py",
+   "filePath": "mcp-news/server/config.py",
+   "summary": "MCP News Server 配置 - Pydantic Settings",
+   "tags": [
+    "mcp-news",
+    "class"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-news/server/main.py",
+   "type": "file",
+   "name": "main.py",
+   "filePath": "mcp-news/server/main.py",
+   "summary": "MCP News Server - FastMCP 入口 News Intelligence Pipeline 对外查询接口，7 个 Tools。 Transport: Streamable HTTP (:8201)",
+   "tags": [
+    "mcp-news",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-news/server/storage/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "mcp-news/server/storage/__init__.py",
+   "summary": "MCP News Server Storage - 新闻数据访问层",
+   "tags": [
+    "mcp-news",
+    "storage"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-news/server/storage/postgres.py",
+   "type": "file",
+   "name": "postgres.py",
+   "filePath": "mcp-news/server/storage/postgres.py",
+   "summary": "MCP News PostgreSQL Storage - news schema 查询 独立连接池，针对 news schema 的只读查询。 遵循 MCP-001/002：Tools 不含业务逻辑，通过 storage/ 访问 DB。",
+   "tags": [
+    "mcp-news",
+    "storage",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-news/server/tools/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "mcp-news/server/tools/__init__.py",
+   "summary": "MCP News Server Tools - 新闻查询工具集",
+   "tags": [
+    "mcp-news",
+    "tool"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-news/server/tools/analysis.py",
+   "type": "file",
+   "name": "analysis.py",
+   "filePath": "mcp-news/server/tools/analysis.py",
+   "summary": "Analysis Tools - 新闻影响分析 / 时间线 Tools: 5. analyze_news_impact — 聚合分析实体近期新闻影响 6. get_news_timeline — 获取实体新闻时间线",
+   "tags": [
+    "mcp-news",
+    "tool",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-news/server/tools/article.py",
+   "type": "file",
+   "name": "article.py",
+   "filePath": "mcp-news/server/tools/article.py",
+   "summary": "Article Tools - 新闻搜索 / 详情 Tools: 1. search_news — 关键词 + 时间范围 + 分类搜索新闻 2. get_news_article — 获取文章详情（含实体/事件）",
+   "tags": [
+    "mcp-news",
+    "tool",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-news/server/tools/event.py",
+   "type": "file",
+   "name": "event.py",
+   "filePath": "mcp-news/server/tools/event.py",
+   "summary": "Event Tools - 事件搜索 / 影响评估 Tools: 3. search_news_event — 按类型/时间/实体搜索事件 4. get_event_impact — 获取事件影响评估",
+   "tags": [
+    "mcp-news",
+    "tool",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-news/server/tools/source.py",
+   "type": "file",
+   "name": "source.py",
+   "filePath": "mcp-news/server/tools/source.py",
+   "summary": "Source Tools - 新闻源管理 Tools: 7. list_news_sources — 列出新闻源及状态",
+   "tags": [
+    "mcp-news",
+    "tool",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:openwebui/compose.yml",
+   "type": "resource",
+   "name": "compose.yml",
+   "filePath": "openwebui/compose.yml",
+   "summary": "compose.yml（openwebui）",
+   "tags": [
+    "openwebui"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:paddleocr/compose.yml",
+   "type": "resource",
+   "name": "compose.yml",
+   "filePath": "paddleocr/compose.yml",
+   "summary": "compose.yml（paddleocr）",
+   "tags": [
+    "paddleocr"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:paddleocr/vllm_config.yaml",
+   "type": "config",
+   "name": "vllm_config.yaml",
+   "filePath": "paddleocr/vllm_config.yaml",
+   "summary": "配置文件：vllm_config.yaml",
+   "tags": [
+    "paddleocr"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:postgres/compose.yml",
+   "type": "resource",
+   "name": "compose.yml",
+   "filePath": "postgres/compose.yml",
+   "summary": "compose.yml（postgres）",
+   "tags": [
+    "postgres"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:qdrant/compose.yml",
+   "type": "resource",
+   "name": "compose.yml",
+   "filePath": "qdrant/compose.yml",
+   "summary": "compose.yml（qdrant）",
+   "tags": [
+    "qdrant"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:qdrant/init_qdrant.py",
+   "type": "file",
+   "name": "init_qdrant.py",
+   "filePath": "qdrant/init_qdrant.py",
+   "summary": "Qdrant Collection 初始化脚本 ============================ 基于 24_数据底座规范.md 第五章，创建 documents_{market} Collection。 用法: pip install qdrant-client python init_qdrant.py 环境变量: QDRANT_HOST (默认: localhost) QDRANT_",
+   "tags": [
+    "qdrant",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:registry/news_sources.yaml",
+   "type": "config",
+   "name": "news_sources.yaml",
+   "filePath": "registry/news_sources.yaml",
+   "summary": "配置文件：news_sources.yaml",
+   "tags": [
+    "registry"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:registry/websites.yaml",
+   "type": "config",
+   "name": "websites.yaml",
+   "filePath": "registry/websites.yaml",
+   "summary": "配置文件：websites.yaml",
+   "tags": [
+    "registry"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:reranker/compose.yml",
+   "type": "resource",
+   "name": "compose.yml",
+   "filePath": "reranker/compose.yml",
+   "summary": "compose.yml（reranker）",
+   "tags": [
+    "reranker"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:scripts/archive/crawl_qiushi_summary.py",
+   "type": "file",
+   "name": "crawl_qiushi_summary.py",
+   "filePath": "scripts/archive/crawl_qiushi_summary.py",
+   "summary": "求是网文章自动摘要 Pipeline（独立脚本） 流程: 1. 抓取列表页 → 提取文章链接（按日期降序） 2. 逐篇抓取正文 → Markdown 清洗 3. 调用 LLM 生成结构化摘要 4. 存储: PostgreSQL (web_pages.metadata.summary) + 本地 Markdown 文件 用法: # 默认：抓取求是网首页最新 20 篇文章 python3 script",
+   "tags": [
+    "scripts",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:scripts/archive/test_downstream_pipeline.py",
+   "type": "file",
+   "name": "test_downstream_pipeline.py",
+   "filePath": "scripts/archive/test_downstream_pipeline.py",
+   "summary": "下游 Pipeline 集成测试: Chunk → Embedding → Qdrant 验证完整向量化流程: 1. 从 MinIO 读取已抓取的 Markdown 2. 分块 → 写入 web_chunks 3. Embedding → Qdrant 向量化 4. 相似性搜索验证可检索 用法: python3 scripts/test_downstream_pipeline.py",
+   "tags": [
+    "scripts",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:scripts/archive/test_pipeline_integration.py",
+   "type": "file",
+   "name": "test_pipeline_integration.py",
+   "filePath": "scripts/archive/test_pipeline_integration.py",
+   "summary": "Web Pipeline 完整集成测试 测试完整数据流: URL → Crawl4AI → Markdown → MinIO → PostgreSQL 用法: python3 scripts/test_pipeline_integration.py",
+   "tags": [
+    "scripts",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:scripts/archive/test_web_ingestion.py",
+   "type": "file",
+   "name": "test_web_ingestion.py",
+   "filePath": "scripts/archive/test_web_ingestion.py",
+   "summary": "Web Ingestion Layer 端到端测试 测试内容: 1. Crawl4AI Provider 抓取 2. RetryPolicy 重试逻辑 3. RateLimiter 限速 4. DiffDetector 变更检测 5. PostgreSQL 数据写入 用法: python3 scripts/test_web_ingestion.py",
+   "tags": [
+    "scripts",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:scripts/batch_embed_to_qdrant.py",
+   "type": "file",
+   "name": "batch_embed_to_qdrant.py",
+   "filePath": "scripts/batch_embed_to_qdrant.py",
+   "summary": "高性能批量 Embedding → Qdrant v3 (async 合并版) 合并 phase4_embedding.py 的异步架构 + batch_embed_to_qdrant.py 的 CLI 接口。 核心优化： - asyncpg 异步连接池（消除 GIL + OFFSET 退化） - httpx AsyncClient + asyncio.gather 并发 embedding - ",
+   "tags": [
+    "scripts",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:scripts/check_architecture.py",
+   "type": "file",
+   "name": "check_architecture.py",
+   "filePath": "scripts/check_architecture.py",
+   "summary": "Architecture Compliance Checker — 架构合规自动检查 基于 specs/architecture.yaml 中的规则，自动扫描代码检测违规。 检查规则: - ARCH-003: rag_nodes/ 不得直接 import 基础设施库 - MCP-002: mcp-*/server/tools/ 不得直接 import asyncpg/qdrant_client -",
+   "tags": [
+    "scripts",
+    "class",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:mcp-news/server/main.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-news/server/main.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-news/server/main.py",
+   "target": "file:mcp-news/server/tools/article.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-news/server/main.py",
+   "target": "file:langgraph/nodes/news/event.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-news/server/main.py",
+   "target": "file:mcp-knowledge/server/tools/analysis.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-news/server/main.py",
+   "target": "file:mcp-news/server/tools/source.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-news/server/storage/postgres.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-news/server/tools/analysis.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-news/server/tools/article.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-news/server/tools/event.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-news/server/tools/source.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:qdrant/init_qdrant.py",
+   "target": "file:frontend/src/services/models.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/batch_embed_to_qdrant.py",
+   "target": "file:frontend/src/services/models.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/archive/crawl_qiushi_summary.py",
+   "target": "file:langgraph/providers/web/crawl4ai_provider.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/archive/crawl_qiushi_summary.py",
+   "target": "file:langgraph/pipelines/web/link_extractor.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/archive/crawl_qiushi_summary.py",
+   "target": "file:langgraph/pipelines/web/chunker.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/archive/crawl_qiushi_summary.py",
+   "target": "file:langgraph/pipelines/web/summarizer.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/archive/test_downstream_pipeline.py",
+   "target": "file:langgraph/tools/minio.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/archive/test_downstream_pipeline.py",
+   "target": "file:langgraph/providers/web/crawl4ai_provider.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/archive/test_downstream_pipeline.py",
+   "target": "file:langgraph/pipelines/web_pipeline.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/archive/test_pipeline_integration.py",
+   "target": "file:langgraph/tools/minio.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/archive/test_pipeline_integration.py",
+   "target": "file:langgraph/providers/web/crawl4ai_provider.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/archive/test_pipeline_integration.py",
+   "target": "file:langgraph/pipelines/web_pipeline.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/archive/test_web_ingestion.py",
+   "target": "file:langgraph/pipelines/web/retry.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/archive/test_web_ingestion.py",
+   "target": "file:langgraph/pipelines/web/rate_limiter.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/archive/test_web_ingestion.py",
+   "target": "file:langgraph/pipelines/web/diff_detector.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:scripts/archive/test_web_ingestion.py",
+   "target": "file:langgraph/providers/web/crawl4ai_provider.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  }
+ ]
+}

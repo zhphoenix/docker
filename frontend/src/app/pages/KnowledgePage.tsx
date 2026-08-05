@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { LayoutDashboard, ListChecks } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
 import { KnowledgeDashboard } from '@/components/knowledge/KnowledgeDashboard'
 import { SemanticSearchPanel } from '@/components/knowledge/SemanticSearchPanel'
 import { EntityBrowser } from '@/components/knowledge/EntityBrowser'
 import { KnowledgeTasksPanel } from '@/components/knowledge/KnowledgeTasksPanel'
+import { GraphWorkspace } from '@/components/knowledge/GraphWorkspace'
 
 export default function KnowledgePage() {
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -39,12 +39,7 @@ export default function KnowledgePage() {
             <ListChecks className="size-3.5" strokeWidth={1.8} />
             处理详情
           </TabsTrigger>
-          <TabsTrigger value="graph" disabled className="gap-1.5">
-            知识图谱
-            <Badge variant="outline" className="px-1 py-0 text-[9px] leading-3">
-              Soon
-            </Badge>
-          </TabsTrigger>
+          <TabsTrigger value="graph">知识图谱</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard">
@@ -61,6 +56,10 @@ export default function KnowledgePage() {
 
         <TabsContent value="tasks">
           <KnowledgeTasksPanel focusTaskId={focusTaskId} />
+        </TabsContent>
+
+        <TabsContent value="graph">
+          <GraphWorkspace />
         </TabsContent>
       </Tabs>
     </div>

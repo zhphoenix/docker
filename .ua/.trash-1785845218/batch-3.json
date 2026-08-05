@@ -1,0 +1,17 @@
+{
+ "nodes": [
+  {
+   "id": "resource:mcp-news/Dockerfile",
+   "type": "resource",
+   "name": "Dockerfile",
+   "filePath": "mcp-news/Dockerfile",
+   "summary": "Dockerfile（mcp-news）",
+   "tags": [
+    "mcp-news"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

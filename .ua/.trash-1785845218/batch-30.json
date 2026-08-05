@@ -1,0 +1,687 @@
+{
+ "nodes": [
+  {
+   "id": "file:mcp-knowledge/server/rendering/renderer.py",
+   "type": "file",
+   "name": "renderer.py",
+   "filePath": "mcp-knowledge/server/rendering/renderer.py",
+   "summary": "Renderer — 从 PostgreSQL 取数并渲染知识页面 职责： - 读取实体 + 事实 + 关系，构建模板上下文 - 按对象类型渲染完整文档或单个 Section - 只读 PG，经 SiYuan Adapter 输出",
+   "tags": [
+    "mcp-knowledge",
+    "class",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/server/rendering/worker.py",
+   "type": "file",
+   "name": "worker.py",
+   "filePath": "mcp-knowledge/server/rendering/worker.py",
+   "summary": "Render Worker — 后台消费渲染队列 架构：生产者/消费者 + 背压（Asyncio Queue maxsize） - producer：从 core.knowledge_render_jobs claim 任务入队（队列满则阻塞 → 背压） - consumer：N 个并发 worker 从队列取任务并渲染（由 SiYuanClient 的 Semaphore 控制器限流） 与单 w",
+   "tags": [
+    "mcp-knowledge",
+    "class",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/server/storage/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "mcp-knowledge/server/storage/__init__.py",
+   "summary": "Storage layer - PostgreSQL + Qdrant",
+   "tags": [
+    "mcp-knowledge",
+    "storage"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/server/storage/age.py",
+   "type": "file",
+   "name": "age.py",
+   "filePath": "mcp-knowledge/server/storage/age.py",
+   "summary": "Apache AGE 图存储层 - Cypher 查询引擎 通过 PostgreSQL 的 AGE 扩展执行 Cypher 查询。 复用 pg_storage 的连接池（同一 PostgreSQL 实例）。 Graph: investment_knowledge_graph Fallback: AGE 不可用时由调用方降级为 PG CTE。",
+   "tags": [
+    "mcp-knowledge",
+    "storage",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/server/storage/postgres.py",
+   "type": "file",
+   "name": "postgres.py",
+   "filePath": "mcp-knowledge/server/storage/postgres.py",
+   "summary": "PostgreSQL 存储层 - asyncpg 连接池 + 知识查询 多 Schema 架构：core / document / vector / audit / taxonomy",
+   "tags": [
+    "mcp-knowledge",
+    "storage",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/server/storage/qdrant.py",
+   "type": "file",
+   "name": "qdrant.py",
+   "filePath": "mcp-knowledge/server/storage/qdrant.py",
+   "summary": "Qdrant + Embedding 存储层 - 语义向量检索 Collection: knowledge_entities / knowledge_facts / knowledge_chunks / knowledge_reports",
+   "tags": [
+    "mcp-knowledge",
+    "storage",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/server/tools/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "mcp-knowledge/server/tools/__init__.py",
+   "summary": "MCP Tools - 知识系统 16 个标准工具",
+   "tags": [
+    "mcp-knowledge",
+    "tool"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/server/tools/analysis.py",
+   "type": "file",
+   "name": "analysis.py",
+   "filePath": "mcp-knowledge/server/tools/analysis.py",
+   "summary": "Analysis Tools - 公司全景 / 供应链 / 风险因素 Tools: 13. get_company_profile — 公司全景（并行聚合） 14. get_supply_chain — 供应链分析 15. get_risk_factors — 风险因素",
+   "tags": [
+    "mcp-knowledge",
+    "tool",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/server/tools/entity.py",
+   "type": "file",
+   "name": "entity.py",
+   "filePath": "mcp-knowledge/server/tools/entity.py",
+   "summary": "Entity Tools - 实体搜索 / 详情 / 关系图谱 Tools: 1. search_entity — 搜索实体（名称 + 类型） 2. get_entity — 获取实体详情 3. get_entity_graph — 获取关系图谱",
+   "tags": [
+    "mcp-knowledge",
+    "tool",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/server/tools/fact.py",
+   "type": "file",
+   "name": "fact.py",
+   "filePath": "mcp-knowledge/server/tools/fact.py",
+   "summary": "Fact Tools - 事实查询 / 版本历史 / 事件时间线 Tools: 4. search_facts — 查询实体事实 5. get_fact_history — 获取事实版本历史 6. get_timeline — 获取实体事件时间线",
+   "tags": [
+    "mcp-knowledge",
+    "tool",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/server/tools/graph.py",
+   "type": "file",
+   "name": "graph.py",
+   "filePath": "mcp-knowledge/server/tools/graph.py",
+   "summary": "Graph Tools - 事件影响链 / 事件搜索（Apache AGE Cypher） Tools: 16. trace_event_impact — 事件影响链追踪 17. search_event — 事件搜索 + 影响实体 依赖: Apache AGE 图存储（不可用时返回错误提示）",
+   "tags": [
+    "mcp-knowledge",
+    "tool",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/server/tools/inbox.py",
+   "type": "file",
+   "name": "inbox.py",
+   "filePath": "mcp-knowledge/server/tools/inbox.py",
+   "summary": "Inbox Tools - Knowledge Inbox（HITL 审核流） Tools: 13. list_inbox — 查询 Inbox 记录（按状态过滤） 14. review_inbox — 人工审核 Inbox 记录（approve / reject） 15. archive_inbox — 归档 Inbox 记录 对应 core.knowledge_inbox 表（Phase 1 ",
+   "tags": [
+    "mcp-knowledge",
+    "tool",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/server/tools/semantic.py",
+   "type": "file",
+   "name": "semantic.py",
+   "filePath": "mcp-knowledge/server/tools/semantic.py",
+   "summary": "Semantic Tools - 语义向量检索 Tools: 7. semantic_search — 语义搜索（Qdrant） 8. similar_documents — 混合检索（并行多 Collection）",
+   "tags": [
+    "mcp-knowledge",
+    "tool",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/server/tools/siyuan.py",
+   "type": "file",
+   "name": "siyuan.py",
+   "filePath": "mcp-knowledge/server/tools/siyuan.py",
+   "summary": "SiYuan / Knowledge Object Tools - 知识对象与展示层交互 Tools: 16. search_notes — 搜索知识笔记（基于 PG SoT，返回笔记元数据） 17. get_note — 获取知识笔记详情（含 SiYuan 展示路径） 18. create_knowledge_object — 创建知识对象并渲染到 SiYuan 19. update_knowl",
+   "tags": [
+    "mcp-knowledge",
+    "tool",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/server/tools/write.py",
+   "type": "file",
+   "name": "write.py",
+   "filePath": "mcp-knowledge/server/tools/write.py",
+   "summary": "Write Tools - 知识写入（创建实体/事实/关系 + 版本化更新） Tools: 9. create_entity — 创建实体 10. create_fact — 创建事实 11. create_relation — 创建关系 12. update_knowledge — 版本化更新",
+   "tags": [
+    "mcp-knowledge",
+    "tool",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/server/utils.py",
+   "type": "file",
+   "name": "utils.py",
+   "filePath": "mcp-knowledge/server/utils.py",
+   "summary": "共享工具函数",
+   "tags": [
+    "mcp-knowledge",
+    "function"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/tests/test_inbox.py",
+   "type": "file",
+   "name": "test_inbox.py",
+   "filePath": "mcp-knowledge/tests/test_inbox.py",
+   "summary": "Inbox Tools 单元测试 覆盖 Knowledge Inbox 状态机： - list_inbox 状态过滤与非法状态校验 - review_inbox 审核通过/拒绝 + 审核日志 - archive_inbox 归档 - 状态机非法跳转校验",
+   "tags": [
+    "mcp-knowledge",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/tests/test_render_metrics.py",
+   "type": "file",
+   "name": "test_render_metrics.py",
+   "filePath": "mcp-knowledge/tests/test_render_metrics.py",
+   "summary": "Render Metrics 单元测试 覆盖 Phase 9 监控埋点： 1. 计数：claim/done/fail 累计正确 2. 平均耗时：record_done 后 avg_duration_ms 正确 3. 重试统计：record_fail(retried=True) 计入 retried 4. 快照输出：snapshot() 结构完整、字段为非负 5. 队列深度：record_queue",
+   "tags": [
+    "mcp-knowledge",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/tests/test_render_worker.py",
+   "type": "file",
+   "name": "test_render_worker.py",
+   "filePath": "mcp-knowledge/tests/test_render_worker.py",
+   "summary": "Render Worker 单元测试 覆盖 Phase 8 性能优化： 1. 背压：队列满时 producer 阻塞，内存中任务数不超过 queue_size 2. 多消费者：并发消费任务，吞吐量正确 3. 失败重试：消费者异常 → 调用 engine._fail 回退 pending 架构：producer（claim → 入队）+ consumer（取出 → process_job）。",
+   "tags": [
+    "mcp-knowledge",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/tests/test_siyuan.py",
+   "type": "file",
+   "name": "test_siyuan.py",
+   "filePath": "mcp-knowledge/tests/test_siyuan.py",
+   "summary": "SiYuan / Knowledge Object Tools 单元测试 覆盖 Phase 6 的 6 个工具： - search_notes / get_note 检索与详情（含 SiYuan 展示路径） - create_knowledge_object 创建 + 渲染到 SiYuan - update_knowledge_object 版本化更新 + 增量同步 - create_resear",
+   "tags": [
+    "mcp-knowledge",
+    "class",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/tests/test_siyuan_client.py",
+   "type": "file",
+   "name": "test_siyuan_client.py",
+   "filePath": "mcp-knowledge/tests/test_siyuan_client.py",
+   "summary": "SiYuan Adapter 单元测试 覆盖： 1. 限流：并发上限（Semaphore）阻塞超限请求 2. 幂等：getDocByPath 已存在 → 更新而非创建 3. 重试：429/5xx 指数退避后成功 4. 模板渲染与路径映射",
+   "tags": [
+    "mcp-knowledge",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/verify_b4.py",
+   "type": "file",
+   "name": "verify_b4.py",
+   "filePath": "mcp-knowledge/verify_b4.py",
+   "summary": "通过真实 MCP 协议（Streamable HTTP）验证 B4 新工具实际调用。",
+   "tags": [
+    "mcp-knowledge",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:mcp-knowledge/verify_graphrag_tmp.py",
+   "type": "file",
+   "name": "verify_graphrag_tmp.py",
+   "filePath": "mcp-knowledge/verify_graphrag_tmp.py",
+   "summary": "verify_graphrag_tmp.py（mcp-knowledge）",
+   "tags": [
+    "mcp-knowledge",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:mcp-news/compose.yml",
+   "type": "resource",
+   "name": "compose.yml",
+   "filePath": "mcp-news/compose.yml",
+   "summary": "compose.yml（mcp-news）",
+   "tags": [
+    "mcp-news"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:mcp-news/requirements.txt",
+   "type": "document",
+   "name": "requirements.txt",
+   "filePath": "mcp-news/requirements.txt",
+   "summary": "文档：requirements.txt",
+   "tags": [
+    "mcp-news"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:mcp-knowledge/server/rendering/renderer.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/mapper.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/rendering/renderer.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/templates.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/rendering/renderer.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/rendering/worker.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/client.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/rendering/worker.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/rendering/worker.py",
+   "target": "file:mcp-knowledge/server/rendering/engine.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/rendering/worker.py",
+   "target": "file:mcp-knowledge/server/rendering/metrics.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/storage/age.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/storage/postgres.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/storage/qdrant.py",
+   "target": "file:frontend/src/services/models.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/storage/qdrant.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/analysis.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/analysis.py",
+   "target": "file:langgraph/storage/knowledge/age.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/analysis.py",
+   "target": "file:mcp-knowledge/server/cache.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/analysis.py",
+   "target": "file:frontend/src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/entity.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/entity.py",
+   "target": "file:langgraph/storage/knowledge/age.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/entity.py",
+   "target": "file:mcp-knowledge/server/cache.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/entity.py",
+   "target": "file:frontend/src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/fact.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/graph.py",
+   "target": "file:langgraph/storage/knowledge/age.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/graph.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/graph.py",
+   "target": "file:langgraph/storage/knowledge/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/graph.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/inbox.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/inbox.py",
+   "target": "file:mcp-knowledge/server/cache.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/inbox.py",
+   "target": "file:frontend/src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/semantic.py",
+   "target": "file:langgraph/storage/knowledge/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/siyuan.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/siyuan.py",
+   "target": "file:mcp-knowledge/server/cache.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/siyuan.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/mapper.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/siyuan.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/sync.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/siyuan.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/client.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/siyuan.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/siyuan.py",
+   "target": "file:frontend/src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/write.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/server/tools/write.py",
+   "target": "file:mcp-knowledge/server/cache.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/tests/test_render_metrics.py",
+   "target": "file:mcp-knowledge/server/rendering/metrics.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/tests/test_render_worker.py",
+   "target": "file:langgraph/runtime/worker.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/tests/test_siyuan_client.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/client.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/tests/test_siyuan_client.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/tests/test_siyuan_client.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/mapper.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:mcp-knowledge/tests/test_siyuan_client.py",
+   "target": "file:mcp-knowledge/server/adapters/siyuan/templates.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  }
+ ]
+}

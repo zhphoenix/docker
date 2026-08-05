@@ -1,7 +1,7 @@
 """Web Article Summary Skill - 网页文章自动摘要
 
 从指定网站首页/栏目列表页提取文章链接，逐篇抓取正文，
-调用 LLM 生成结构化摘要，写入 PostgreSQL + Obsidian Vault。
+调用 LLM 生成结构化摘要，写入 PostgreSQL + SiYuan。
 
 执行流程:
   1. 调用 Crawl4AI 抓取列表页 → 获取页面内链接
@@ -9,7 +9,7 @@
   3. 逐篇调用 Crawl4AI 抓取正文 → Markdown
   4. 清洗 Markdown（去导航/页脚噪音）
   5. 调用 LLM 生成摘要
-  6. 写入 PostgreSQL (web_pages.metadata.summary) + Obsidian Vault
+  6. 写入 PostgreSQL (web_pages.metadata.summary，SoT) + 同步渲染到 SiYuan（展示层）
 
 Agent 调用方式:
     from skills.registry import get_registry
@@ -20,6 +20,8 @@ Agent 调用方式:
     )
 """
 
+import asyncio
+import hashlib
 import logging
 import os
 import re
@@ -38,6 +40,15 @@ logger = logging.getLogger(__name__)
 # Crawl4AI 服务地址（Docker 内部）
 CRAWL4AI_URL = os.getenv("CRAWL4AI_URL", "http://crawl4ai:11235")
 CRAWL4AI_TOKEN = os.getenv("CRAWL4AI_API_TOKEN", "crawl4ai-dev-token")
+
+# ── SiYuan 展示层配置（PostgreSQL 为唯一数据源 SoT，SiYuan 仅展示）──
+# 通过环境变量注入，失败时降级为仅写 PG，不阻断主流程
+SIYUAN_URL = os.getenv("SIYUAN_URL", "http://localhost:6806").rstrip("/")
+SIYUAN_TOKEN = os.getenv("SIYUAN_TOKEN", "")
+# 目标笔记本名（不存在时自动创建）
+SIYUAN_NOTEBOOK = os.getenv("SIYUAN_NOTEBOOK", "Web Summaries")
+# 是否启用 SiYuan 写入（默认启用；不可用时自动降级为仅写 PG）
+SIYUAN_ENABLED = os.getenv("SIYUAN_ENABLED", "true").lower() in ("1", "true", "yes")
 
 # 默认站点配置
 DEFAULT_DOMAIN = "www.qstheory.cn"
@@ -65,6 +76,9 @@ _SUMMARY_TEMPLATE = """请为以下文章生成结构化摘要。
 
 # URL 日期提取正则
 _DATE_RE = re.compile(r"/(\d{4})(\d{2})(\d{2})/|/(\d{4})(\d{2})/")
+
+# SiYuan 需要重试的错误码：限流 / 服务端瞬时错误
+_SIYUAN_RETRYABLE = {429, 500, 502, 503, 504}
 
 # 导航噪音标记
 _NAV_MARKERS = [
@@ -122,6 +136,135 @@ def _clean_markdown(raw: str) -> str:
     return result.strip()
 
 
+def _sanitize_path_segment(seg: str) -> str:
+    """清理路径段：去空格、去非法字符（SiYuan 路径限制）"""
+    seg = re.sub(r"[\s/\\:*?\"<>|]+", "_", seg).strip("_")
+    return seg or "untitled"
+
+
+def _doc_path_for(url: str, title: str) -> str:
+    """由文章 URL + 标题生成 SiYuan 文档路径（相对 notebook 根）。
+
+    规则：{date}/{sanitized_title}_{url_hash6}，保证可读且唯一。
+    """
+    date = _extract_date(url) or "undated"
+    base = _sanitize_path_segment(title)[:60]
+    suffix = hashlib.sha256(url.encode("utf-8")).hexdigest()[:6]
+    return f"{date}/{base}_{suffix}"
+
+
+def _render_siyuan_markdown(title: str, url: str, summary: str) -> str:
+    """将文章摘要渲染为 SiYuan 文档 Markdown（含标题、原文链接、摘要正文）"""
+    esc_title = title.replace("#", "\\#").replace("<", "\\<").replace(">", "\\>")
+    return (
+        f"# {esc_title}\n\n"
+        f"- 原文链接：{url}\n"
+        f"- 归档时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        f"---\n\n"
+        f"{summary}\n"
+    )
+
+
+class _SiyuanClient:
+    """轻量 SiYuan HTTP 客户端（幂等 upsert）——展示层，PG 为 SoT。
+
+    参考项目现有适配器模式：mcp-knowledge/server/adapters/siyuan/client.py。
+    """
+
+    def __init__(self, base_url: str, token: str):
+        self._base_url = base_url
+        self._headers = {}
+        if token:
+            self._headers["Authorization"] = f"Token {token}"
+
+    @property
+    def available(self) -> bool:
+        """是否已配置可用的 SiYuan 服务地址（非空即视为已接入）"""
+        return bool(self._base_url and self._base_url.strip())
+
+    async def _post(self, api: str, payload: dict) -> dict:
+        """POST /api/...，带指数退避重试（429/5xx）"""
+        async with httpx.AsyncClient(
+            base_url=self._base_url,
+            headers=self._headers,
+            timeout=httpx.Timeout(15.0),
+        ) as client:
+            last_err: Exception | None = None
+            for attempt in range(3):
+                try:
+                    resp = await client.post(api, json=payload)
+                    if resp.status_code in _SIYUAN_RETRYABLE:
+                        raise httpx.HTTPStatusError(
+                            f"retryable HTTP {resp.status_code}",
+                            request=resp.request,
+                            response=resp,
+                        )
+                    if resp.status_code >= 400:
+                        raise RuntimeError(
+                            f"SiYuan {api} HTTP {resp.status_code}: {resp.text[:300]}"
+                        )
+                    data = resp.json()
+                    if data.get("code") not in (0, None):
+                        raise RuntimeError(
+                            f"SiYuan {api} business error: {data.get('msg', data)}"
+                        )
+                    return data.get("data") or {}
+                except (httpx.HTTPStatusError, httpx.HTTPError) as e:
+                    last_err = e
+                    if attempt < 2:
+                        await asyncio.sleep(2 ** attempt)
+            raise RuntimeError(f"SiYuan {api} failed after retries: {last_err}")
+
+    async def list_notebooks(self) -> list[dict]:
+        """列出全部笔记本 [{id, name}]"""
+        data = await self._post("/api/notebook/lsNotebooks", {})
+        return data.get("notebooks", []) or []
+
+    async def get_notebook_id(self, name: str) -> str | None:
+        """按名称查找笔记本 id（幂等）"""
+        for nb in await self.list_notebooks():
+            if nb.get("name") == name:
+                return nb.get("id")
+        return None
+
+    async def ensure_notebook(self, name: str) -> str:
+        """确保笔记本存在，不存在则创建，返回（惰性）id"""
+        existing = await self.get_notebook_id(name)
+        if existing:
+            return existing
+        data = await self._post("/api/notebook/createNotebook", {"name": name})
+        return data.get("id") or data.get("box") or ""
+
+    async def get_doc_by_path(self, notebook: str, path: str) -> dict | None:
+        """按 notebook + 路径查文档，返回 {id, box, path,...} 或 None"""
+        data = await self._post(
+            "/api/filetree/getDocByPath", {"notebook": notebook, "path": path}
+        )
+        return data if data and data.get("id") else None
+
+    async def upsert_doc(self, notebook: str, path: str, markdown: str) -> dict:
+        """幂等写入文档：路径已存在则更新，否则创建。
+
+        返回 {action: 'created'|'updated', id, path}
+        """
+        existing = await self.get_doc_by_path(notebook, path)
+        if existing and existing.get("id"):
+            await self._post(
+                "/api/filetree/updateDoc",
+                {"id": existing["id"], "markdown": markdown},
+            )
+            return {"action": "updated", "id": existing["id"], "path": path}
+        await self._post(
+            "/api/filetree/createDocWithMd",
+            {"notebook": notebook, "path": path, "markdown": markdown},
+        )
+        return {"action": "created", "id": "", "path": path}
+
+
+# 模块级单例
+_SIYUAN = _SiyuanClient(SIYUAN_URL, SIYUAN_TOKEN)
+
+
 def _filter_article_links(
     links: list[dict], base_url: str, max_articles: int
 ) -> list[dict[str, str]]:
@@ -176,6 +319,7 @@ class WebArticleSummarySkill(BaseSkill):
     """网页文章自动摘要 Skill
 
     从指定站点列表页提取文章 → 抓取正文 → LLM 摘要 → 存储
+    摘要写入 PostgreSQL（SoT），并同步渲染到 SiYuan 展示层。
     """
 
     @property
@@ -409,8 +553,12 @@ class WebArticleSummarySkill(BaseSkill):
     async def _store_result(
         self, url: str, title: str, domain: str, summary: str
     ) -> None:
-        """存储摘要到 PostgreSQL + Obsidian Vault"""
-        # 1. PostgreSQL: upsert web_pages + 写入 metadata.summary
+        """存储摘要到 PostgreSQL（SoT）+ 同步渲染到 SiYuan（展示层）
+
+        设计红线：PG 为唯一数据源，SiYuan 仅展示。先写 PG，再同步渲染
+        到 SiYuan；SiYuan 不可用时降级为仅写 PG 并记录告警，不阻断主流程。
+        """
+        # 1. PostgreSQL: upsert web_pages + 写入 metadata.summary（唯一数据源）
         try:
             await postgres_tool.pool.execute(
                 """
@@ -426,5 +574,27 @@ class WebArticleSummarySkill(BaseSkill):
         except Exception as e:
             logger.warning("PG 写入失败: %s -> %s", url, e)
 
-        # 2. 摘要已写入 PG，Vault 写入已移除
+        # 2. 同步渲染到 SiYuan 展示层（失败不阻断主流程，仅记录告警降级）
+        if not SIYUAN_ENABLED:
+            logger.info("SiYuan 写入已禁用，跳过渲染: %s", title[:40])
+            return
+        if not _SIYUAN.available:
+            logger.warning(
+                "SiYuan 不可用（未配置 SIYUAN_URL），降级为仅写 PG: %s", title[:40]
+            )
+            return
+        try:
+            notebook = await _SIYUAN.ensure_notebook(SIYUAN_NOTEBOOK)
+            path = _doc_path_for(url, title)
+            markdown = _render_siyuan_markdown(title, url, summary)
+            result = await _SIYUAN.upsert_doc(notebook, path, markdown)
+            logger.debug(
+                "SiYuan 渲染完成: %s (%s) -> %s/%s",
+                title[:40], result.get("action"), SIYUAN_NOTEBOOK, path,
+            )
+        except Exception as e:
+            logger.warning(
+                "SiYuan 渲染失败，降级为仅写 PG: %s -> %s", title[:40], e
+            )
+
         logger.debug("Summary generated for: %s", title[:50])

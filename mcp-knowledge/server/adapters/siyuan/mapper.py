@@ -11,8 +11,20 @@
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
+
+
+def _as_props(entity: dict[str, Any]) -> dict[str, Any]:
+    """安全解析 properties 字段为 dict（asyncpg 对 JSONB 默认返回 str）。"""
+    p = entity.get("properties") or {}
+    if isinstance(p, str):
+        try:
+            p = json.loads(p)
+        except (ValueError, TypeError):
+            p = {}
+    return p or {}
 
 # ──────────────────────────────
 # Notebook 约定
@@ -46,7 +58,7 @@ def entity_to_path(entity: dict[str, Any]) -> str:
     """
     etype = entity.get("entity_type", "Company")
     name = entity.get("canonical_name") or entity.get("name", "untitled")
-    props = entity.get("properties") or {}
+    props = _as_props(entity)
 
     if etype == "Company":
         ticker = props.get("ticker") or ""
@@ -69,9 +81,33 @@ def section_path(entity_path: str, section: str) -> str:
     return f"{entity_path}/{_sanitize_path_segment(section)}"
 
 
-def entity_to_template_context(entity: dict[str, Any], sections: list[dict] | None = None) -> dict:
-    """实体 → 模板上下文（统一字段，供 Jinja2 使用）"""
-    props = entity.get("properties") or {}
+def neighbor_to_link(neighbor: dict[str, Any]) -> str:
+    """生成 SiYuan 块引用链接文本 [[name]]（基于文档标题，模板首行 # {{ name }}）。
+
+    用于让 SiYuan 内置关系图能基于文档链接自动生成关联图谱。
+    """
+    name = neighbor.get("neighbor_name") or neighbor.get("canonical_name") or ""
+    return f"[[{name}]]" if name else ""
+
+
+def entity_to_template_context(
+    entity: dict[str, Any],
+    sections: list[dict] | None = None,
+    neighbors: list[dict] | None = None,
+) -> dict:
+    """实体 → 模板上下文（统一字段，供 Jinja2 使用）。
+
+    Args:
+        entity: core.entities 一行
+        sections: 需渲染的 Section 列表（增量同步用）
+        neighbors: 一跳邻居列表（get_entity_neighbors_for_render 输出），注入 related_entities
+    """
+    props = _as_props(entity)
+    related: list[dict] = []
+    for n in neighbors or []:
+        name = n.get("neighbor_name") or n.get("canonical_name") or ""
+        if name:
+            related.append({"name": name, "relation_type": n.get("relation_type", "")})
     return {
         "name": entity.get("canonical_name") or entity.get("name", ""),
         "entity_type": entity.get("entity_type", "Company"),
@@ -81,6 +117,7 @@ def entity_to_template_context(entity: dict[str, Any], sections: list[dict] | No
         "aliases": entity.get("aliases") or [],
         "confidence": entity.get("confidence", 0.0),
         "sections": sections or [],
+        "related_entities": related,
         "updated_at": entity.get("updated_at", ""),
     }
 

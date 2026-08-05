@@ -1,0 +1,57 @@
+{
+ "nodes": [
+  {
+   "id": "config:langgraph/config/agents.yaml",
+   "type": "config",
+   "name": "agents.yaml",
+   "filePath": "langgraph/config/agents.yaml",
+   "summary": "配置文件：agents.yaml",
+   "tags": [
+    "langgraph",
+    "config"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:langgraph/config/mcp_servers.yaml",
+   "type": "config",
+   "name": "mcp_servers.yaml",
+   "filePath": "langgraph/config/mcp_servers.yaml",
+   "summary": "配置文件：mcp_servers.yaml",
+   "tags": [
+    "langgraph",
+    "config"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:langgraph/config/policies.yaml",
+   "type": "config",
+   "name": "policies.yaml",
+   "filePath": "langgraph/config/policies.yaml",
+   "summary": "配置文件：policies.yaml",
+   "tags": [
+    "langgraph",
+    "config"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:langgraph/config/workflows.yaml",
+   "type": "config",
+   "name": "workflows.yaml",
+   "filePath": "langgraph/config/workflows.yaml",
+   "summary": "配置文件：workflows.yaml",
+   "tags": [
+    "langgraph",
+    "config"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

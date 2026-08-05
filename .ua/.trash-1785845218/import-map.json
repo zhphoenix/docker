@@ -1,0 +1,1844 @@
+{
+ "frontend/vite.config.ts": [
+  "path",
+  "vite",
+  "@vitejs/plugin-react"
+ ],
+ "frontend/src/main.tsx": [
+  "react",
+  "react-dom/client",
+  "react-router-dom",
+  "@tanstack/react-query",
+  "@/components/ui/tooltip",
+  "@/theme/ThemeProvider",
+  "@/services/query-client",
+  "@/app/router"
+ ],
+ "frontend/src/app/router.tsx": [
+  "react-router-dom",
+  "react"
+ ],
+ "frontend/src/app/pages/AgentsPage.tsx": [
+  "@tanstack/react-query",
+  "framer-motion",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/button",
+  "@/components/ui/skeleton",
+  "@/components/common/EmptyState",
+  "@/services/agents"
+ ],
+ "frontend/src/app/pages/ChatPage.tsx": [
+  "react",
+  "framer-motion",
+  "lucide-react",
+  "react-markdown",
+  "remark-gfm",
+  "@/components/ui/button",
+  "@/components/ui/textarea",
+  "@/components/ui/scroll-area",
+  "@/lib/utils",
+  "@/stores/chat-store",
+  "@/stores/chat-store",
+  "@/services/chat"
+ ],
+ "frontend/src/app/pages/DashboardPage.tsx": [
+  "@tanstack/react-query",
+  "framer-motion",
+  "lucide-react",
+  "react-router-dom",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/skeleton",
+  "@/services/health",
+  "@/services/models"
+ ],
+ "frontend/src/app/pages/DocumentsPage.tsx": [
+  "react",
+  "@tanstack/react-query",
+  "framer-motion",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/button",
+  "@/components/ui/input",
+  "@/components/ui/skeleton",
+  "@/components/ui/scroll-area",
+  "@/components/ui/table",
+  "@/components/ui/select",
+  "@/components/ui/dialog",
+  "@/components/ui/tabs",
+  "@/components/common/EmptyState",
+  "@/services/documents",
+  "@/services/documents",
+  "@/services/tasks",
+  "@/services/tasks",
+  "@/services/knowledge"
+ ],
+ "frontend/src/app/pages/KnowledgePage.tsx": [
+  "react",
+  "lucide-react",
+  "@/components/ui/tabs",
+  "@/components/ui/badge",
+  "@/components/knowledge/KnowledgeDashboard",
+  "@/components/knowledge/SemanticSearchPanel",
+  "@/components/knowledge/EntityBrowser"
+ ],
+ "frontend/src/app/pages/KnowledgeReviewPage.tsx": [
+  "react",
+  "@tanstack/react-query",
+  "framer-motion",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/button",
+  "@/components/ui/skeleton",
+  "@/components/ui/textarea",
+  "@/components/common/EmptyState",
+  "@/services/approvals"
+ ],
+ "frontend/src/app/pages/ModelsPage.tsx": [
+  "@tanstack/react-query",
+  "framer-motion",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/button",
+  "@/components/ui/skeleton",
+  "@/components/common/EmptyState",
+  "@/services/models",
+  "@/services/agents",
+  "@/services/agents"
+ ],
+ "frontend/src/app/pages/MonitorPage.tsx": [
+  "@tanstack/react-query",
+  "framer-motion",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/button",
+  "@/components/ui/skeleton",
+  "@/services/health"
+ ],
+ "frontend/src/app/pages/NewsPage.tsx": [
+  "react",
+  "lucide-react",
+  "@/components/ui/tabs",
+  "@/components/news/NewsListTab",
+  "@/components/news/EventsTab",
+  "@/components/news/ImpactTab"
+ ],
+ "frontend/src/app/pages/ResearchPage.tsx": [
+  "react",
+  "@tanstack/react-query",
+  "lucide-react",
+  "react-markdown",
+  "remark-gfm",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/button",
+  "@/components/ui/input",
+  "@/components/ui/skeleton",
+  "@/components/ui/scroll-area",
+  "@/components/ui/tabs",
+  "@/components/ui/table",
+  "@/components/ui/select",
+  "@/components/ui/dialog",
+  "@/components/common/EmptyState",
+  "@/components/ui/resizable",
+  "@/services/research",
+  "@/services/reports",
+  "@/services/reports",
+  "@/lib/utils"
+ ],
+ "frontend/src/app/pages/SettingsPage.tsx": [
+  "framer-motion",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/separator",
+  "@/lib/utils"
+ ],
+ "frontend/src/app/pages/VectorDbPage.tsx": [
+  "@tanstack/react-query",
+  "framer-motion",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/button",
+  "@/components/ui/skeleton",
+  "@/components/common/EmptyState",
+  "@/services/vector"
+ ],
+ "frontend/src/app/pages/WorkflowPage.tsx": [
+  "react",
+  "@tanstack/react-query",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/button",
+  "@/components/ui/input",
+  "@/components/ui/skeleton",
+  "@/components/ui/progress",
+  "@/components/ui/scroll-area",
+  "@/components/ui/table",
+  "@/components/ui/select",
+  "@/components/ui/dialog",
+  "@/components/ui/tabs",
+  "@/components/common/EmptyState",
+  "@/services/tasks",
+  "@/services/tasks",
+  "@/services/knowledge"
+ ],
+ "frontend/src/components/common/EmptyState.tsx": [
+  "lucide-react",
+  "lucide-react"
+ ],
+ "frontend/src/components/health/HealthProvider.tsx": [
+  "@tanstack/react-query"
+ ],
+ "frontend/src/components/knowledge/CollectionGrid.tsx": [
+  "react",
+  "@tanstack/react-query",
+  "framer-motion",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/button",
+  "@/components/ui/input",
+  "@/components/ui/skeleton",
+  "@/components/ui/progress",
+  "@/components/ui/dialog",
+  "@/components/common/EmptyState",
+  "@/services/knowledge",
+  "@/services/tasks"
+ ],
+ "frontend/src/components/knowledge/EntityBrowser.tsx": [
+  "react",
+  "@tanstack/react-query",
+  "framer-motion",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/input",
+  "@/components/ui/badge",
+  "@/components/ui/skeleton",
+  "@/components/ui/table",
+  "@/components/common/EmptyState",
+  "@/services/knowledge"
+ ],
+ "frontend/src/components/knowledge/EntityDetailDialog.tsx": [
+  "@tanstack/react-query",
+  "lucide-react",
+  "@/components/ui/dialog",
+  "@/components/ui/badge",
+  "@/components/ui/skeleton",
+  "@/components/ui/separator",
+  "@/components/common/EmptyState"
+ ],
+ "frontend/src/components/knowledge/KnowledgeDashboard.tsx": [
+  "@tanstack/react-query",
+  "framer-motion",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/button",
+  "@/components/ui/skeleton",
+  "@/components/ui/progress",
+  "@/components/common/EmptyState",
+  "@/services/knowledge",
+  "@/services/health"
+ ],
+ "frontend/src/components/knowledge/KnowledgeTasksPanel.tsx": [
+  "react",
+  "@tanstack/react-query",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/button",
+  "@/components/ui/input",
+  "@/components/ui/skeleton",
+  "@/components/ui/scroll-area",
+  "@/components/ui/select",
+  "@/components/ui/dialog",
+  "@/components/ui/table",
+  "@/components/common/EmptyState",
+  "@/services/tasks",
+  "@/services/tasks"
+ ],
+ "frontend/src/components/knowledge/SemanticSearchPanel.tsx": [
+  "react",
+  "@tanstack/react-query",
+  "framer-motion",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/input",
+  "@/components/ui/button",
+  "@/components/ui/badge",
+  "@/components/ui/skeleton",
+  "@/components/common/EmptyState",
+  "@/services/knowledge"
+ ],
+ "frontend/src/components/layout/AppShell.tsx": [
+  "react-router-dom",
+  "./Sidebar",
+  "./Header",
+  "./StatusBar"
+ ],
+ "frontend/src/components/layout/CommandPalette.tsx": [
+  "react",
+  "react-router-dom",
+  "@tanstack/react-query",
+  "lucide-react",
+  "@/components/ui/command",
+  "@/hooks/useDebounce",
+  "@/services/news"
+ ],
+ "frontend/src/components/layout/Header.tsx": [
+  "react",
+  "react-router-dom",
+  "lucide-react"
+ ],
+ "frontend/src/components/layout/Sidebar.tsx": [
+  "react-router-dom",
+  "framer-motion",
+  "lucide-react",
+  "@/stores/app-store"
+ ],
+ "frontend/src/components/layout/StatusBar.tsx": [
+  "@tanstack/react-query",
+  "@/services/health",
+  "@/services/models"
+ ],
+ "frontend/src/components/news/ArticleDetailDialog.tsx": [
+  "@tanstack/react-query",
+  "lucide-react",
+  "@/components/ui/dialog",
+  "@/components/ui/badge",
+  "@/components/ui/skeleton",
+  "@/services/news"
+ ],
+ "frontend/src/components/news/EventsTab.tsx": [
+  "react",
+  "@tanstack/react-query",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/button",
+  "@/components/ui/input",
+  "@/components/ui/skeleton",
+  "@/components/ui/select",
+  "@/services/news"
+ ],
+ "frontend/src/components/news/ImpactTab.tsx": [
+  "react",
+  "@tanstack/react-query",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/button",
+  "@/components/ui/input",
+  "@/components/ui/skeleton",
+  "@/components/ui/select",
+  "@/services/news"
+ ],
+ "frontend/src/components/news/NewsListTab.tsx": [
+  "react",
+  "@tanstack/react-query",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/button",
+  "@/components/ui/input",
+  "@/components/ui/skeleton",
+  "@/components/ui/select",
+  "@/services/news",
+  "./ArticleDetailDialog"
+ ],
+ "frontend/src/components/news/TimelineTab.tsx": [
+  "react",
+  "@tanstack/react-query",
+  "lucide-react",
+  "@/components/ui/card",
+  "@/components/ui/badge",
+  "@/components/ui/button",
+  "@/components/ui/input",
+  "@/components/ui/skeleton",
+  "@/components/ui/select"
+ ],
+ "frontend/src/components/ui/badge.tsx": [
+  "@base-ui/react/merge-props",
+  "@base-ui/react/use-render",
+  "class-variance-authority"
+ ],
+ "frontend/src/components/ui/button.tsx": [
+  "@base-ui/react/button",
+  "class-variance-authority"
+ ],
+ "frontend/src/components/ui/card.tsx": [
+  "react"
+ ],
+ "frontend/src/components/ui/command.tsx": [
+  "react",
+  "cmdk",
+  "lucide-react",
+  "react-dom"
+ ],
+ "frontend/src/components/ui/dialog.tsx": [
+  "react",
+  "@base-ui/react/dialog",
+  "@/lib/utils",
+  "@/components/ui/button"
+ ],
+ "frontend/src/components/ui/input.tsx": [
+  "react",
+  "@base-ui/react/input"
+ ],
+ "frontend/src/components/ui/progress.tsx": [
+  "@base-ui/react/progress"
+ ],
+ "frontend/src/components/ui/resizable.tsx": [
+  "lucide-react",
+  "react-resizable-panels"
+ ],
+ "frontend/src/components/ui/scroll-area.tsx": [
+  "@base-ui/react/scroll-area"
+ ],
+ "frontend/src/components/ui/select.tsx": [
+  "react",
+  "@base-ui/react/select",
+  "@/lib/utils"
+ ],
+ "frontend/src/components/ui/separator.tsx": [
+  "@base-ui/react/separator"
+ ],
+ "frontend/src/components/ui/skeleton.tsx": [],
+ "frontend/src/components/ui/table.tsx": [
+  "react"
+ ],
+ "frontend/src/components/ui/tabs.tsx": [
+  "@base-ui/react/tabs",
+  "class-variance-authority"
+ ],
+ "frontend/src/components/ui/textarea.tsx": [
+  "react"
+ ],
+ "frontend/src/components/ui/tooltip.tsx": [
+  "@base-ui/react/tooltip"
+ ],
+ "frontend/src/hooks/useDebounce.ts": [],
+ "frontend/src/lib/utils.ts": [
+  "clsx"
+ ],
+ "frontend/src/services/agents.ts": [],
+ "frontend/src/services/api-client.ts": [],
+ "frontend/src/services/approvals.ts": [],
+ "frontend/src/services/chat.ts": [],
+ "frontend/src/services/documents.ts": [],
+ "frontend/src/services/health.ts": [],
+ "frontend/src/services/knowledge.ts": [],
+ "frontend/src/services/models.ts": [],
+ "frontend/src/services/news.ts": [],
+ "frontend/src/services/query-client.ts": [],
+ "frontend/src/services/reports.ts": [],
+ "frontend/src/services/research.ts": [],
+ "frontend/src/services/tasks.ts": [],
+ "frontend/src/services/vector.ts": [],
+ "frontend/src/stores/app-store.ts": [],
+ "frontend/src/stores/chat-store.ts": [],
+ "frontend/src/theme/ThemeProvider.tsx": [
+  "react"
+ ],
+ "langgraph/main.py": [
+  "os",
+  "uvicorn"
+ ],
+ "langgraph/agents/base_agent.py": [
+  "asyncio",
+  "json",
+  "logging",
+  "time",
+  "typing",
+  "langchain_core.messages",
+  "schemas.chat",
+  "memory",
+  "tools.llm",
+  "nodes.research.planner",
+  "nodes.research.retrieve",
+  "nodes.research.rerank",
+  "prompts.loader"
+ ],
+ "langgraph/agents/chat_agent.py": [
+  "agents.base_agent",
+  "graphs"
+ ],
+ "langgraph/agents/investment_agent.py": [
+  "agents.base_agent",
+  "graphs"
+ ],
+ "langgraph/agents/kb_agent.py": [
+  "agents.base_agent",
+  "graphs"
+ ],
+ "langgraph/agents/research_agent.py": [
+  "agents.base_agent",
+  "graphs"
+ ],
+ "langgraph/agents/__init__.py": [],
+ "langgraph/api/agents.py": [
+  "json",
+  "logging",
+  "fastapi",
+  "services.router",
+  "tools.postgres"
+ ],
+ "langgraph/api/approvals.py": [
+  "json",
+  "logging",
+  "fastapi",
+  "pydantic",
+  "services.approval",
+  "tools.postgres",
+  "storage.knowledge.postgres"
+ ],
+ "langgraph/api/chat.py": [
+  "logging",
+  "fastapi",
+  "fastapi.responses",
+  "schemas.chat",
+  "services.router"
+ ],
+ "langgraph/api/documents.py": [
+  "asyncio",
+  "logging",
+  "re",
+  "uuid",
+  "io",
+  "pathlib",
+  "fastapi",
+  "fastapi.responses",
+  "pydantic",
+  "api.path_utils",
+  "pipelines.document_pipeline",
+  "tools.minio",
+  "tools.postgres",
+  "tools.qdrant",
+  "runtime.queue",
+  "runtime.queue",
+  "runtime.queue",
+  "runtime.queue",
+  "runtime.queue"
+ ],
+ "langgraph/api/health.py": [
+  "asyncio",
+  "logging",
+  "time",
+  "httpx",
+  "fastapi",
+  "config.settings",
+  "tools.postgres",
+  "tools.minio",
+  "tools.postgres",
+  "tools.postgres"
+ ],
+ "langgraph/api/knowledge.py": [
+  "asyncio",
+  "json",
+  "logging",
+  "os",
+  "uuid",
+  "pathlib",
+  "httpx",
+  "fastapi",
+  "pydantic",
+  "config.settings",
+  "tools.postgres",
+  "tools.llm",
+  "config.policy_loader",
+  "storage.knowledge.postgres",
+  "storage.knowledge.qdrant",
+  "runtime.queue",
+  "pipelines.document_pipeline",
+  "api.path_utils",
+  "uuid",
+  "json",
+  "tools.chunker",
+  "tools.embedding",
+  "tools.qdrant"
+ ],
+ "langgraph/api/models.py": [
+  "time",
+  "fastapi",
+  "schemas.chat",
+  "services.router"
+ ],
+ "langgraph/api/news.py": [
+  "asyncio",
+  "logging",
+  "fastapi",
+  "pydantic",
+  "services.news_storage",
+  "collectors.source_registry",
+  "collectors.rss_collector",
+  "collectors.web_collector",
+  "graphs.news_analysis_graph"
+ ],
+ "langgraph/api/path_utils.py": [
+  "re",
+  "logging",
+  "pathlib",
+  "pathlib"
+ ],
+ "langgraph/api/providers.py": [
+  "logging",
+  "fastapi",
+  "pydantic",
+  "tools.postgres"
+ ],
+ "langgraph/api/reports.py": [
+  "asyncio",
+  "logging",
+  "os",
+  "re",
+  "time",
+  "uuid",
+  "pathlib",
+  "fastapi",
+  "pydantic",
+  "tools.postgres",
+  "skills.master_analysis",
+  "skills.master_analysis"
+ ],
+ "langgraph/api/research.py": [
+  "logging",
+  "fastapi",
+  "tools.postgres"
+ ],
+ "langgraph/api/server.py": [
+  "logging",
+  "uuid",
+  "time",
+  "contextlib",
+  "fastapi",
+  "fastapi.middleware.cors",
+  "fastapi.responses",
+  "api.chat",
+  "api.models",
+  "api.health",
+  "api.providers",
+  "api.tasks",
+  "api.approvals",
+  "api.agents",
+  "api.documents",
+  "api.research",
+  "api.reports",
+  "api.knowledge",
+  "api.vector",
+  "api.news",
+  "tools.postgres",
+  "storage.knowledge.age",
+  "skills.registry",
+  "skills.rag_search",
+  "skills.master_analysis",
+  "skills.web_article_summary",
+  "runtime.scheduler",
+  "runtime.worker",
+  "runtime.worker",
+  "runtime.scheduler",
+  "tools.llm",
+  "tools.embedding",
+  "tools.reranker",
+  "tools.docling",
+  "storage.knowledge.age"
+ ],
+ "langgraph/api/tasks.py": [
+  "logging",
+  "fastapi",
+  "pydantic",
+  "runtime.queue",
+  "pipelines.document_pipeline",
+  "tools.postgres",
+  "runtime.worker",
+  "runtime.scheduler",
+  "tools.postgres",
+  "services.batch_embed"
+ ],
+ "langgraph/api/vector.py": [
+  "logging",
+  "httpx",
+  "fastapi",
+  "config.settings"
+ ],
+ "langgraph/api/__init__.py": [],
+ "langgraph/collectors/rss_collector.py": [
+  "asyncio",
+  "logging",
+  "datetime",
+  "time",
+  "feedparser"
+ ],
+ "langgraph/collectors/source_registry.py": [
+  "logging",
+  "pathlib",
+  "typing",
+  "yaml"
+ ],
+ "langgraph/collectors/web_collector.py": [
+  "logging",
+  "os",
+  "datetime",
+  "providers.web.crawl4ai_provider",
+  "pipelines.web.link_extractor",
+  "pipelines.web.chunker"
+ ],
+ "langgraph/collectors/__init__.py": [],
+ "langgraph/config/policy_loader.py": [
+  "logging",
+  "pathlib",
+  "typing",
+  "yaml"
+ ],
+ "langgraph/config/settings.py": [
+  "pydantic_settings"
+ ],
+ "langgraph/config/__init__.py": [],
+ "langgraph/graphs/document_graph.py": [
+  "logging",
+  "langgraph.graph",
+  "state.document_state",
+  "pipelines.document_pipeline"
+ ],
+ "langgraph/graphs/knowledge_graph.py": [
+  "logging",
+  "time",
+  "functools",
+  "langgraph.graph",
+  "state.knowledge_state",
+  "nodes.knowledge.parser",
+  "nodes.knowledge.entity",
+  "nodes.knowledge.relation",
+  "nodes.knowledge.fact",
+  "nodes.knowledge.validator",
+  "nodes.knowledge.merger"
+ ],
+ "langgraph/graphs/news_analysis_graph.py": [
+  "logging",
+  "time",
+  "functools",
+  "langgraph.graph",
+  "state.news_state",
+  "nodes.news.cleaner",
+  "nodes.news.deduplicator",
+  "nodes.news.embedding_dedup",
+  "nodes.news.classifier",
+  "nodes.news.entity",
+  "nodes.news.event",
+  "nodes.news.impact",
+  "nodes.news.publisher"
+ ],
+ "langgraph/graphs/research_graph.py": [
+  "logging",
+  "langgraph.graph",
+  "state.research_state",
+  "nodes.research.planner",
+  "nodes.research.retrieve",
+  "nodes.research.rerank",
+  "nodes.research.reason",
+  "nodes.research.reflect",
+  "nodes.research.finish",
+  "nodes.research.query_rewrite"
+ ],
+ "langgraph/graphs/__init__.py": [
+  "graphs",
+  "importlib",
+  "logging",
+  "config.policy_loader"
+ ],
+ "langgraph/memory/checkpoint.py": [
+  "logging",
+  "langgraph.checkpoint.postgres.aio",
+  "config.settings"
+ ],
+ "langgraph/memory/memory_store.py": [
+  "json",
+  "logging",
+  "tools.postgres"
+ ],
+ "langgraph/memory/thread_manager.py": [
+  "memory.thread_manager",
+  "uuid"
+ ],
+ "langgraph/memory/__init__.py": [
+  "memory",
+  "memory.memory_store"
+ ],
+ "langgraph/nodes/__init__.py": [],
+ "langgraph/nodes/knowledge/entity.py": [
+  "asyncio",
+  "json",
+  "logging",
+  "re",
+  "tools.llm",
+  "prompts.loader",
+  "config.policy_loader"
+ ],
+ "langgraph/nodes/knowledge/fact.py": [
+  "asyncio",
+  "json",
+  "logging",
+  "re",
+  "tools.llm",
+  "prompts.loader",
+  "config.policy_loader"
+ ],
+ "langgraph/nodes/knowledge/merger.py": [
+  "json",
+  "logging",
+  "uuid",
+  "tools.embedding",
+  "storage.knowledge.postgres",
+  "storage.knowledge.qdrant",
+  "storage.knowledge.age",
+  "config.policy_loader",
+  "services.approval"
+ ],
+ "langgraph/nodes/knowledge/parser.py": [
+  "logging",
+  "tools.chunker",
+  "config.policy_loader"
+ ],
+ "langgraph/nodes/knowledge/relation.py": [
+  "asyncio",
+  "json",
+  "logging",
+  "re",
+  "tools.llm",
+  "prompts.loader",
+  "config.policy_loader"
+ ],
+ "langgraph/nodes/knowledge/validator.py": [
+  "asyncio",
+  "logging",
+  "tools.embedding",
+  "config.policy_loader",
+  "storage.knowledge.postgres",
+  "storage.knowledge.qdrant"
+ ],
+ "langgraph/nodes/knowledge/__init__.py": [],
+ "langgraph/nodes/news/classifier.py": [
+  "asyncio",
+  "logging",
+  "tools.llm",
+  "prompts.loader",
+  "config.policy_loader",
+  "nodes.news.utils"
+ ],
+ "langgraph/nodes/news/cleaner.py": [
+  "hashlib",
+  "logging",
+  "re"
+ ],
+ "langgraph/nodes/news/deduplicator.py": [
+  "logging",
+  "re"
+ ],
+ "langgraph/nodes/news/embedding_dedup.py": [
+  "logging",
+  "uuid",
+  "config.policy_loader",
+  "tools.embedding",
+  "tools.qdrant",
+  "asyncio",
+  "qdrant_client.models"
+ ],
+ "langgraph/nodes/news/entity.py": [
+  "asyncio",
+  "logging",
+  "tools.llm",
+  "prompts.loader",
+  "config.policy_loader",
+  "nodes.news.utils"
+ ],
+ "langgraph/nodes/news/event.py": [
+  "asyncio",
+  "logging",
+  "tools.llm",
+  "prompts.loader",
+  "config.policy_loader",
+  "nodes.news.utils"
+ ],
+ "langgraph/nodes/news/impact.py": [
+  "asyncio",
+  "json",
+  "logging",
+  "tools.llm",
+  "prompts.loader",
+  "config.policy_loader",
+  "nodes.news.utils"
+ ],
+ "langgraph/nodes/news/publisher.py": [
+  "json",
+  "logging",
+  "datetime",
+  "storage.news.postgres",
+  "config.policy_loader",
+  "storage.knowledge.postgres",
+  "tools.minio",
+  "storage.knowledge.age"
+ ],
+ "langgraph/nodes/news/utils.py": [
+  "json",
+  "logging",
+  "re"
+ ],
+ "langgraph/nodes/news/__init__.py": [],
+ "langgraph/nodes/research/finish.py": [
+  "logging",
+  "langchain_core.messages",
+  "state.research_state"
+ ],
+ "langgraph/nodes/research/planner.py": [
+  "json",
+  "logging",
+  "langchain_core.messages",
+  "state.research_state",
+  "tools.llm",
+  "prompts.loader"
+ ],
+ "langgraph/nodes/research/query_rewrite.py": [
+  "json",
+  "logging",
+  "langchain_core.messages",
+  "state.research_state",
+  "tools.llm",
+  "prompts.loader"
+ ],
+ "langgraph/nodes/research/reason.py": [
+  "logging",
+  "state.research_state",
+  "tools.llm",
+  "prompts.loader"
+ ],
+ "langgraph/nodes/research/reflect.py": [
+  "json",
+  "logging",
+  "state.research_state",
+  "tools.llm",
+  "prompts.loader"
+ ],
+ "langgraph/nodes/research/rerank.py": [
+  "logging",
+  "time",
+  "state.research_state",
+  "tools.reranker"
+ ],
+ "langgraph/nodes/research/retrieve.py": [
+  "logging",
+  "re",
+  "state.research_state",
+  "schemas.authority",
+  "tools.embedding",
+  "tools.qdrant"
+ ],
+ "langgraph/nodes/research/writer.py": [
+  "logging",
+  "state.research_state"
+ ],
+ "langgraph/nodes/research/__init__.py": [],
+ "langgraph/pipelines/document_pipeline.py": [
+  "json",
+  "logging",
+  "re",
+  "uuid",
+  "typing",
+  "tools.postgres",
+  "tools.minio",
+  "tools.docling",
+  "tools.chunker",
+  "tools.embedding",
+  "tools.qdrant",
+  "runtime.queue",
+  "config.policy_loader"
+ ],
+ "langgraph/pipelines/web_pipeline.py": [
+  "__future__",
+  "io",
+  "logging",
+  "uuid",
+  "dataclasses",
+  "datetime",
+  "typing",
+  "urllib.parse",
+  "httpx",
+  "yaml",
+  "pipelines.web.chunker",
+  "pipelines.web.diff_detector",
+  "asyncio",
+  "asyncio",
+  "qdrant_client",
+  "qdrant_client.models",
+  "asyncio",
+  "qdrant_client",
+  "qdrant_client.models",
+  "asyncio"
+ ],
+ "langgraph/pipelines/__init__.py": [],
+ "langgraph/pipelines/web/chunker.py": [
+  "__future__",
+  "re",
+  "dataclasses",
+  "typing"
+ ],
+ "langgraph/pipelines/web/diff_detector.py": [
+  "__future__",
+  "logging",
+  "dataclasses",
+  "datetime",
+  "enum",
+  "typing"
+ ],
+ "langgraph/pipelines/web/link_extractor.py": [
+  "__future__",
+  "re",
+  "dataclasses",
+  "typing",
+  "urllib.parse"
+ ],
+ "langgraph/pipelines/web/rate_limiter.py": [
+  "__future__",
+  "asyncio",
+  "logging",
+  "time",
+  "dataclasses",
+  "typing",
+  "urllib.parse"
+ ],
+ "langgraph/pipelines/web/retry.py": [
+  "__future__",
+  "logging",
+  "dataclasses",
+  "datetime",
+  "typing"
+ ],
+ "langgraph/pipelines/web/summarizer.py": [
+  "__future__",
+  "logging",
+  "os",
+  "typing",
+  "httpx",
+  "tools.llm"
+ ],
+ "langgraph/pipelines/web/__init__.py": [],
+ "langgraph/prompts/loader.py": [
+  "logging",
+  "pathlib",
+  "functools"
+ ],
+ "langgraph/providers/__init__.py": [],
+ "langgraph/providers/web/crawl4ai_provider.py": [
+  "__future__",
+  "asyncio",
+  "hashlib",
+  "logging",
+  "dataclasses",
+  "datetime",
+  "typing",
+  "urllib.parse",
+  "httpx",
+  "yaml",
+  "pipelines.web.rate_limiter",
+  "pipelines.web.retry"
+ ],
+ "langgraph/providers/web/__init__.py": [],
+ "langgraph/runtime/executor.py": [
+  "runtime.executor",
+  "logging",
+  "typing",
+  "graphs"
+ ],
+ "langgraph/runtime/queue.py": [
+  "asyncio",
+  "json",
+  "logging",
+  "uuid",
+  "typing",
+  "tools.postgres",
+  "config.policy_loader"
+ ],
+ "langgraph/runtime/scheduler.py": [
+  "logging",
+  "datetime",
+  "apscheduler.schedulers.asyncio",
+  "apscheduler.triggers.cron",
+  "apscheduler.triggers.interval",
+  "config.policy_loader",
+  "pipelines.document_pipeline",
+  "runtime.queue",
+  "tools.postgres",
+  "tools.postgres",
+  "tools.postgres",
+  "collectors.source_registry",
+  "collectors.rss_collector",
+  "collectors.web_collector",
+  "graphs.news_analysis_graph",
+  "services.lifecycle"
+ ],
+ "langgraph/runtime/worker.py": [
+  "asyncio",
+  "json",
+  "logging",
+  "typing",
+  "runtime.queue",
+  "config.policy_loader",
+  "pipelines.document_pipeline",
+  "pipelines.document_pipeline",
+  "services.batch_embed",
+  "graphs.knowledge_graph",
+  "tools.postgres"
+ ],
+ "langgraph/runtime/__init__.py": [],
+ "langgraph/schemas/authority.py": [
+  "schemas.financial"
+ ],
+ "langgraph/schemas/chat.py": [
+  "typing",
+  "pydantic"
+ ],
+ "langgraph/schemas/financial.py": [
+  "pydantic",
+  "datetime",
+  "enum"
+ ],
+ "langgraph/schemas/__init__.py": [],
+ "langgraph/scripts/clean_qdrant.py": [
+  "asyncio",
+  "tools.qdrant",
+  "qdrant_client.models",
+  "qdrant_client.models"
+ ],
+ "langgraph/scripts/clear_minio.py": [
+  "sys",
+  "tools.minio",
+  "minio.deleteobjects",
+  "itertools",
+  "time"
+ ],
+ "langgraph/scripts/mi_probe.py": [
+  "asyncio",
+  "tools.postgres",
+  "tools.qdrant"
+ ],
+ "langgraph/scripts/setup_probe.py": [
+  "asyncio",
+  "traceback",
+  "re",
+  "tools.minio",
+  "tools.qdrant"
+ ],
+ "langgraph/scripts/verify_code.py": [
+  "asyncio",
+  "sys",
+  "traceback",
+  "pipelines.document_pipeline",
+  "api.knowledge"
+ ],
+ "langgraph/services/approval.py": [
+  "json",
+  "logging",
+  "uuid",
+  "typing",
+  "tools.postgres"
+ ],
+ "langgraph/services/batch_embed.py": [
+  "asyncio",
+  "logging",
+  "uuid",
+  "typing",
+  "tools.postgres",
+  "tools.embedding",
+  "tools.qdrant",
+  "runtime.queue",
+  "config.policy_loader",
+  "time"
+ ],
+ "langgraph/services/lifecycle.py": [
+  "logging",
+  "tools.postgres",
+  "storage.knowledge.age",
+  "tools.qdrant",
+  "asyncio"
+ ],
+ "langgraph/services/news_storage.py": [
+  "logging",
+  "typing",
+  "tools.postgres"
+ ],
+ "langgraph/services/router.py": [
+  "importlib",
+  "re",
+  "logging",
+  "schemas.chat",
+  "agents.base_agent",
+  "agents.chat_agent",
+  "config.policy_loader"
+ ],
+ "langgraph/services/__init__.py": [],
+ "langgraph/skills/base_skill.py": [
+  "abc",
+  "typing"
+ ],
+ "langgraph/skills/investment_research.py": [
+  "logging",
+  "datetime",
+  "typing",
+  "skills.base_skill",
+  "skills.rag_search",
+  "tools.market_tools",
+  "schemas.financial"
+ ],
+ "langgraph/skills/master_analysis.py": [
+  "json",
+  "logging",
+  "pathlib",
+  "typing",
+  "skills.base_skill",
+  "skills.rag_search",
+  "tools.llm",
+  "prompts.loader"
+ ],
+ "langgraph/skills/rag_search.py": [
+  "logging",
+  "typing",
+  "skills.base_skill",
+  "tools.qdrant",
+  "tools.embedding",
+  "tools.reranker",
+  "schemas.authority",
+  "qdrant_client.models"
+ ],
+ "langgraph/skills/registry.py": [
+  "logging",
+  "typing",
+  "skills.base_skill"
+ ],
+ "langgraph/skills/web_article_summary.py": [
+  "skills.registry",
+  "logging",
+  "os",
+  "re",
+  "datetime",
+  "typing",
+  "urllib.parse",
+  "httpx",
+  "skills.base_skill",
+  "tools.llm",
+  "tools.postgres"
+ ],
+ "langgraph/skills/__init__.py": [
+  "skills.base_skill",
+  "skills.registry",
+  "skills.web_article_summary",
+  "skills.rag_search",
+  "skills.investment_research"
+ ],
+ "langgraph/state/document_state.py": [
+  "typing"
+ ],
+ "langgraph/state/knowledge_state.py": [
+  "typing",
+  "operator"
+ ],
+ "langgraph/state/news_state.py": [
+  "typing",
+  "operator"
+ ],
+ "langgraph/state/research_state.py": [
+  "typing",
+  "langchain_core.messages",
+  "langgraph.graph.message"
+ ],
+ "langgraph/state/__init__.py": [],
+ "langgraph/storage/__init__.py": [],
+ "langgraph/storage/knowledge/age.py": [
+  "logging",
+  "typing",
+  "asyncpg",
+  "config.settings"
+ ],
+ "langgraph/storage/knowledge/postgres.py": [
+  "json",
+  "logging",
+  "uuid",
+  "tools.postgres",
+  "config.policy_loader"
+ ],
+ "langgraph/storage/knowledge/qdrant.py": [
+  "logging",
+  "uuid",
+  "qdrant_client.models",
+  "tools.qdrant",
+  "tools.embedding",
+  "config.policy_loader"
+ ],
+ "langgraph/storage/knowledge/__init__.py": [],
+ "langgraph/storage/news/postgres.py": [
+  "json",
+  "logging",
+  "uuid",
+  "datetime",
+  "tools.postgres"
+ ],
+ "langgraph/storage/news/__init__.py": [],
+ "langgraph/tests/__init__.py": [],
+ "langgraph/tests/api/test_chat.py": [
+  "pytest",
+  "unittest.mock",
+  "os",
+  "api.server",
+  "os",
+  "api.models",
+  "asyncio",
+  "api.health",
+  "api.chat"
+ ],
+ "langgraph/tests/api/__init__.py": [],
+ "langgraph/tests/integration/test_graph.py": [
+  "pytest",
+  "unittest.mock",
+  "graphs.research_graph",
+  "graphs.research_graph",
+  "graphs.research_graph",
+  "graphs.research_graph",
+  "graphs.research_graph"
+ ],
+ "langgraph/tests/integration/__init__.py": [],
+ "langgraph/tests/unit/test_embedding_tool.py": [
+  "pytest",
+  "unittest.mock",
+  "tools.embedding",
+  "tools.embedding"
+ ],
+ "langgraph/tests/unit/test_planner.py": [
+  "pytest",
+  "unittest.mock",
+  "nodes.research.planner",
+  "nodes.research.planner"
+ ],
+ "langgraph/tests/unit/test_qdrant_tool.py": [
+  "pytest",
+  "unittest.mock",
+  "tools.qdrant",
+  "tools.qdrant"
+ ],
+ "langgraph/tests/unit/test_retrieve.py": [
+  "pytest",
+  "unittest.mock",
+  "nodes.research.retrieve",
+  "nodes.research.retrieve"
+ ],
+ "langgraph/tests/unit/__init__.py": [],
+ "langgraph/tools/chunker.py": [
+  "re",
+  "logging",
+  "config.policy_loader"
+ ],
+ "langgraph/tools/docling.py": [
+  "asyncio",
+  "logging",
+  "httpx",
+  "config.settings",
+  "config.policy_loader"
+ ],
+ "langgraph/tools/document_tools.py": [
+  "logging",
+  "tools.docling",
+  "tools.minio",
+  "tools.chunker"
+ ],
+ "langgraph/tools/embedding.py": [
+  "asyncio",
+  "logging",
+  "httpx",
+  "config.settings"
+ ],
+ "langgraph/tools/knowledge_tools.py": [
+  "json",
+  "logging",
+  "typing",
+  "httpx",
+  "config.settings"
+ ],
+ "langgraph/tools/llm.py": [
+  "asyncio",
+  "logging",
+  "typing",
+  "httpx",
+  "config.settings",
+  "config.policy_loader"
+ ],
+ "langgraph/tools/market_tools.py": [
+  "asyncio",
+  "logging",
+  "datetime",
+  "config.settings",
+  "akshare",
+  "akshare",
+  "yfinance",
+  "akshare"
+ ],
+ "langgraph/tools/minio.py": [
+  "asyncio",
+  "logging",
+  "io",
+  "minio",
+  "minio.error",
+  "config.settings"
+ ],
+ "langgraph/tools/postgres.py": [
+  "asyncio",
+  "logging",
+  "typing",
+  "asyncpg",
+  "config.settings"
+ ],
+ "langgraph/tools/qdrant.py": [
+  "asyncio",
+  "logging",
+  "typing",
+  "qdrant_client",
+  "qdrant_client.models",
+  "config.settings"
+ ],
+ "langgraph/tools/reranker.py": [
+  "asyncio",
+  "logging",
+  "httpx",
+  "config.settings"
+ ],
+ "langgraph/tools/search_tools.py": [
+  "logging",
+  "tools.embedding",
+  "tools.qdrant",
+  "tools.reranker"
+ ],
+ "langgraph/tools/__init__.py": [],
+ "mcp-knowledge/verify_b4.py": [
+  "asyncio",
+  "json",
+  "mcp",
+  "mcp.client.streamable_http"
+ ],
+ "mcp-knowledge/verify_graphrag_tmp.py": [
+  "asyncio",
+  "mcp",
+  "mcp.client.streamable_http"
+ ],
+ "mcp-knowledge/server/cache.py": [
+  "logging",
+  "functools",
+  "typing",
+  "cachetools",
+  "server.config"
+ ],
+ "mcp-knowledge/server/config.py": [
+  "pydantic_settings"
+ ],
+ "mcp-knowledge/server/llm.py": [
+  "asyncio",
+  "logging",
+  "httpx",
+  "server.config"
+ ],
+ "mcp-knowledge/server/main.py": [
+  "logging",
+  "contextlib",
+  "fastmcp",
+  "server.config",
+  "server.storage.postgres",
+  "server.storage.qdrant",
+  "server.storage.age",
+  "server.llm",
+  "server.tools.entity",
+  "server.tools.fact",
+  "server.tools.semantic",
+  "server.tools.write",
+  "server.tools.analysis",
+  "server.tools.graph",
+  "server.tools.inbox",
+  "server.tools.siyuan",
+  "server.cache"
+ ],
+ "mcp-knowledge/server/utils.py": [
+  "uuid",
+  "datetime"
+ ],
+ "mcp-knowledge/server/__init__.py": [],
+ "mcp-knowledge/server/adapters/__init__.py": [],
+ "mcp-knowledge/server/adapters/siyuan/client.py": [
+  "asyncio",
+  "hashlib",
+  "logging",
+  "random",
+  "time",
+  "typing",
+  "httpx",
+  "server.adapters.siyuan.config"
+ ],
+ "mcp-knowledge/server/adapters/siyuan/config.py": [
+  "dataclasses",
+  "server.config"
+ ],
+ "mcp-knowledge/server/adapters/siyuan/mapper.py": [
+  "__future__",
+  "re",
+  "typing"
+ ],
+ "mcp-knowledge/server/adapters/siyuan/sync.py": [
+  "__future__",
+  "logging",
+  "typing",
+  "server.adapters.siyuan.client",
+  "server.adapters.siyuan.config",
+  "server.adapters.siyuan.mapper",
+  "server.adapters.siyuan.templates",
+  "server.rendering.diff",
+  "server.storage.postgres"
+ ],
+ "mcp-knowledge/server/adapters/siyuan/templates.py": [
+  "__future__",
+  "logging",
+  "pathlib",
+  "typing",
+  "jinja2"
+ ],
+ "mcp-knowledge/server/adapters/siyuan/__init__.py": [
+  "server.adapters.siyuan.client",
+  "server.adapters.siyuan.config",
+  "server.adapters.siyuan.sync"
+ ],
+ "mcp-knowledge/server/rendering/diff.py": [
+  "__future__",
+  "logging",
+  "typing",
+  "server.storage.postgres"
+ ],
+ "mcp-knowledge/server/rendering/engine.py": [
+  "__future__",
+  "logging",
+  "time",
+  "typing",
+  "server.adapters.siyuan.client",
+  "server.rendering.metrics",
+  "server.rendering.renderer",
+  "server.storage.postgres",
+  "server.adapters.siyuan.sync"
+ ],
+ "mcp-knowledge/server/rendering/metrics.py": [
+  "__future__",
+  "logging",
+  "time",
+  "collections"
+ ],
+ "mcp-knowledge/server/rendering/renderer.py": [
+  "__future__",
+  "logging",
+  "typing",
+  "server.adapters.siyuan.mapper",
+  "server.adapters.siyuan.templates",
+  "server.storage.postgres"
+ ],
+ "mcp-knowledge/server/rendering/worker.py": [
+  "__future__",
+  "asyncio",
+  "logging",
+  "server.adapters.siyuan.client",
+  "server.adapters.siyuan.config",
+  "server.rendering.engine",
+  "server.rendering.metrics"
+ ],
+ "mcp-knowledge/server/rendering/__init__.py": [
+  "server.rendering.engine",
+  "server.rendering.worker"
+ ],
+ "mcp-knowledge/server/storage/age.py": [
+  "json",
+  "logging",
+  "typing",
+  "asyncpg",
+  "server.config"
+ ],
+ "mcp-knowledge/server/storage/postgres.py": [
+  "asyncio",
+  "json",
+  "logging",
+  "uuid",
+  "typing",
+  "asyncpg",
+  "server.config"
+ ],
+ "mcp-knowledge/server/storage/qdrant.py": [
+  "asyncio",
+  "logging",
+  "typing",
+  "httpx",
+  "qdrant_client",
+  "qdrant_client.models",
+  "server.config"
+ ],
+ "mcp-knowledge/server/storage/__init__.py": [],
+ "mcp-knowledge/server/tools/analysis.py": [
+  "asyncio",
+  "fastmcp",
+  "server.storage.postgres",
+  "server.storage.age",
+  "server.cache",
+  "server.utils"
+ ],
+ "mcp-knowledge/server/tools/entity.py": [
+  "fastmcp",
+  "server.storage.postgres",
+  "server.storage.age",
+  "server.cache",
+  "server.utils"
+ ],
+ "mcp-knowledge/server/tools/fact.py": [
+  "fastmcp",
+  "server.storage.postgres"
+ ],
+ "mcp-knowledge/server/tools/graph.py": [
+  "json",
+  "logging",
+  "fastmcp",
+  "server.storage.age",
+  "server.storage.postgres",
+  "server.storage.qdrant",
+  "server.llm"
+ ],
+ "mcp-knowledge/server/tools/inbox.py": [
+  "fastmcp",
+  "server.storage.postgres",
+  "server.cache",
+  "server.utils"
+ ],
+ "mcp-knowledge/server/tools/semantic.py": [
+  "fastmcp",
+  "server.storage.qdrant"
+ ],
+ "mcp-knowledge/server/tools/siyuan.py": [
+  "fastmcp",
+  "server.storage.postgres",
+  "server.cache",
+  "server.adapters.siyuan.mapper",
+  "server.adapters.siyuan.sync",
+  "server.adapters.siyuan.client",
+  "server.adapters.siyuan.config",
+  "server.utils"
+ ],
+ "mcp-knowledge/server/tools/write.py": [
+  "fastmcp",
+  "server.storage.postgres",
+  "server.cache"
+ ],
+ "mcp-knowledge/server/tools/__init__.py": [],
+ "mcp-knowledge/tests/test_inbox.py": [
+  "pytest",
+  "unittest.mock",
+  "server.tools",
+  "asyncio"
+ ],
+ "mcp-knowledge/tests/test_render_metrics.py": [
+  "server.rendering.metrics"
+ ],
+ "mcp-knowledge/tests/test_render_worker.py": [
+  "asyncio",
+  "unittest.mock",
+  "pytest",
+  "server.rendering.worker"
+ ],
+ "mcp-knowledge/tests/test_siyuan.py": [
+  "asyncio",
+  "pytest",
+  "unittest.mock",
+  "server.tools",
+  "contextlib"
+ ],
+ "mcp-knowledge/tests/test_siyuan_client.py": [
+  "asyncio",
+  "unittest.mock",
+  "pytest",
+  "server.adapters.siyuan.client",
+  "server.adapters.siyuan.config",
+  "server.adapters.siyuan.mapper",
+  "server.adapters.siyuan.templates"
+ ],
+ "mcp-news/server/config.py": [
+  "pydantic_settings"
+ ],
+ "mcp-news/server/main.py": [
+  "logging",
+  "contextlib",
+  "fastmcp",
+  "server.config",
+  "server.storage.postgres",
+  "server.tools.article",
+  "server.tools.event",
+  "server.tools.analysis",
+  "server.tools.source"
+ ],
+ "mcp-news/server/__init__.py": [],
+ "mcp-news/server/storage/postgres.py": [
+  "asyncio",
+  "logging",
+  "typing",
+  "asyncpg",
+  "server.config"
+ ],
+ "mcp-news/server/storage/__init__.py": [],
+ "mcp-news/server/tools/analysis.py": [
+  "fastmcp",
+  "server.storage.postgres"
+ ],
+ "mcp-news/server/tools/article.py": [
+  "fastmcp",
+  "server.storage.postgres"
+ ],
+ "mcp-news/server/tools/event.py": [
+  "fastmcp",
+  "server.storage.postgres"
+ ],
+ "mcp-news/server/tools/source.py": [
+  "fastmcp",
+  "server.storage.postgres"
+ ],
+ "mcp-news/server/tools/__init__.py": [],
+ "qdrant/init_qdrant.py": [
+  "os",
+  "qdrant_client",
+  "qdrant_client.models"
+ ],
+ "scripts/batch_embed_to_qdrant.py": [
+  "asyncio",
+  "os",
+  "sys",
+  "time",
+  "argparse",
+  "uuid",
+  "asyncpg",
+  "httpx",
+  "qdrant_client",
+  "qdrant_client.models"
+ ],
+ "scripts/check_architecture.py": [
+  "argparse",
+  "os",
+  "re",
+  "sys",
+  "pathlib"
+ ],
+ "scripts/dedupe_vault.py": [
+  "argparse",
+  "os",
+  "re",
+  "shutil",
+  "sys",
+  "collections"
+ ],
+ "scripts/import_company_basic.py": [
+  "os",
+  "re",
+  "psycopg2",
+  "pathlib"
+ ],
+ "scripts/import_providers.py": [
+  "asyncio",
+  "json",
+  "os",
+  "sys",
+  "pathlib",
+  "asyncpg",
+  "yaml"
+ ],
+ "scripts/init_news_qdrant.py": [
+  "argparse",
+  "os",
+  "sys",
+  "qdrant_client",
+  "qdrant_client.models"
+ ],
+ "scripts/sync_to_age.py": [
+  "asyncio",
+  "argparse",
+  "os",
+  "sys",
+  "time",
+  "asyncpg"
+ ],
+ "scripts/upload_analysis_reports.py": [
+  "os",
+  "re",
+  "hashlib",
+  "pathlib",
+  "minio",
+  "dotenv",
+  "io"
+ ],
+ "scripts/web_scheduler.py": [
+  "asyncio",
+  "argparse",
+  "logging",
+  "os",
+  "sys",
+  "time",
+  "datetime",
+  "asyncpg",
+  "yaml",
+  "minio",
+  "providers.web.crawl4ai_provider",
+  "services.web_pipeline",
+  "qdrant_client",
+  "qdrant_client.models",
+  "qdrant_client"
+ ],
+ "scripts/archive/crawl_qiushi_summary.py": [
+  "argparse",
+  "asyncio",
+  "json",
+  "logging",
+  "os",
+  "sys",
+  "time",
+  "datetime",
+  "pathlib",
+  "providers.web.crawl4ai_provider",
+  "ingestion.web.link_extractor",
+  "ingestion.web.chunker",
+  "ingestion.web.summarizer"
+ ],
+ "scripts/archive/test_downstream_pipeline.py": [
+  "asyncio",
+  "sys",
+  "os",
+  "asyncpg",
+  "minio",
+  "providers.web.crawl4ai_provider",
+  "pipelines.web_pipeline",
+  "httpx"
+ ],
+ "scripts/archive/test_pipeline_integration.py": [
+  "asyncio",
+  "sys",
+  "os",
+  "asyncpg",
+  "minio",
+  "providers.web.crawl4ai_provider",
+  "pipelines.web_pipeline"
+ ],
+ "scripts/archive/test_web_ingestion.py": [
+  "asyncio",
+  "sys",
+  "os",
+  "ingestion.web.retry",
+  "ingestion.web.rate_limiter",
+  "ingestion.web.diff_detector",
+  "providers.web.crawl4ai_provider"
+ ]
+}

@@ -1,4 +1,4 @@
-"""Knowledge Tools - MCP Knowledge Server 调用封装
+"""Knowledge Tools - Knowledge MCP Server 调用封装
 
 通过 MCP 协议（JSON-RPC over HTTP POST /mcp, Streamable HTTP）调用
 mcp-knowledge 服务（settings.MCP_KNOWLEDGE_URL, 默认 :8200），
@@ -26,7 +26,7 @@ PROTOCOL_VERSION = "2025-03-26"
 
 
 class KnowledgeTools:
-    """MCP Knowledge Server 客户端封装"""
+    """Knowledge MCP Server 客户端封装"""
 
     def __init__(self) -> None:
         self.endpoint = f"{settings.MCP_KNOWLEDGE_URL.rstrip('/')}/mcp"
@@ -92,7 +92,7 @@ class KnowledgeTools:
         return {}, session_id
 
     async def call_tool(self, name: str, arguments: Optional[dict] = None) -> Any:
-        """调用 MCP Knowledge Server 上的指定工具"""
+        """调用 Knowledge MCP Server 上的指定工具"""
         try:
             _, session_id = await self._session()
             payload = {

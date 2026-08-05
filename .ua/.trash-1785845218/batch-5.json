@@ -1,0 +1,35 @@
+{
+ "nodes": [
+  {
+   "id": "config:.env.example",
+   "type": "config",
+   "name": ".env.example",
+   "filePath": ".env.example",
+   "summary": "配置文件：.env.example",
+   "tags": [],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:CLAUDE.md",
+   "type": "document",
+   "name": "CLAUDE.md",
+   "filePath": "CLAUDE.md",
+   "summary": "文档：CLAUDE.md",
+   "tags": [],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:compose.yml",
+   "type": "resource",
+   "name": "compose.yml",
+   "filePath": "compose.yml",
+   "summary": "compose.yml（）",
+   "tags": [],
+   "complexity": "moderate",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

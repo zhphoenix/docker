@@ -64,22 +64,23 @@ async def test_concurrency_limited(client):
 
 @pytest.mark.asyncio
 async def test_upsert_idempotent_updates_existing(client):
-    """幂等：路径已存在 → 更新而非创建"""
-    with patch.object(client, "get_doc_by_path", AsyncMock(return_value={"id": "doc-1"})) as mock_get, \
-         patch.object(client, "update_doc", AsyncMock(return_value={"ok": True})) as mock_upd, \
+    """幂等：路径已存在 → 清理旧文档并重建（而非新增重复）"""
+    with patch.object(client, "ensure_notebook", AsyncMock(return_value="box-1")), \
+         patch.object(client, "get_doc_ids_by_hpath", AsyncMock(return_value=["doc-1", "doc-2"])), \
+         patch.object(client, "remove_doc_by_id", AsyncMock(return_value={"ok": True})) as mock_remove, \
          patch.object(client, "create_doc", AsyncMock(return_value={"ok": True})) as mock_create:
         result = await client.upsert_doc("Companies", "000001_平安银行", "md")
 
     assert result["action"] == "updated"
-    mock_get.assert_awaited_once()
-    mock_upd.assert_awaited_once()
-    mock_create.assert_not_awaited()
+    assert mock_remove.await_count == 2  # 清理全部历史重复
+    mock_create.assert_awaited_once()
 
 
 @pytest.mark.asyncio
 async def test_upsert_idempotent_creates_when_missing(client):
     """幂等：路径不存在 → 创建"""
-    with patch.object(client, "get_doc_by_path", AsyncMock(return_value=None)), \
+    with patch.object(client, "ensure_notebook", AsyncMock(return_value="box-1")), \
+         patch.object(client, "get_doc_ids_by_hpath", AsyncMock(return_value=[])), \
          patch.object(client, "create_doc", AsyncMock(return_value={"ok": True})) as mock_create:
         result = await client.upsert_doc("Companies", "000001_平安银行", "md")
 
@@ -163,6 +164,57 @@ async def test_429_retry_then_success(client):
         result = await client._post("/api/x", {})
     assert result == {"ok": True}
     assert calls == 2, f"429 应重试 1 次，实际调用 {calls}"
+
+
+@pytest.mark.asyncio
+async def test_get_doc_ids_by_hpath_normalizes_leading_slash(client):
+    """getIDsByHPath 需要前导斜杠 HPath，无斜杠路径应被归一化"""
+    captured = {}
+
+    class FakeResp:
+        status_code = 200
+
+        def json(self):
+            return {"code": 0, "data": ["doc-1"]}
+
+    class FakeHTTP:
+        async def post(self, api, json=None):
+            captured["path"] = json["path"]
+            return FakeResp()
+
+        async def aclose(self):
+            pass
+
+    with patch.object(client, "_ensure_client", AsyncMock(return_value=FakeHTTP())):
+        result = await client.get_doc_ids_by_hpath("box-1", "Indian_government")
+
+    assert result == ["doc-1"]
+    assert captured["path"] == "/Indian_government"
+
+
+@pytest.mark.asyncio
+async def test_get_doc_ids_by_hpath_keeps_existing_slash(client):
+    """已带前导斜杠的路径不应被重复添加"""
+    captured = {}
+
+    class FakeResp:
+        status_code = 200
+
+        def json(self):
+            return {"code": 0, "data": []}
+
+    class FakeHTTP:
+        async def post(self, api, json=None):
+            captured["path"] = json["path"]
+            return FakeResp()
+
+        async def aclose(self):
+            pass
+
+    with patch.object(client, "_ensure_client", AsyncMock(return_value=FakeHTTP())):
+        await client.get_doc_ids_by_hpath("box-1", "/Indian_government")
+
+    assert captured["path"] == "/Indian_government"
 
 
 def test_mapper_paths():

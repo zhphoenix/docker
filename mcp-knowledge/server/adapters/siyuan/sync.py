@@ -66,8 +66,9 @@ class SiYuanSync:
         # 计算变更 Section（复用 knowledge_diff 做 Section 级增量，仅刷变更区）
         changed_sections = await knowledge_diff.get_sections_after(entity_id, synced_version)
 
-        # 构建展示上下文并渲染
-        context = entity_to_template_context(entity, sections=changed_sections)
+        # 构建展示上下文并渲染（注入一跳邻居，供 SiYuan 关系图生成实体间链接）
+        neighbors = await pg_storage.get_entity_neighbors_for_render(entity_id)
+        context = entity_to_template_context(entity, sections=changed_sections, neighbors=neighbors)
         markdown = renderer.render(etype, context)
 
         # 幂等写入（存在则更新，否则创建）

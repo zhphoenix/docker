@@ -1,0 +1,774 @@
+{
+ "nodes": [
+  {
+   "id": "document:.qoder/skills/glossary/SKILL.md",
+   "type": "document",
+   "name": "SKILL.md",
+   "filePath": ".qoder/skills/glossary/SKILL.md",
+   "summary": "文档：SKILL.md",
+   "tags": [
+    ".qoder",
+    "skill"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/skills/glossary/actions/verbs.md",
+   "type": "document",
+   "name": "verbs.md",
+   "filePath": ".qoder/skills/glossary/actions/verbs.md",
+   "summary": "文档：verbs.md",
+   "tags": [
+    ".qoder",
+    "skill"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/skills/glossary/architecture/terms.md",
+   "type": "document",
+   "name": "terms.md",
+   "filePath": ".qoder/skills/glossary/architecture/terms.md",
+   "summary": "文档：terms.md",
+   "tags": [
+    ".qoder",
+    "skill"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/skills/glossary/code-analysis/README.md",
+   "type": "document",
+   "name": "README.md",
+   "filePath": ".qoder/skills/glossary/code-analysis/README.md",
+   "summary": "文档：README.md",
+   "tags": [
+    ".qoder",
+    "skill"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/skills/glossary/copywriting/chinese.md",
+   "type": "document",
+   "name": "chinese.md",
+   "filePath": ".qoder/skills/glossary/copywriting/chinese.md",
+   "summary": "文档：chinese.md",
+   "tags": [
+    ".qoder",
+    "skill"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/skills/glossary/mappings/legacy.md",
+   "type": "document",
+   "name": "legacy.md",
+   "filePath": ".qoder/skills/glossary/mappings/legacy.md",
+   "summary": "文档：legacy.md",
+   "tags": [
+    ".qoder",
+    "skill"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/skills/glossary/naming/pages.md",
+   "type": "document",
+   "name": "pages.md",
+   "filePath": ".qoder/skills/glossary/naming/pages.md",
+   "summary": "文档：pages.md",
+   "tags": [
+    ".qoder",
+    "skill"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/skills/glossary/pipeline/stages.md",
+   "type": "document",
+   "name": "stages.md",
+   "filePath": ".qoder/skills/glossary/pipeline/stages.md",
+   "summary": "文档：stages.md",
+   "tags": [
+    ".qoder",
+    "skill"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/skills/glossary/status/enums.md",
+   "type": "document",
+   "name": "enums.md",
+   "filePath": ".qoder/skills/glossary/status/enums.md",
+   "summary": "文档：enums.md",
+   "tags": [
+    ".qoder",
+    "skill"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/skills/open-code-review/SKILL.md",
+   "type": "document",
+   "name": "SKILL.md",
+   "filePath": ".qoder/skills/open-code-review/SKILL.md",
+   "summary": "文档：SKILL.md",
+   "tags": [
+    ".qoder",
+    "skill"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/skills/project-inventory/SKILL.md",
+   "type": "document",
+   "name": "SKILL.md",
+   "filePath": ".qoder/skills/project-inventory/SKILL.md",
+   "summary": "文档：SKILL.md",
+   "tags": [
+    ".qoder",
+    "skill"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:.ua/.understandignore",
+   "type": "file",
+   "name": ".understandignore",
+   "filePath": ".ua/.understandignore",
+   "summary": ".understandignore（.ua）",
+   "tags": [
+    ".ua"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:.ua/config.json",
+   "type": "config",
+   "name": "config.json",
+   "filePath": ".ua/config.json",
+   "summary": "配置文件：config.json",
+   "tags": [
+    ".ua"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:AI-Platform-System-Design/schemas/metadata.schema.json",
+   "type": "config",
+   "name": "metadata.schema.json",
+   "filePath": "AI-Platform-System-Design/schemas/metadata.schema.json",
+   "summary": "配置文件：metadata.schema.json",
+   "tags": [
+    "AI-Platform-System-Design",
+    "schema"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "config:config/crawl4ai.yaml",
+   "type": "config",
+   "name": "crawl4ai.yaml",
+   "filePath": "config/crawl4ai.yaml",
+   "summary": "配置文件：crawl4ai.yaml",
+   "tags": [
+    "config"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:crawl4ai/compose.yml",
+   "type": "resource",
+   "name": "compose.yml",
+   "filePath": "crawl4ai/compose.yml",
+   "summary": "compose.yml（crawl4ai）",
+   "tags": [
+    "crawl4ai"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:embedding/compose.yml",
+   "type": "resource",
+   "name": "compose.yml",
+   "filePath": "embedding/compose.yml",
+   "summary": "compose.yml（embedding）",
+   "tags": [
+    "embedding"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/app/pages/AgentsPage.tsx",
+   "type": "file",
+   "name": "AgentsPage.tsx",
+   "filePath": "frontend/src/app/pages/AgentsPage.tsx",
+   "summary": "AgentsPage.tsx（frontend/src/app/pages）",
+   "tags": [
+    "frontend",
+    "page",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/app/pages/ChatPage.tsx",
+   "type": "file",
+   "name": "ChatPage.tsx",
+   "filePath": "frontend/src/app/pages/ChatPage.tsx",
+   "summary": "ChatPage.tsx（frontend/src/app/pages）",
+   "tags": [
+    "frontend",
+    "page",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/app/pages/DashboardPage.tsx",
+   "type": "file",
+   "name": "DashboardPage.tsx",
+   "filePath": "frontend/src/app/pages/DashboardPage.tsx",
+   "summary": "DashboardPage.tsx（frontend/src/app/pages）",
+   "tags": [
+    "frontend",
+    "page",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/app/pages/DocumentsPage.tsx",
+   "type": "file",
+   "name": "DocumentsPage.tsx",
+   "filePath": "frontend/src/app/pages/DocumentsPage.tsx",
+   "summary": "DocumentsPage.tsx（frontend/src/app/pages）",
+   "tags": [
+    "frontend",
+    "page",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/app/pages/KnowledgePage.tsx",
+   "type": "file",
+   "name": "KnowledgePage.tsx",
+   "filePath": "frontend/src/app/pages/KnowledgePage.tsx",
+   "summary": "KnowledgePage.tsx（frontend/src/app/pages）",
+   "tags": [
+    "frontend",
+    "page",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/app/pages/KnowledgeReviewPage.tsx",
+   "type": "file",
+   "name": "KnowledgeReviewPage.tsx",
+   "filePath": "frontend/src/app/pages/KnowledgeReviewPage.tsx",
+   "summary": "KnowledgeReviewPage.tsx（frontend/src/app/pages）",
+   "tags": [
+    "frontend",
+    "page",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/app/pages/ModelsPage.tsx",
+   "type": "file",
+   "name": "ModelsPage.tsx",
+   "filePath": "frontend/src/app/pages/ModelsPage.tsx",
+   "summary": "ModelsPage.tsx（frontend/src/app/pages）",
+   "tags": [
+    "frontend",
+    "page",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/app/pages/MonitorPage.tsx",
+   "type": "file",
+   "name": "MonitorPage.tsx",
+   "filePath": "frontend/src/app/pages/MonitorPage.tsx",
+   "summary": "MonitorPage.tsx（frontend/src/app/pages）",
+   "tags": [
+    "frontend",
+    "page",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:frontend/src/app/pages/AgentsPage.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/AgentsPage.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/AgentsPage.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/AgentsPage.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/AgentsPage.tsx",
+   "target": "file:frontend/src/components/common/EmptyState.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/AgentsPage.tsx",
+   "target": "file:frontend/src/services/agents.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ChatPage.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ChatPage.tsx",
+   "target": "file:frontend/src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ChatPage.tsx",
+   "target": "file:frontend/src/components/ui/scroll-area.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ChatPage.tsx",
+   "target": "file:frontend/src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ChatPage.tsx",
+   "target": "file:frontend/src/stores/chat-store.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ChatPage.tsx",
+   "target": "file:frontend/src/services/chat.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DashboardPage.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DashboardPage.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DashboardPage.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DashboardPage.tsx",
+   "target": "file:frontend/src/services/health.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DashboardPage.tsx",
+   "target": "file:frontend/src/services/models.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DocumentsPage.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DocumentsPage.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DocumentsPage.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DocumentsPage.tsx",
+   "target": "file:frontend/src/components/ui/input.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DocumentsPage.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DocumentsPage.tsx",
+   "target": "file:frontend/src/components/ui/scroll-area.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DocumentsPage.tsx",
+   "target": "file:frontend/src/components/ui/table.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DocumentsPage.tsx",
+   "target": "file:frontend/src/components/ui/select.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DocumentsPage.tsx",
+   "target": "file:frontend/src/components/ui/dialog.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DocumentsPage.tsx",
+   "target": "file:frontend/src/components/ui/tabs.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DocumentsPage.tsx",
+   "target": "file:frontend/src/components/common/EmptyState.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DocumentsPage.tsx",
+   "target": "file:frontend/src/services/documents.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DocumentsPage.tsx",
+   "target": "file:frontend/src/services/tasks.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/DocumentsPage.tsx",
+   "target": "file:frontend/src/services/knowledge.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/KnowledgePage.tsx",
+   "target": "file:frontend/src/components/ui/tabs.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/KnowledgePage.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/KnowledgePage.tsx",
+   "target": "file:frontend/src/components/knowledge/KnowledgeDashboard.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/KnowledgePage.tsx",
+   "target": "file:frontend/src/components/knowledge/SemanticSearchPanel.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/KnowledgePage.tsx",
+   "target": "file:frontend/src/components/knowledge/EntityBrowser.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/KnowledgeReviewPage.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/KnowledgeReviewPage.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/KnowledgeReviewPage.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/KnowledgeReviewPage.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/KnowledgeReviewPage.tsx",
+   "target": "file:frontend/src/components/ui/textarea.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/KnowledgeReviewPage.tsx",
+   "target": "file:frontend/src/components/common/EmptyState.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/KnowledgeReviewPage.tsx",
+   "target": "file:frontend/src/services/approvals.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ModelsPage.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ModelsPage.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ModelsPage.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ModelsPage.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ModelsPage.tsx",
+   "target": "file:frontend/src/components/common/EmptyState.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ModelsPage.tsx",
+   "target": "file:frontend/src/services/models.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/ModelsPage.tsx",
+   "target": "file:frontend/src/services/agents.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/MonitorPage.tsx",
+   "target": "file:frontend/src/components/ui/card.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/MonitorPage.tsx",
+   "target": "file:frontend/src/components/ui/badge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/MonitorPage.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/MonitorPage.tsx",
+   "target": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/app/pages/MonitorPage.tsx",
+   "target": "file:frontend/src/services/health.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  }
+ ]
+}

@@ -195,17 +195,28 @@ export function uploadDocumentPdf(params: {
   })
 }
 
+export interface UploadFolderAsyncResponse {
+  status: string
+  folder: string
+  market: string
+  task_id: string
+  total: number
+  async_mode: boolean
+}
+
 export function uploadFolderPdf(params: {
   folder_path: string
   market?: string
   trigger?: boolean
-}): Promise<UploadFolderResponse> {
+  async_mode?: boolean
+}): Promise<UploadFolderResponse | UploadFolderAsyncResponse> {
   const form = new FormData()
   form.append('folder_path', params.folder_path)
   if (params.market) form.append('market', params.market)
   form.append('trigger', String(params.trigger ?? false))
+  if (params.async_mode) form.append('async_mode', 'true')
 
-  return apiFetch<UploadFolderResponse>('/api/documents/upload-folder', {
+  return apiFetch<UploadFolderResponse | UploadFolderAsyncResponse>('/api/documents/upload-folder', {
     method: 'POST',
     body: form,
   })

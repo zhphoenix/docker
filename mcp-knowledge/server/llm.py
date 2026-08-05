@@ -1,7 +1,7 @@
 """轻量 LLM client（OpenAI 兼容，GraphRAG 融合推理用）
 
 复用 langgraph/agent/tools/llm.py 的调用模式（httpx + 指数退避重试），
-但与 langgraph 服务解耦独立初始化，供 MCP Knowledge Server 内部调用。
+但与 langgraph 服务解耦独立初始化，供 Knowledge MCP Server 内部调用。
 """
 
 import asyncio

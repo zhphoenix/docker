@@ -86,7 +86,7 @@ const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
 const TYPE_OPTIONS: { value: string; label: string; source: string }[] = [
   { value: 'doc_pipeline', label: '文档流水线', source: '文档中心' },
   { value: 'batch_embed', label: '批量向量化', source: '知识中台' },
-  { value: 'reindex', label: '重新索引', source: '文档中心' },
+  { value: 're-embed', label: '重新向量化', source: '文档中心' },
   { value: 'knowledge_extraction', label: '知识提取', source: '知识中台' },
   { value: 'approval', label: '审批', source: '系统' },
 ]
@@ -94,7 +94,7 @@ const TYPE_OPTIONS: { value: string; label: string; source: string }[] = [
 const TYPE_SOURCE: Record<string, string> = {
   doc_pipeline: '文档中心',
   batch_embed: '知识中台',
-  reindex: '文档中心',
+  're-embed': '文档中心',
   knowledge_extraction: '知识中台',
   approval: '系统',
 }

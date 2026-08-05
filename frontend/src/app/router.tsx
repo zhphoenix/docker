@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 
@@ -13,6 +13,7 @@ const DocumentsPage = lazy(() => import('@/app/pages/DocumentsPage'))
 const WorkflowPage = lazy(() => import('@/app/pages/WorkflowPage'))
 const ResearchPage = lazy(() => import('@/app/pages/ResearchPage'))
 const NewsPage = lazy(() => import('@/app/pages/NewsPage'))
+const WatchlistPage = lazy(() => import('@/app/pages/WatchlistPage'))
 const ModelsPage = lazy(() => import('@/app/pages/ModelsPage'))
 const VectorDbPage = lazy(() => import('@/app/pages/VectorDbPage'))
 
@@ -107,6 +108,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: '/watchlist',
+        element: (
+          <SuspenseWrapper>
+            <WatchlistPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
         path: '/models',
         element: (
           <SuspenseWrapper>
@@ -137,6 +146,11 @@ export const router = createBrowserRouter([
             <SettingsPage />
           </SuspenseWrapper>
         ),
+      },
+      {
+        // 兜底路由：未知路径重定向到首页，避免 React Router 默认 404 报错页
+        path: '*',
+        element: <Navigate to="/" replace />,
       },
     ],
   },

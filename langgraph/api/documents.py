@@ -333,14 +333,18 @@ async def _purge_document_resources(doc: dict) -> dict:
     except Exception as e:
         logger.warning("Qdrant cleanup failed | %s | %s", doc_id[:8], e)
 
-    # 2. MinIO 对象（PDF + 同基名 .md 解析产物）
+    # 2. MinIO 对象（PDF + 同基名 .md 解析产物）——彻底删除含所有历史版本
     bucket = doc.get("bucket") or DEFAULT_BUCKET
     key = doc.get("object_key") or ""
     if key:
         for k in (key, key.rsplit(".", 1)[0] + ".md"):
             try:
-                await minio_tool.delete(bucket, k)
+                n = await minio_tool.delete_versions(bucket, k)
                 cleanup["minio_keys"].append(k)
+                if n:
+                    logger.info(
+                        "MinIO purged %s/%s (versions=%d)", bucket, k, n
+                    )
             except Exception as e:
                 logger.warning("MinIO cleanup failed | %s/%s | %s", bucket, k, e)
 
@@ -588,12 +592,13 @@ async def upload_folder_pdfs(
     market: str = Form("", description="市场代码（空则从路径自动推断）"),
     bucket: str = Form(DEFAULT_BUCKET),
     trigger: bool = Form(False),
+    async_mode: bool = Form(False, description="True=异步任务模式（返回 task_id，实时进度，可暂停/终止）"),
 ):
     """批量上传文件夹内所有 PDF 到 MinIO 并注册文档
 
-    递归扫描文件夹内所有 .pdf 文件，从文件名解析 symbol/year，
-    上传到 MinIO 规范路径并注册为 pending 文档。
-    返回 found/added/skipped 统计。
+    async_mode=False（默认）：同步执行，返回 found/added/skipped 统计。
+    async_mode=True：创建后台任务并立即返回 task_id，前端通过 /api/tasks/{id} 轮询进度，
+    支持暂停/恢复/终止。
     """
     # 路径转换：Windows/WSL → 容器路径
     folder_path = normalize_path(folder_path)
@@ -611,6 +616,31 @@ async def upload_folder_pdfs(
     pdf_files = sorted(target.rglob("*.pdf"))
     pdf_files = [f for f in pdf_files if not f.name.startswith(".")]
 
+    if not async_mode:
+        return await _run_upload_folder_sync(target, market, bucket, trigger, pdf_files)
+
+    # ── 异步任务模式：创建任务并交由 Worker 执行，立即返回 task_id ──
+    from runtime.queue import task_queue
+    task_id = await task_queue.create_task(
+        task_type="upload_folder",
+        title=f"批量上传文件夹: {target.name}",
+        params={"folder": str(target), "market": market, "bucket": bucket, "trigger": trigger},
+        total_items=len(pdf_files),
+        created_by="api",
+    )
+    logger.info("[UploadFolder] async task created: %s (%d files)", task_id[:8], len(pdf_files))
+    return {
+        "status": "ok",
+        "folder": str(target),
+        "market": market,
+        "task_id": task_id,
+        "total": len(pdf_files),
+        "async_mode": True,
+    }
+
+
+async def _run_upload_folder_sync(target, market, bucket, trigger, pdf_files):
+    """同步执行批量上传（原有逻辑，仅当 async_mode=False 时使用）"""
     stats = {"found": len(pdf_files), "added": 0, "skipped": 0, "failed": 0}
     results = []
 
@@ -694,3 +724,93 @@ async def upload_folder_pdfs(
         "results": results,
         "pipeline_task_id": task_id,
     }
+
+
+async def _run_upload_folder_async(task_id, target, market, bucket, trigger, pdf_files):
+    """异步任务：循环上传并上报进度，支持暂停/恢复/终止"""
+    from runtime.queue import task_queue
+    stats = {"found": len(pdf_files), "added": 0, "skipped": 0, "failed": 0}
+    results = []
+    cancelled = False
+    try:
+        for i, pdf_file in enumerate(pdf_files, start=1):
+            # 取消检查
+            if task_queue.is_cancelled(task_id):
+                cancelled = True
+                logger.info("[UploadFolder] %s cancelled by user", task_id[:8])
+                break
+            # 暂停等待（暂停期间被取消则抛 CancelledError）
+            await task_queue.wait_if_paused(task_id)
+
+            parsed = _parse_pdf_filename(pdf_file.name)
+            if not parsed:
+                stats["skipped"] += 1
+                results.append({"file": pdf_file.name, "status": "skipped", "reason": "filename_not_match"})
+            else:
+                symbol = parsed["symbol"]
+                year = parsed["year"]
+                object_key = f"{market}/{symbol}/annual_report/{year}/report.pdf"
+                try:
+                    existing = await postgres_tool.query(
+                        "SELECT status FROM documents WHERE object_key = $1", object_key
+                    )
+                    if existing and existing[0]["status"] not in FAILED_STATUSES:
+                        stats["skipped"] += 1
+                        results.append({"file": pdf_file.name, "status": "skipped", "reason": "already_exists", "object_key": object_key})
+                    else:
+                        data = pdf_file.read_bytes()
+                        await minio_tool.upload(bucket, object_key, data)
+                        reg_result = await doc_pipeline.register_pending_from_minio(
+                            bucket=bucket,
+                            prefix=f"{market}/{symbol}/annual_report/{year}",
+                            market=market,
+                        )
+                        if reg_result.get("added", 0) > 0 or reg_result.get("reset", 0) > 0:
+                            stats["added"] += 1
+                        else:
+                            stats["skipped"] += 1
+                        results.append({"file": pdf_file.name, "status": "ok", "object_key": object_key, "symbol": symbol, "year": year})
+                except asyncio.CancelledError:
+                    raise
+                except Exception as e:
+                    logger.exception("[UploadFolder] item failed: %s", pdf_file.name)
+                    stats["failed"] += 1
+                    results.append({"file": pdf_file.name, "status": "failed", "reason": str(e)})
+
+            # 上报进度
+            stage = f"{i}/{len(pdf_files)} · 成功{stats['added']} 失败{stats['failed']} 跳过{stats['skipped']}"
+            await task_queue.update_progress(
+                task_id, current_item=i, stage=stage, current_name=pdf_file.name
+            )
+
+        if cancelled:
+            await task_queue.fail_task(task_id, "任务已终止（用户取消，部分文件可能已上传）")
+            await task_queue.log_task(task_id, "warn", f"批量上传已终止，已处理 {stats['added']} 个文件")
+        else:
+            await task_queue.update_progress(
+                task_id, len(pdf_files),
+                stage=f"完成 · 成功{stats['added']} 失败{stats['failed']} 跳过{stats['skipped']}",
+                current_name="",
+            )
+            await task_queue.complete_task(task_id)
+            await task_queue.log_task(
+                task_id, "info",
+                f"批量上传完成: found={stats['found']} added={stats['added']} skipped={stats['skipped']} failed={stats['failed']}",
+            )
+            if trigger and stats["added"] > 0:
+                pipeline_task_id = await task_queue.create_task(
+                    task_type="doc_pipeline",
+                    title=f"文档处理 Pipeline ({stats['added']} docs from {target.name})",
+                    params={"limit": stats["added"]},
+                    total_items=stats["added"],
+                    created_by="api",
+                )
+                await task_queue.log_task(task_id, "info", f"已触发 Pipeline: {pipeline_task_id}")
+    except asyncio.CancelledError:
+        logger.info("[UploadFolder] %s terminated", task_id[:8])
+        await task_queue.fail_task(task_id, "任务已终止（用户取消）")
+    except Exception as e:
+        logger.exception("[UploadFolder] %s failed", task_id[:8])
+        await task_queue.fail_task(task_id, str(e))
+    finally:
+        task_queue.purge_control(task_id)

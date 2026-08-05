@@ -1,0 +1,389 @@
+{
+ "nodes": [
+  {
+   "id": "file:frontend/src/components/ui/button.tsx",
+   "type": "file",
+   "name": "button.tsx",
+   "filePath": "frontend/src/components/ui/button.tsx",
+   "summary": "button.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/ui/card.tsx",
+   "type": "file",
+   "name": "card.tsx",
+   "filePath": "frontend/src/components/ui/card.tsx",
+   "summary": "card.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/ui/command.tsx",
+   "type": "file",
+   "name": "command.tsx",
+   "filePath": "frontend/src/components/ui/command.tsx",
+   "summary": "command.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/ui/dialog.tsx",
+   "type": "file",
+   "name": "dialog.tsx",
+   "filePath": "frontend/src/components/ui/dialog.tsx",
+   "summary": "dialog.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/ui/input.tsx",
+   "type": "file",
+   "name": "input.tsx",
+   "filePath": "frontend/src/components/ui/input.tsx",
+   "summary": "input.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/ui/progress.tsx",
+   "type": "file",
+   "name": "progress.tsx",
+   "filePath": "frontend/src/components/ui/progress.tsx",
+   "summary": "progress.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/ui/resizable.tsx",
+   "type": "file",
+   "name": "resizable.tsx",
+   "filePath": "frontend/src/components/ui/resizable.tsx",
+   "summary": "resizable.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/ui/scroll-area.tsx",
+   "type": "file",
+   "name": "scroll-area.tsx",
+   "filePath": "frontend/src/components/ui/scroll-area.tsx",
+   "summary": "scroll-area.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/ui/select.tsx",
+   "type": "file",
+   "name": "select.tsx",
+   "filePath": "frontend/src/components/ui/select.tsx",
+   "summary": "select.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/ui/separator.tsx",
+   "type": "file",
+   "name": "separator.tsx",
+   "filePath": "frontend/src/components/ui/separator.tsx",
+   "summary": "separator.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/ui/skeleton.tsx",
+   "type": "file",
+   "name": "skeleton.tsx",
+   "filePath": "frontend/src/components/ui/skeleton.tsx",
+   "summary": "skeleton.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/ui/table.tsx",
+   "type": "file",
+   "name": "table.tsx",
+   "filePath": "frontend/src/components/ui/table.tsx",
+   "summary": "table.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/ui/tabs.tsx",
+   "type": "file",
+   "name": "tabs.tsx",
+   "filePath": "frontend/src/components/ui/tabs.tsx",
+   "summary": "tabs.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/ui/textarea.tsx",
+   "type": "file",
+   "name": "textarea.tsx",
+   "filePath": "frontend/src/components/ui/textarea.tsx",
+   "summary": "textarea.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/components/ui/tooltip.tsx",
+   "type": "file",
+   "name": "tooltip.tsx",
+   "filePath": "frontend/src/components/ui/tooltip.tsx",
+   "summary": "tooltip.tsx（frontend/src/components/ui）",
+   "tags": [
+    "frontend",
+    "component"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/hooks/useDebounce.ts",
+   "type": "file",
+   "name": "useDebounce.ts",
+   "filePath": "frontend/src/hooks/useDebounce.ts",
+   "summary": "useDebounce.ts（frontend/src/hooks）",
+   "tags": [
+    "frontend",
+    "function"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/index.css",
+   "type": "file",
+   "name": "index.css",
+   "filePath": "frontend/src/index.css",
+   "summary": "index.css（frontend/src）",
+   "tags": [
+    "frontend"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/lib/utils.ts",
+   "type": "file",
+   "name": "utils.ts",
+   "filePath": "frontend/src/lib/utils.ts",
+   "summary": "utils.ts（frontend/src/lib）",
+   "tags": [
+    "frontend",
+    "function"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/main.tsx",
+   "type": "file",
+   "name": "main.tsx",
+   "filePath": "frontend/src/main.tsx",
+   "summary": "main.tsx（frontend/src）",
+   "tags": [
+    "frontend"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/services/agents.ts",
+   "type": "file",
+   "name": "agents.ts",
+   "filePath": "frontend/src/services/agents.ts",
+   "summary": "agents.ts（frontend/src/services）",
+   "tags": [
+    "frontend",
+    "service",
+    "function"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/services/api-client.ts",
+   "type": "file",
+   "name": "api-client.ts",
+   "filePath": "frontend/src/services/api-client.ts",
+   "summary": "api-client.ts（frontend/src/services）",
+   "tags": [
+    "frontend",
+    "service"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/services/approvals.ts",
+   "type": "file",
+   "name": "approvals.ts",
+   "filePath": "frontend/src/services/approvals.ts",
+   "summary": "approvals.ts（frontend/src/services）",
+   "tags": [
+    "frontend",
+    "service",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/services/chat.ts",
+   "type": "file",
+   "name": "chat.ts",
+   "filePath": "frontend/src/services/chat.ts",
+   "summary": "chat.ts（frontend/src/services）",
+   "tags": [
+    "frontend",
+    "service"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/services/documents.ts",
+   "type": "file",
+   "name": "documents.ts",
+   "filePath": "frontend/src/services/documents.ts",
+   "summary": "documents.ts（frontend/src/services）",
+   "tags": [
+    "frontend",
+    "service",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:frontend/src/services/health.ts",
+   "type": "file",
+   "name": "health.ts",
+   "filePath": "frontend/src/services/health.ts",
+   "summary": "health.ts（frontend/src/services）",
+   "tags": [
+    "frontend",
+    "service",
+    "function"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:frontend/src/main.tsx",
+   "target": "file:frontend/src/components/ui/tooltip.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/main.tsx",
+   "target": "file:frontend/src/theme/ThemeProvider.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/main.tsx",
+   "target": "file:frontend/src/services/query-client.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/main.tsx",
+   "target": "file:frontend/src/app/router.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/ui/dialog.tsx",
+   "target": "file:frontend/src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/ui/dialog.tsx",
+   "target": "file:frontend/src/components/ui/button.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:frontend/src/components/ui/select.tsx",
+   "target": "file:frontend/src/lib/utils.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  }
+ ]
+}

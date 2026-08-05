@@ -19,6 +19,11 @@ logger = logging.getLogger(__name__)
 
 # 任务处理器注册表
 _handlers: dict[str, Callable[..., Coroutine[Any, Any, None]]] = {}
+
+# 自管理任务状态的任务类型：handler 内部自行调用 complete/fail，
+# Worker 循环不再重复标记完成/失败（避免覆盖 handler 内的状态）。
+SELF_MANAGED_TYPES = {"upload_folder", "ingest_minio"}
+
 _worker_task: asyncio.Task | None = None
 _running = False
 _current_task: str | None = None
@@ -65,8 +70,8 @@ async def _handle_doc_pipeline(task: dict) -> None:
     await doc_pipeline.process_pending_documents(limit=limit)
 
 
-async def _handle_reindex(task: dict) -> None:
-    """处理 reindex 类型任务（重新索引单个文档）"""
+async def _handle_reembed(task: dict) -> None:
+    """处理 re-embed 类型任务（重新向量化单个文档）"""
     from pipelines.document_pipeline import doc_pipeline
 
     params = task.get("params", {}) or {}
@@ -74,7 +79,7 @@ async def _handle_reindex(task: dict) -> None:
         params = json.loads(params)
     doc_id = params.get("document_id", "")
     if doc_id:
-        await doc_pipeline.reindex_document(doc_id)
+        await doc_pipeline.reembed_document(doc_id)
 
 
 async def _handle_batch_embed(task: dict) -> None:
@@ -96,7 +101,7 @@ async def _handle_batch_embed(task: dict) -> None:
 
 async def _handle_knowledge_extraction(task: dict) -> None:
     """处理 knowledge_extraction 类型任务（知识提取流水线）"""
-    from graphs.knowledge_graph import build_knowledge_organization_graph
+    from graphs.knowledge_graph import build_knowledge_ingestion_graph
     from tools.postgres import postgres_tool
 
     params = task.get("params", {}) or {}
@@ -110,7 +115,7 @@ async def _handle_knowledge_extraction(task: dict) -> None:
         logger.warning("[Worker] knowledge_extraction: no document_ids")
         return
 
-    graph = build_knowledge_organization_graph()
+    graph = build_knowledge_ingestion_graph()
 
     for doc_id in document_ids:
         # 获取文档内容
@@ -166,11 +171,53 @@ async def _handle_knowledge_extraction(task: dict) -> None:
             raise
 
 
+async def _handle_upload_folder(task: dict) -> None:
+    """处理 upload_folder 类型任务（批量上传文件夹到 MinIO 并注册文档）"""
+    from pathlib import Path
+    from api.documents import _run_upload_folder_async, DEFAULT_BUCKET
+
+    params = task.get("params", {}) or {}
+    if isinstance(params, str):
+        params = json.loads(params)
+
+    target = Path(params.get("folder", ""))
+    pdf_files = sorted(target.rglob("*.pdf")) if target.is_dir() else []
+    pdf_files = [f for f in pdf_files if not f.name.startswith(".")]
+
+    await _run_upload_folder_async(
+        str(task["id"]),
+        target,
+        params.get("market", ""),
+        params.get("bucket", DEFAULT_BUCKET),
+        params.get("trigger", False),
+        pdf_files,
+    )
+
+
+async def _handle_ingest_minio(task: dict) -> None:
+    """处理 ingest_minio 类型任务（从 MinIO 扫描并注册 pending 文档）"""
+    from api.knowledge import _run_ingest_minio_async, MinioIngestRequest
+
+    params = task.get("params", {}) or {}
+    if isinstance(params, str):
+        params = json.loads(params)
+
+    req = MinioIngestRequest(
+        bucket=params.get("bucket", "documents"),
+        prefix=params.get("prefix", ""),
+        market=params.get("market", ""),
+        trigger=params.get("trigger", False),
+    )
+    await _run_ingest_minio_async(str(task["id"]), req)
+
+
 # 注册默认处理器
 register_handler("doc_pipeline", _handle_doc_pipeline)
-register_handler("reindex", _handle_reindex)
+register_handler("re-embed", _handle_reembed)
 register_handler("batch_embed", _handle_batch_embed)
 register_handler("knowledge_extraction", _handle_knowledge_extraction)
+register_handler("upload_folder", _handle_upload_folder)
+register_handler("ingest_minio", _handle_ingest_minio)
 
 
 async def _worker_loop():
@@ -179,7 +226,16 @@ async def _worker_loop():
     _running = True
 
     poll_interval = get_policy("worker.poll_interval_seconds", 30)
-    logger.info("[Worker] Started | poll_interval=%ds", poll_interval)
+    stale_after = get_policy("worker.stale_after_seconds", 300)
+    logger.info("[Worker] Started | poll_interval=%ds | stale_after=%ds", poll_interval, stale_after)
+
+    # 启动时回收僵尸 running 任务（上一进程崩溃遗留，避免永久卡住）
+    try:
+        recovered = await task_queue.recover_stale_tasks(stale_after)
+        if recovered:
+            logger.warning("[Worker] Recovered %d stale running task(s)", recovered)
+    except Exception as e:
+        logger.warning("[Worker] Recover stale tasks failed | %s", e)
 
     while _running:
         try:
@@ -211,7 +267,9 @@ async def _worker_loop():
 
             try:
                 await handler(task)
-                await task_queue.complete_task(task_id)
+                # 自管理任务由 handler 内部处理状态，Worker 不重复标记
+                if task_type not in SELF_MANAGED_TYPES:
+                    await task_queue.complete_task(task_id)
             except Exception as e:
                 logger.error("[Worker] Task failed | %s | %s", task_id[:8], e)
                 await task_queue.fail_task(task_id, str(e))

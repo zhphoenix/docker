@@ -1,0 +1,824 @@
+{
+ "nodes": [
+  {
+   "id": "file:langgraph/memory/thread_manager.py",
+   "type": "file",
+   "name": "thread_manager.py",
+   "filePath": "langgraph/memory/thread_manager.py",
+   "summary": "Thread Manager - LangGraph 会话线程管理 负责生成 thread_id 与组装 RunnableConfig，供带 Checkpointer 的 对话型 Graph 实现多轮会话的状态持久化。 Usage: from memory.thread_manager import build_run_config config = build_run_config(thread",
+   "tags": [
+    "langgraph",
+    "memory",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/nodes/__init__.py",
+   "summary": "__init__.py（langgraph/nodes）",
+   "tags": [
+    "langgraph",
+    "node"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/knowledge/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/nodes/knowledge/__init__.py",
+   "summary": "__init__.py（langgraph/nodes/knowledge）",
+   "tags": [
+    "langgraph",
+    "node"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/knowledge/entity.py",
+   "type": "file",
+   "name": "entity.py",
+   "filePath": "langgraph/nodes/knowledge/entity.py",
+   "summary": "Node 2: Entity Extractor - 实体提取 并发从每个 chunk 提取实体（Semaphore 限流），内存去重。",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/knowledge/fact.py",
+   "type": "file",
+   "name": "fact.py",
+   "filePath": "langgraph/nodes/knowledge/fact.py",
+   "summary": "Node 4: Fact Extractor - 事实提取 提取结构化事实 (subject/predicate/object/time) + 证据。",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/knowledge/merger.py",
+   "type": "file",
+   "name": "merger.py",
+   "filePath": "langgraph/nodes/knowledge/merger.py",
+   "summary": "Node 6: Knowledge Merger - 知识合并 + 存储 合并重复实体/关系，批量写入 PostgreSQL + Qdrant + Apache AGE。",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/knowledge/parser.py",
+   "type": "file",
+   "name": "parser.py",
+   "filePath": "langgraph/nodes/knowledge/parser.py",
+   "summary": "Node 1: Document Parser - 文档解析与分片 输入: raw_text 输出: chunks",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/knowledge/relation.py",
+   "type": "file",
+   "name": "relation.py",
+   "filePath": "langgraph/nodes/knowledge/relation.py",
+   "summary": "Node 3: Relation Extractor - 关系提取 基于已识别实体 + 原文，提取实体间关系。",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/knowledge/validator.py",
+   "type": "file",
+   "name": "validator.py",
+   "filePath": "langgraph/nodes/knowledge/validator.py",
+   "summary": "Node 5: Knowledge Validator - 知识校验 实体消歧（Qdrant 向量检索）+ 冲突检测（批量查询优化）。 性能优化： - 实体消歧从 PG 全表扫描改为 Qdrant 向量检索 - 事实冲突检测从 N+1 查询改为 ANY($1) 批量查询 - Embeddings 写入 State 供 Merger 复用",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/news/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/nodes/news/__init__.py",
+   "summary": "__init__.py（langgraph/nodes/news）",
+   "tags": [
+    "langgraph",
+    "node"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/news/classifier.py",
+   "type": "file",
+   "name": "classifier.py",
+   "filePath": "langgraph/nodes/news/classifier.py",
+   "summary": "Node 3: News Classifier — 新闻分类 + 重要性评分 职责： - 调用 LLM 对每篇文章进行分类（macro/stock/company/geopolitics/policy/technology） - 评估重要性分数（0~1） - 标记市场/行业关联 使用 prompts/news/classification.md 模板。",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/news/cleaner.py",
+   "type": "file",
+   "name": "cleaner.py",
+   "filePath": "langgraph/nodes/news/cleaner.py",
+   "summary": "Node 1: News Cleaner — 语言检测 + 清洗 + 标准化 职责： - 检测文章语言（zh/en） - 清洗 HTML 标签、多余空白 - 计算 content_hash（SHA-256，供去重使用） - 过滤过短/无效文章",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/news/deduplicator.py",
+   "type": "file",
+   "name": "deduplicator.py",
+   "filePath": "langgraph/nodes/news/deduplicator.py",
+   "summary": "Node 2: News Deduplicator — 两级去重 策略： - 第一层：content_hash 精确去重（同批次内） - 第二层：标题相似度去重（简单 Jaccard 相似） 注：Embedding 语义去重（Qdrant）在 Publisher 阶段执行（需要存储后才能比对历史）。",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/news/embedding_dedup.py",
+   "type": "file",
+   "name": "embedding_dedup.py",
+   "filePath": "langgraph/nodes/news/embedding_dedup.py",
+   "summary": "Node 2b: Embedding Deduplication — 跨批次语义去重 DLM §9 去重机制第二层：Embedding Similarity > 0.92 视为重复。 对所有进入该节点的文章执行（位于 classifier 之前，尚无 tier 信息）。 位置：deduplicator（Hash 去重）之后、classifier 之前。 失败不阻塞：如果 Qdrant/Embedd",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/news/entity.py",
+   "type": "file",
+   "name": "entity.py",
+   "filePath": "langgraph/nodes/news/entity.py",
+   "summary": "Node 4a: News Entity Extractor — 新闻实体识别 职责： - 从分类后的文章中提取金融实体 - 实体类型引用 ontology.yaml 10 种 Entity Types - 并发处理多篇文章（Semaphore 限流） - 同时提取实体间关系 使用 prompts/news/entity_extraction.md 模板。",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/news/event.py",
+   "type": "file",
+   "name": "event.py",
+   "filePath": "langgraph/nodes/news/event.py",
+   "summary": "Node 4b: News Event Extractor — 新闻事件抽取 职责： - 从分类后的文章中提取结构化事件 - 事件类型引用 ontology.yaml 9 种 Event Types - 评估事件影响方向（positive/negative/neutral） - 并发处理（与 Entity Extractor 并行执行） 使用 prompts/news/event_extracti",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/news/impact.py",
+   "type": "file",
+   "name": "impact.py",
+   "filePath": "langgraph/nodes/news/impact.py",
+   "summary": "Node 5: News Impact Analyzer — 投资影响分析 职责： - 综合实体 + 事件信息，评估投资影响 - 对高重要性文章（importance >= 0.7）进行深度影响分析 - 输出结构化的影响评估（影响方向、程度、时间范围、受益/受损标的） 使用 prompts/news/impact_analysis.md 模板。 Fan-in 节点：等待 Entity Extrac",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/news/publisher.py",
+   "type": "file",
+   "name": "publisher.py",
+   "filePath": "langgraph/nodes/news/publisher.py",
+   "summary": "Node 6: News Publisher — 存储 + 触发 Knowledge Agent 职责： - 批量存储文章、实体、事件、关系到 PostgreSQL（news schema） - 上传原始文章到 MinIO news-raw bucket（DLM Raw News Layer） - 高置信度实体/关系触发 Knowledge Agent 合并到 core schema - 更新文章",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/news/utils.py",
+   "type": "file",
+   "name": "utils.py",
+   "filePath": "langgraph/nodes/news/utils.py",
+   "summary": "News Agent 共享工具函数",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/research/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/nodes/research/__init__.py",
+   "summary": "__init__.py（langgraph/nodes/research）",
+   "tags": [
+    "langgraph",
+    "node"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/research/finish.py",
+   "type": "file",
+   "name": "finish.py",
+   "filePath": "langgraph/nodes/research/finish.py",
+   "summary": "Finish Node - 结束处理，准备返回",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/research/planner.py",
+   "type": "file",
+   "name": "planner.py",
+   "filePath": "langgraph/nodes/research/planner.py",
+   "summary": "Planner Node - 理解用户问题，生成执行计划",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/research/query_rewrite.py",
+   "type": "file",
+   "name": "query_rewrite.py",
+   "filePath": "langgraph/nodes/research/query_rewrite.py",
+   "summary": "QueryRewrite Node - 查询改写（LLM 驱动） 合规要点（08_Node设计.md）: - Query 改写是业务逻辑（Prompt 编排 + LLM 调用 + 结果解析），属于 Node 层职责 - 调用 llm_tool（基础设施）完成改写，Tool 层不含改写逻辑 - 单一职责：只负责改写，不负责检索 流程位置: Planner → QueryRewrite → Retri",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/research/reason.py",
+   "type": "file",
+   "name": "reason.py",
+   "filePath": "langgraph/nodes/research/reason.py",
+   "summary": "Reason Node - LLM 推理生成回答",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/nodes/research/reflect.py",
+   "type": "file",
+   "name": "reflect.py",
+   "filePath": "langgraph/nodes/research/reflect.py",
+   "summary": "Reflect Node - 检查答案质量，决定是否需要重新检索",
+   "tags": [
+    "langgraph",
+    "node",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:langgraph/nodes/knowledge/entity.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/entity.py",
+   "target": "file:langgraph/prompts/loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/entity.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/fact.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/fact.py",
+   "target": "file:langgraph/prompts/loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/fact.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/merger.py",
+   "target": "file:langgraph/tools/embedding.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/merger.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/merger.py",
+   "target": "file:langgraph/storage/knowledge/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/merger.py",
+   "target": "file:langgraph/storage/knowledge/age.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/merger.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/merger.py",
+   "target": "file:langgraph/services/approval.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/parser.py",
+   "target": "file:langgraph/tools/chunker.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/parser.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/relation.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/relation.py",
+   "target": "file:langgraph/prompts/loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/relation.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/validator.py",
+   "target": "file:langgraph/tools/embedding.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/validator.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/validator.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/knowledge/validator.py",
+   "target": "file:langgraph/storage/knowledge/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/classifier.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/classifier.py",
+   "target": "file:langgraph/prompts/loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/classifier.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/classifier.py",
+   "target": "file:langgraph/nodes/news/utils.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/embedding_dedup.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/embedding_dedup.py",
+   "target": "file:langgraph/tools/embedding.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/embedding_dedup.py",
+   "target": "file:langgraph/tools/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/embedding_dedup.py",
+   "target": "file:frontend/src/services/models.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/entity.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/entity.py",
+   "target": "file:langgraph/prompts/loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/entity.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/entity.py",
+   "target": "file:langgraph/nodes/news/utils.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/event.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/event.py",
+   "target": "file:langgraph/prompts/loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/event.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/event.py",
+   "target": "file:langgraph/nodes/news/utils.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/impact.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/impact.py",
+   "target": "file:langgraph/prompts/loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/impact.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/impact.py",
+   "target": "file:langgraph/nodes/news/utils.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/publisher.py",
+   "target": "file:langgraph/storage/news/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/publisher.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/publisher.py",
+   "target": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/publisher.py",
+   "target": "file:langgraph/tools/minio.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/news/publisher.py",
+   "target": "file:langgraph/storage/knowledge/age.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/finish.py",
+   "target": "file:langgraph/state/research_state.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/planner.py",
+   "target": "file:langgraph/state/research_state.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/planner.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/planner.py",
+   "target": "file:langgraph/prompts/loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/query_rewrite.py",
+   "target": "file:langgraph/state/research_state.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/query_rewrite.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/query_rewrite.py",
+   "target": "file:langgraph/prompts/loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/reason.py",
+   "target": "file:langgraph/state/research_state.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/reason.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/reason.py",
+   "target": "file:langgraph/prompts/loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/reflect.py",
+   "target": "file:langgraph/state/research_state.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/reflect.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/nodes/research/reflect.py",
+   "target": "file:langgraph/prompts/loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  }
+ ]
+}

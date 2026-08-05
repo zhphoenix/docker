@@ -1,0 +1,995 @@
+{
+ "nodes": [
+  {
+   "id": "file:langgraph/api/models.py",
+   "type": "file",
+   "name": "models.py",
+   "filePath": "langgraph/api/models.py",
+   "summary": "Models 路由 - 列出可用模型/Agent",
+   "tags": [
+    "langgraph",
+    "api",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/api/news.py",
+   "type": "file",
+   "name": "news.py",
+   "filePath": "langgraph/api/news.py",
+   "summary": "News API Router - 新闻智能管线 REST 端点 提供新闻搜索、文章详情、事件浏览、影响分析、时间线等接口。 数据来源: PostgreSQL news schema（通过 services/news_storage.py）。",
+   "tags": [
+    "langgraph",
+    "api",
+    "class",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/api/path_utils.py",
+   "type": "file",
+   "name": "path_utils.py",
+   "filePath": "langgraph/api/path_utils.py",
+   "summary": "路径转换工具 - 处理 Windows / WSL / 容器三种环境的路径差异 路径映射链: Windows: E:\\\\ai-platform\\\\data\\\\stock_a WSL: /mnt/e/ai-platform/data/stock_a Container: /data/stock_a browse-dirs API 返回容器路径，用户通过目录浏览器选择时无需转换。 用户手动输入 Win",
+   "tags": [
+    "langgraph",
+    "api",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/api/providers.py",
+   "type": "file",
+   "name": "providers.py",
+   "filePath": "langgraph/api/providers.py",
+   "summary": "Provider Registry API - 数据源管理",
+   "tags": [
+    "langgraph",
+    "api",
+    "class",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/api/reports.py",
+   "type": "file",
+   "name": "reports.py",
+   "filePath": "langgraph/api/reports.py",
+   "summary": "Reports API - 大师分析报告（文件系统）+ 触发分析 报告数据源: REPORT_SOURCE_DIR 环境变量指定的目录（容器内 /data/analysis_reports）",
+   "tags": [
+    "langgraph",
+    "api",
+    "class",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/api/research.py",
+   "type": "file",
+   "name": "research.py",
+   "filePath": "langgraph/api/research.py",
+   "summary": "Research API - 研究任务历史（只读）",
+   "tags": [
+    "langgraph",
+    "api",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/api/server.py",
+   "type": "file",
+   "name": "server.py",
+   "filePath": "langgraph/api/server.py",
+   "summary": "FastAPI 应用入口 - 实例化、中间件、生命周期",
+   "tags": [
+    "langgraph",
+    "api",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/api/tasks.py",
+   "type": "file",
+   "name": "tasks.py",
+   "filePath": "langgraph/api/tasks.py",
+   "summary": "Tasks API - 任务管理与 Pipeline 触发",
+   "tags": [
+    "langgraph",
+    "api",
+    "class",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/api/vector.py",
+   "type": "file",
+   "name": "vector.py",
+   "filePath": "langgraph/api/vector.py",
+   "summary": "Vector API - Qdrant 向量数据库统计（只读）",
+   "tags": [
+    "langgraph",
+    "api",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/collectors/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/collectors/__init__.py",
+   "summary": "__init__.py（langgraph/collectors）",
+   "tags": [
+    "langgraph",
+    "collector"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/collectors/rss_collector.py",
+   "type": "file",
+   "name": "rss_collector.py",
+   "filePath": "langgraph/collectors/rss_collector.py",
+   "summary": "RSS Collector — RSS/Atom Feed 新闻采集 使用 feedparser 解析 RSS/Atom feeds，返回标准化文章列表。",
+   "tags": [
+    "langgraph",
+    "collector",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/collectors/source_registry.py",
+   "type": "file",
+   "name": "source_registry.py",
+   "filePath": "langgraph/collectors/source_registry.py",
+   "summary": "Source Registry — 新闻源配置加载器 从 registry/news_sources.yaml 加载新闻源配置。 支持按 priority 过滤和排序。",
+   "tags": [
+    "langgraph",
+    "collector",
+    "class"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/collectors/web_collector.py",
+   "type": "file",
+   "name": "web_collector.py",
+   "filePath": "langgraph/collectors/web_collector.py",
+   "summary": "Web Collector — Crawl4AI 网页新闻采集 复用 providers/web/crawl4ai_provider.py（Crawl4AI HTTP API）。 支持列表页 → 文章链接提取 → 逐篇抓取。",
+   "tags": [
+    "langgraph",
+    "collector",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/config/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/config/__init__.py",
+   "summary": "__init__.py（langgraph/config）",
+   "tags": [
+    "langgraph",
+    "config"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/config/policy_loader.py",
+   "type": "file",
+   "name": "policy_loader.py",
+   "filePath": "langgraph/config/policy_loader.py",
+   "summary": "Policy Center - 策略配置加载与热更新",
+   "tags": [
+    "langgraph",
+    "config",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/config/settings.py",
+   "type": "file",
+   "name": "settings.py",
+   "filePath": "langgraph/config/settings.py",
+   "summary": "配置管理 - Pydantic Settings，从 .env 加载所有环境变量",
+   "tags": [
+    "langgraph",
+    "config",
+    "class"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/graphs/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/graphs/__init__.py",
+   "summary": "Graphs Registry - 工作流定义统一入口 依据 config/workflows.yaml 声明式注册表，按需导入对应模块的 builder 编译 Graph 并缓存。所有调用方应从这里获取编译后的 Graph， 而不要直接 import 各 graph 模块，以便统一管理生命周期。 Usage: from graphs import get_research_graph graph",
+   "tags": [
+    "langgraph",
+    "graph",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/graphs/document_graph.py",
+   "type": "file",
+   "name": "document_graph.py",
+   "filePath": "langgraph/graphs/document_graph.py",
+   "summary": "Document Graph - 文档处理流程（LangGraph 编排层） 流程: process → END 说明: 实际的文档处理逻辑（MinIO PDF → Docling 解析 → Chunk → Embedding → Qdrant → PostgreSQL） 已在 pipelines/document_pipeline.py 的 doc_pipeline 中成熟实现。 本 Graph",
+   "tags": [
+    "langgraph",
+    "graph",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/graphs/knowledge_graph.py",
+   "type": "file",
+   "name": "knowledge_graph.py",
+   "filePath": "langgraph/graphs/knowledge_graph.py",
+   "summary": "Knowledge Ingestion Agent Graph - LangGraph StateGraph 定义 流水线: Parser → Entity → [Relation || Fact] → Validator → Merger → END 性能优化: Entity 完成后 Relation/Fact 并行执行（fan-out/fan-in）",
+   "tags": [
+    "langgraph",
+    "graph",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/graphs/news_analysis_graph.py",
+   "type": "file",
+   "name": "news_analysis_graph.py",
+   "filePath": "langgraph/graphs/news_analysis_graph.py",
+   "summary": "News Intelligence Agent Graph - LangGraph StateGraph 定义 流水线: Cleaner → Deduplicator → EmbeddingDedup → Classifier → [Entity || Event] → Impact → Publisher → END 性能优化: Classifier 完成后 Entity/Event 并行执行（",
+   "tags": [
+    "langgraph",
+    "graph",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/graphs/research_graph.py",
+   "type": "file",
+   "name": "research_graph.py",
+   "filePath": "langgraph/graphs/research_graph.py",
+   "summary": "Graph 定义 - LangGraph StateGraph 构建",
+   "tags": [
+    "langgraph",
+    "graph",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/main.py",
+   "type": "file",
+   "name": "main.py",
+   "filePath": "langgraph/main.py",
+   "summary": "入口文件 - uvicorn 启动",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/memory/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/memory/__init__.py",
+   "summary": "Memory System - 三层记忆架构 + Checkpoint + Thread 管理 Usage: from memory import memory_manager # 情景记忆 task_id = await memory_manager.start_episode(\"腾讯护城河分析\", market=\"hk\") await memory_manager.complete_episo",
+   "tags": [
+    "langgraph",
+    "memory"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/memory/checkpoint.py",
+   "type": "file",
+   "name": "checkpoint.py",
+   "filePath": "langgraph/memory/checkpoint.py",
+   "summary": "Checkpoint 配置 - PostgreSQL AsyncPostgresSaver",
+   "tags": [
+    "langgraph",
+    "memory",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/memory/memory_store.py",
+   "type": "file",
+   "name": "memory_store.py",
+   "filePath": "langgraph/memory/memory_store.py",
+   "summary": "Memory System - 三层记忆架构 工作记忆 (Working Memory): LangGraph Checkpoint → PostgreSQL langgraph 库 自动管理，无需手动操作。 情景记忆 (Episodic Memory): PostgreSQL research_tasks 表 记录每次研究任务的输入/输出/质量/耗时。 知识记忆 (Knowledge Memor",
+   "tags": [
+    "langgraph",
+    "memory",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:langgraph/api/models.py",
+   "target": "file:langgraph/schemas/chat.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/models.py",
+   "target": "file:langgraph/services/router.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/news.py",
+   "target": "file:langgraph/services/news_storage.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/news.py",
+   "target": "file:langgraph/collectors/source_registry.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/news.py",
+   "target": "file:langgraph/collectors/rss_collector.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/news.py",
+   "target": "file:langgraph/collectors/web_collector.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/news.py",
+   "target": "file:langgraph/graphs/news_analysis_graph.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/providers.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/reports.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/reports.py",
+   "target": "file:langgraph/skills/master_analysis.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/research.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/api/chat.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/api/models.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/api/health.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/api/providers.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/api/tasks.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/api/approvals.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/api/agents.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/api/documents.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/api/research.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/api/reports.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/api/knowledge.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/api/vector.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/api/news.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/storage/knowledge/age.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/skills/registry.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/skills/rag_search.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/skills/master_analysis.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/skills/web_article_summary.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/runtime/scheduler.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/runtime/worker.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/tools/embedding.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/tools/reranker.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/server.py",
+   "target": "file:langgraph/tools/docling.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/tasks.py",
+   "target": "file:langgraph/runtime/queue.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/tasks.py",
+   "target": "file:langgraph/pipelines/document_pipeline.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/tasks.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/tasks.py",
+   "target": "file:langgraph/runtime/worker.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/tasks.py",
+   "target": "file:langgraph/runtime/scheduler.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/tasks.py",
+   "target": "file:langgraph/services/batch_embed.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/api/vector.py",
+   "target": "file:langgraph/config/settings.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/collectors/web_collector.py",
+   "target": "file:langgraph/providers/web/crawl4ai_provider.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/collectors/web_collector.py",
+   "target": "file:langgraph/pipelines/web/link_extractor.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/collectors/web_collector.py",
+   "target": "file:langgraph/pipelines/web/chunker.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/document_graph.py",
+   "target": "file:mcp-knowledge/server/tools/graph.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/document_graph.py",
+   "target": "file:langgraph/state/document_state.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/document_graph.py",
+   "target": "file:langgraph/pipelines/document_pipeline.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/knowledge_graph.py",
+   "target": "file:mcp-knowledge/server/tools/graph.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/knowledge_graph.py",
+   "target": "file:langgraph/state/knowledge_state.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/knowledge_graph.py",
+   "target": "file:langgraph/nodes/knowledge/parser.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/knowledge_graph.py",
+   "target": "file:langgraph/nodes/knowledge/entity.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/knowledge_graph.py",
+   "target": "file:langgraph/nodes/knowledge/relation.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/knowledge_graph.py",
+   "target": "file:langgraph/nodes/knowledge/fact.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/knowledge_graph.py",
+   "target": "file:langgraph/nodes/knowledge/validator.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/knowledge_graph.py",
+   "target": "file:langgraph/nodes/knowledge/merger.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/news_analysis_graph.py",
+   "target": "file:mcp-knowledge/server/tools/graph.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/news_analysis_graph.py",
+   "target": "file:langgraph/state/news_state.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/news_analysis_graph.py",
+   "target": "file:langgraph/nodes/news/cleaner.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/news_analysis_graph.py",
+   "target": "file:langgraph/nodes/news/deduplicator.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/news_analysis_graph.py",
+   "target": "file:langgraph/nodes/news/embedding_dedup.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/news_analysis_graph.py",
+   "target": "file:langgraph/nodes/news/classifier.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/news_analysis_graph.py",
+   "target": "file:langgraph/nodes/news/entity.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/news_analysis_graph.py",
+   "target": "file:langgraph/nodes/news/event.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/news_analysis_graph.py",
+   "target": "file:langgraph/nodes/news/impact.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/news_analysis_graph.py",
+   "target": "file:langgraph/nodes/news/publisher.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/research_graph.py",
+   "target": "file:mcp-knowledge/server/tools/graph.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/research_graph.py",
+   "target": "file:langgraph/state/research_state.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/research_graph.py",
+   "target": "file:langgraph/nodes/research/planner.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/research_graph.py",
+   "target": "file:langgraph/nodes/research/retrieve.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/research_graph.py",
+   "target": "file:langgraph/nodes/research/rerank.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/research_graph.py",
+   "target": "file:langgraph/nodes/research/reason.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/research_graph.py",
+   "target": "file:langgraph/nodes/research/reflect.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/research_graph.py",
+   "target": "file:langgraph/nodes/research/finish.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/research_graph.py",
+   "target": "file:langgraph/nodes/research/query_rewrite.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/graphs/__init__.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/memory/checkpoint.py",
+   "target": "file:langgraph/config/settings.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/memory/memory_store.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/memory/__init__.py",
+   "target": "file:langgraph/memory/memory_store.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  }
+ ]
+}

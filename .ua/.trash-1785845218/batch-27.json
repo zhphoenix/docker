@@ -1,0 +1,732 @@
+{
+ "nodes": [
+  {
+   "id": "file:langgraph/schemas/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/schemas/__init__.py",
+   "summary": "__init__.py（langgraph/schemas）",
+   "tags": [
+    "langgraph",
+    "schema"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/schemas/authority.py",
+   "type": "file",
+   "name": "authority.py",
+   "filePath": "langgraph/schemas/authority.py",
+   "summary": "权威度映射 - providers.yaml source_provider → AuthorityLevel 复用 providers.yaml 中已有的 official + status 字段组合， 将数据源 ID 映射到权威度级别。",
+   "tags": [
+    "langgraph",
+    "schema",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/schemas/chat.py",
+   "type": "file",
+   "name": "chat.py",
+   "filePath": "langgraph/schemas/chat.py",
+   "summary": "OpenAI Compatible API 请求/响应模型",
+   "tags": [
+    "langgraph",
+    "schema",
+    "class"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/schemas/financial.py",
+   "type": "file",
+   "name": "financial.py",
+   "filePath": "langgraph/schemas/financial.py",
+   "summary": "金融数据模型 - 结构化数据卡片 + 权威度 + 时效过滤 定义投资研究模块的核心数据模型： - ExchangeRateCard: 汇率数据卡片 - StockPriceCard: 股价数据卡片 - AuthorityLevel: 权威度分级枚举 - TimeRange: 时效过滤参数",
+   "tags": [
+    "langgraph",
+    "schema",
+    "class"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/scripts/clean_qdrant.py",
+   "type": "file",
+   "name": "clean_qdrant.py",
+   "filePath": "langgraph/scripts/clean_qdrant.py",
+   "summary": "clean_qdrant.py（langgraph/scripts）",
+   "tags": [
+    "langgraph",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/scripts/clear_minio.py",
+   "type": "file",
+   "name": "clear_minio.py",
+   "filePath": "langgraph/scripts/clear_minio.py",
+   "summary": "分 bucket 批量删除 MinIO 所有对象（流式分批，避免内存溢出）",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/scripts/mi_probe.py",
+   "type": "file",
+   "name": "mi_probe.py",
+   "filePath": "langgraph/scripts/mi_probe.py",
+   "summary": "mi_probe.py（langgraph/scripts）",
+   "tags": [
+    "langgraph",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/scripts/setup_probe.py",
+   "type": "file",
+   "name": "setup_probe.py",
+   "filePath": "langgraph/scripts/setup_probe.py",
+   "summary": "setup_probe.py（langgraph/scripts）",
+   "tags": [
+    "langgraph",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/scripts/verify_code.py",
+   "type": "file",
+   "name": "verify_code.py",
+   "filePath": "langgraph/scripts/verify_code.py",
+   "summary": "verify_code.py（langgraph/scripts）",
+   "tags": [
+    "langgraph",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/services/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/services/__init__.py",
+   "summary": "__init__.py（langgraph/services）",
+   "tags": [
+    "langgraph",
+    "service"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/services/approval.py",
+   "type": "file",
+   "name": "approval.py",
+   "filePath": "langgraph/services/approval.py",
+   "summary": "Human Approval - 人审机制 应用场景: - Agent 生成报告后等待人工确认再写入 Vault - 重要操作（删除、批量修改）需人工审批 实现: - 基于 tasks 表（task_type='approval', status='awaiting_approval'） - 审批通过后执行回调（如写入 Vault） - 审批拒绝后标记 rejected",
+   "tags": [
+    "langgraph",
+    "service",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/services/batch_embed.py",
+   "type": "file",
+   "name": "batch_embed.py",
+   "filePath": "langgraph/services/batch_embed.py",
+   "summary": "Batch Embed - 批量向量化已有 chunks 将 PostgreSQL chunks 表中缺少 qdrant_point_id 的记录批量向量化并写入 Qdrant。 设计为后台长时任务，支持: - 断点续传（通过 qdrant_point_id IS NULL 自动跳过已处理） - 分批处理（batch_size 控制内存） - 进度追踪（tasks 表） - 优雅中断（cancel",
+   "tags": [
+    "langgraph",
+    "service",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/services/lifecycle.py",
+   "type": "file",
+   "name": "lifecycle.py",
+   "filePath": "langgraph/services/lifecycle.py",
+   "summary": "News Lifecycle Service — DLM §14 Knowledge Maintenance Agent 每日定时运行（凌晨 3:30），负责： - Duplicate Detection: 跨批次 Hash + Embedding 重复检测 - Importance Rescoring: 重新评估未分级文章 - Archive: 归档过期 Tier 3 文章（>90天） - Gr",
+   "tags": [
+    "langgraph",
+    "service",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/services/news_storage.py",
+   "type": "file",
+   "name": "news_storage.py",
+   "filePath": "langgraph/services/news_storage.py",
+   "summary": "News Storage Service - news schema 查询 复用 tools/postgres.py 连接池，提供 news schema 只读查询。 SQL 迁移自 mcp-news/server/storage/postgres.py。",
+   "tags": [
+    "langgraph",
+    "service",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/services/router.py",
+   "type": "file",
+   "name": "router.py",
+   "filePath": "langgraph/services/router.py",
+   "summary": "Agent Dispatcher - 基于策略配置的 Agent 路由 路由优先级： 1. 请求中显式指定 model/agent 2. policies.yaml 中的 routing.rules 正则匹配 3. 默认 fallback agent (chat)",
+   "tags": [
+    "langgraph",
+    "service",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/skills/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/skills/__init__.py",
+   "summary": "Skill Hub - 可复用能力模块",
+   "tags": [
+    "langgraph",
+    "skill"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/skills/base_skill.py",
+   "type": "file",
+   "name": "base_skill.py",
+   "filePath": "langgraph/skills/base_skill.py",
+   "summary": "Skill 基类 - 定义可复用能力的标准接口 每个 Skill 封装一个独立的分析/处理能力，可被任意 Agent 调用。 新增 Skill 只需： 1. 继承 BaseSkill 2. 实现 execute() 方法 3. 在 registry 中注册",
+   "tags": [
+    "langgraph",
+    "skill",
+    "class"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/skills/investment_research.py",
+   "type": "file",
+   "name": "investment_research.py",
+   "filePath": "langgraph/skills/investment_research.py",
+   "summary": "InvestmentResearchSkill - 投资研究高级数据收集（编排层） 合规要点: - 市场路由、数据聚合等业务逻辑在 Skill 层实现（不在 Tool 层） - Tool 层只做纯 SDK 调用 - 聚合 RAGSearchSkill + FinancialDataTool 的能力 四大能力: 1. 结构化数据卡片（股价、汇率） 2. 权威度分级过滤 3. 时效过滤 4. Quer",
+   "tags": [
+    "langgraph",
+    "skill",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/skills/master_analysis.py",
+   "type": "file",
+   "name": "master_analysis.py",
+   "filePath": "langgraph/skills/master_analysis.py",
+   "summary": "Master Analysis Skill - 投资大师分析框架 封装巴菲特/芒格/费雪/林奇方法论，结合 RAG 检索 + 电话会议记录 生成结构化投资分析报告。",
+   "tags": [
+    "langgraph",
+    "skill",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/skills/rag_search.py",
+   "type": "file",
+   "name": "rag_search.py",
+   "filePath": "langgraph/skills/rag_search.py",
+   "summary": "RAG Search Skill - 向量检索 + 重排序 使用模块级单例 Tool，避免重复创建连接。",
+   "tags": [
+    "langgraph",
+    "skill",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/skills/registry.py",
+   "type": "file",
+   "name": "registry.py",
+   "filePath": "langgraph/skills/registry.py",
+   "summary": "Skill Registry - Skill 注册、发现与调用",
+   "tags": [
+    "langgraph",
+    "skill",
+    "class",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/skills/web_article_summary.py",
+   "type": "file",
+   "name": "web_article_summary.py",
+   "filePath": "langgraph/skills/web_article_summary.py",
+   "summary": "Web Article Summary Skill - 网页文章自动摘要 从指定网站首页/栏目列表页提取文章链接，逐篇抓取正文， 调用 LLM 生成结构化摘要，写入 PostgreSQL + Obsidian Vault。 执行流程: 1. 调用 Crawl4AI 抓取列表页 → 获取页面内链接 2. LinkExtractor 过滤 + 按日期排序 → 文章 URL 列表 3. 逐篇调用 Cra",
+   "tags": [
+    "langgraph",
+    "skill",
+    "class",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/state/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/state/__init__.py",
+   "summary": "__init__.py（langgraph/state）",
+   "tags": [
+    "langgraph",
+    "state"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/state/document_state.py",
+   "type": "file",
+   "name": "document_state.py",
+   "filePath": "langgraph/state/document_state.py",
+   "summary": "DocumentState 定义 - 文档处理流程（Document Graph）的数据载体 注意：不含 messages 字段（非对话型流程，是处理流水线）。 实际处理逻辑委托 pipelines/document_pipeline.py 执行， 本 State 仅承载编排所需的输入与阶段标记。",
+   "tags": [
+    "langgraph",
+    "state",
+    "class"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/state/knowledge_state.py",
+   "type": "file",
+   "name": "knowledge_state.py",
+   "filePath": "langgraph/state/knowledge_state.py",
+   "summary": "KnowledgeState 定义 - Knowledge Ingestion Agent 的数据载体 注意：不含 messages 字段（非对话型 Agent，是处理流水线）。",
+   "tags": [
+    "langgraph",
+    "state",
+    "class"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:langgraph/schemas/authority.py",
+   "target": "file:langgraph/schemas/financial.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/scripts/clean_qdrant.py",
+   "target": "file:langgraph/tools/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/scripts/clean_qdrant.py",
+   "target": "file:frontend/src/services/models.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/scripts/clear_minio.py",
+   "target": "file:langgraph/tools/minio.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/scripts/mi_probe.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/scripts/mi_probe.py",
+   "target": "file:langgraph/tools/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/scripts/setup_probe.py",
+   "target": "file:langgraph/tools/minio.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/scripts/setup_probe.py",
+   "target": "file:langgraph/tools/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/scripts/verify_code.py",
+   "target": "file:langgraph/pipelines/document_pipeline.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/scripts/verify_code.py",
+   "target": "file:langgraph/api/knowledge.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/services/approval.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/services/batch_embed.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/services/batch_embed.py",
+   "target": "file:langgraph/tools/embedding.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/services/batch_embed.py",
+   "target": "file:langgraph/tools/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/services/batch_embed.py",
+   "target": "file:langgraph/runtime/queue.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/services/batch_embed.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/services/lifecycle.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/services/lifecycle.py",
+   "target": "file:langgraph/storage/knowledge/age.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/services/lifecycle.py",
+   "target": "file:langgraph/tools/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/services/news_storage.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/services/router.py",
+   "target": "file:langgraph/schemas/chat.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/services/router.py",
+   "target": "file:langgraph/agents/base_agent.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/services/router.py",
+   "target": "file:langgraph/agents/chat_agent.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/services/router.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/investment_research.py",
+   "target": "file:langgraph/skills/base_skill.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/investment_research.py",
+   "target": "file:langgraph/skills/rag_search.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/investment_research.py",
+   "target": "file:langgraph/tools/market_tools.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/investment_research.py",
+   "target": "file:langgraph/schemas/financial.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/master_analysis.py",
+   "target": "file:langgraph/skills/base_skill.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/master_analysis.py",
+   "target": "file:langgraph/skills/rag_search.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/master_analysis.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/master_analysis.py",
+   "target": "file:langgraph/prompts/loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/rag_search.py",
+   "target": "file:langgraph/skills/base_skill.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/rag_search.py",
+   "target": "file:langgraph/tools/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/rag_search.py",
+   "target": "file:langgraph/tools/embedding.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/rag_search.py",
+   "target": "file:langgraph/tools/reranker.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/rag_search.py",
+   "target": "file:langgraph/schemas/authority.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/rag_search.py",
+   "target": "file:frontend/src/services/models.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/registry.py",
+   "target": "file:langgraph/skills/base_skill.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/web_article_summary.py",
+   "target": "file:langgraph/skills/registry.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/web_article_summary.py",
+   "target": "file:langgraph/skills/base_skill.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/web_article_summary.py",
+   "target": "file:langgraph/tools/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/web_article_summary.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/__init__.py",
+   "target": "file:langgraph/skills/base_skill.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/__init__.py",
+   "target": "file:langgraph/skills/registry.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/__init__.py",
+   "target": "file:langgraph/skills/web_article_summary.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/__init__.py",
+   "target": "file:langgraph/skills/rag_search.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/skills/__init__.py",
+   "target": "file:langgraph/skills/investment_research.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  }
+ ]
+}

@@ -1,0 +1,541 @@
+{
+ "nodes": [
+  {
+   "id": "file:langgraph/state/news_state.py",
+   "type": "file",
+   "name": "news_state.py",
+   "filePath": "langgraph/state/news_state.py",
+   "summary": "NewsState 定义 - News Intelligence Agent 的数据载体 注意：不含 messages 字段（非对话型 Agent，是处理流水线）。",
+   "tags": [
+    "langgraph",
+    "state",
+    "class"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/state/research_state.py",
+   "type": "file",
+   "name": "research_state.py",
+   "filePath": "langgraph/state/research_state.py",
+   "summary": "AgentState 定义 - 所有 Node 的统一数据载体",
+   "tags": [
+    "langgraph",
+    "state",
+    "class"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/storage/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/storage/__init__.py",
+   "summary": "__init__.py（langgraph/storage）",
+   "tags": [
+    "langgraph",
+    "storage"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/storage/knowledge/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/storage/knowledge/__init__.py",
+   "summary": "Knowledge Storage - 知识存储层（PostgreSQL + Qdrant + Apache AGE）",
+   "tags": [
+    "langgraph",
+    "storage"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/storage/knowledge/age.py",
+   "type": "file",
+   "name": "age.py",
+   "filePath": "langgraph/storage/knowledge/age.py",
+   "summary": "Knowledge AGE Storage - Apache AGE 图同步（Knowledge Agent 专用） 复用 tools.postgres 的连接配置，独立连接池执行 Cypher 写入。 仅用于 Merger 节点双写（异步，失败不阻塞主流程）。 Graph: investment_knowledge_graph",
+   "tags": [
+    "langgraph",
+    "storage",
+    "class",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/storage/knowledge/postgres.py",
+   "type": "file",
+   "name": "postgres.py",
+   "filePath": "langgraph/storage/knowledge/postgres.py",
+   "summary": "Knowledge PostgreSQL Storage - 批量优化写入 + 图查询 复用 tools.postgres.postgres_tool 单例， 所有操作针对多 Schema 架构下的表： core → entities, relations, facts, evidence document → documents",
+   "tags": [
+    "langgraph",
+    "storage",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/storage/knowledge/qdrant.py",
+   "type": "file",
+   "name": "qdrant.py",
+   "filePath": "langgraph/storage/knowledge/qdrant.py",
+   "summary": "Knowledge Qdrant Storage - 批量向量索引 + 语义检索 复用 tools.qdrant.qdrant_tool + tools.embedding.embedding_tool 单例。 Collection: knowledge_entities / knowledge_facts",
+   "tags": [
+    "langgraph",
+    "storage",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/storage/news/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/storage/news/__init__.py",
+   "summary": "__init__.py（langgraph/storage/news）",
+   "tags": [
+    "langgraph",
+    "storage"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/storage/news/postgres.py",
+   "type": "file",
+   "name": "postgres.py",
+   "filePath": "langgraph/storage/news/postgres.py",
+   "summary": "News PostgreSQL Storage - news schema CRUD 复用 tools.postgres.postgres_tool 单例， 所有操作针对 news schema 下的表： news.sources / news.articles / news.entities / news.events / news.relations",
+   "tags": [
+    "langgraph",
+    "storage",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tests/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/tests/__init__.py",
+   "summary": "__init__.py（langgraph/tests）",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tests/api/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/tests/api/__init__.py",
+   "summary": "__init__.py（langgraph/tests/api）",
+   "tags": [
+    "langgraph",
+    "api"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tests/api/test_chat.py",
+   "type": "file",
+   "name": "test_chat.py",
+   "filePath": "langgraph/tests/api/test_chat.py",
+   "summary": "API 端点测试 注意：需要环境变量配置正确。",
+   "tags": [
+    "langgraph",
+    "api",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tests/integration/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/tests/integration/__init__.py",
+   "summary": "__init__.py（langgraph/tests/integration）",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tests/integration/test_graph.py",
+   "type": "file",
+   "name": "test_graph.py",
+   "filePath": "langgraph/tests/integration/test_graph.py",
+   "summary": "Graph 集成测试 - 完整流程测试 注意：需要所有下游服务运行才能执行。",
+   "tags": [
+    "langgraph",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tests/unit/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/tests/unit/__init__.py",
+   "summary": "__init__.py（langgraph/tests/unit）",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tests/unit/test_embedding_tool.py",
+   "type": "file",
+   "name": "test_embedding_tool.py",
+   "filePath": "langgraph/tests/unit/test_embedding_tool.py",
+   "summary": "Embedding Tool 单元测试",
+   "tags": [
+    "langgraph",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tests/unit/test_planner.py",
+   "type": "file",
+   "name": "test_planner.py",
+   "filePath": "langgraph/tests/unit/test_planner.py",
+   "summary": "Planner Node 单元测试",
+   "tags": [
+    "langgraph",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tests/unit/test_qdrant_tool.py",
+   "type": "file",
+   "name": "test_qdrant_tool.py",
+   "filePath": "langgraph/tests/unit/test_qdrant_tool.py",
+   "summary": "Qdrant Tool 单元测试",
+   "tags": [
+    "langgraph",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tests/unit/test_retrieve.py",
+   "type": "file",
+   "name": "test_retrieve.py",
+   "filePath": "langgraph/tests/unit/test_retrieve.py",
+   "summary": "Retrieve Node 单元测试",
+   "tags": [
+    "langgraph",
+    "function"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tools/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "langgraph/tools/__init__.py",
+   "summary": "__init__.py（langgraph/tools）",
+   "tags": [
+    "langgraph",
+    "tool"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tools/chunker.py",
+   "type": "file",
+   "name": "chunker.py",
+   "filePath": "langgraph/tools/chunker.py",
+   "summary": "Chunker - Markdown 文本分片工具 策略: - 按标题层级切分（## / ### 作为自然分界） - 超长段落按 chunk_size 滑动窗口切分 - 保留 overlap 确保上下文连贯 - 每个 chunk 携带 heading 元数据",
+   "tags": [
+    "langgraph",
+    "tool",
+    "function"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tools/docling.py",
+   "type": "file",
+   "name": "docling.py",
+   "filePath": "langgraph/tools/docling.py",
+   "summary": "Docling Tool - 封装 Docling 文档解析服务 支持: - 同步转换（小文件 < 50 页） - 异步转换（大文件，轮询等待） - 连接池 + 超时配置化 - 健康检查",
+   "tags": [
+    "langgraph",
+    "tool",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tools/document_tools.py",
+   "type": "file",
+   "name": "document_tools.py",
+   "filePath": "langgraph/tools/document_tools.py",
+   "summary": "Document Tools - 文档处理语义封装（Docling 解析 + MinIO 存储 + 分片） 在 docling_tool / minio_tool / chunker 之上提供面向 Agent / Node 的 高层文档处理语义，屏蔽各底层工具的调用细节。",
+   "tags": [
+    "langgraph",
+    "tool",
+    "class"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tools/embedding.py",
+   "type": "file",
+   "name": "embedding.py",
+   "filePath": "langgraph/tools/embedding.py",
+   "summary": "Embedding Tool - 统一 Embedding 调用层（Qwen3-Embedding-4B, :8001） 所有需要生成向量的模块必须通过 EmbeddingTool 调用， 禁止业务代码直接使用 httpx / requests / OpenAI SDK。",
+   "tags": [
+    "langgraph",
+    "tool",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "file:langgraph/tools/knowledge_tools.py",
+   "type": "file",
+   "name": "knowledge_tools.py",
+   "filePath": "langgraph/tools/knowledge_tools.py",
+   "summary": "Knowledge Tools - Knowledge MCP Server 调用封装 通过 MCP 协议（JSON-RPC over HTTP POST /mcp, Streamable HTTP）调用 mcp-knowledge 服务（settings.MCP_KNOWLEDGE_URL, 默认 :8200）， 提供知识检索、实体/关系查询等能力。对上层 Agent / Node 隐藏 MCP",
+   "tags": [
+    "langgraph",
+    "tool",
+    "class"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:langgraph/storage/knowledge/age.py",
+   "target": "file:langgraph/config/settings.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/storage/knowledge/postgres.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/storage/knowledge/postgres.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/storage/knowledge/qdrant.py",
+   "target": "file:frontend/src/services/models.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/storage/knowledge/qdrant.py",
+   "target": "file:langgraph/tools/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/storage/knowledge/qdrant.py",
+   "target": "file:langgraph/tools/embedding.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/storage/knowledge/qdrant.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/storage/news/postgres.py",
+   "target": "file:langgraph/tools/postgres.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tests/api/test_chat.py",
+   "target": "file:langgraph/api/server.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tests/api/test_chat.py",
+   "target": "file:langgraph/api/models.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tests/api/test_chat.py",
+   "target": "file:langgraph/api/health.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tests/api/test_chat.py",
+   "target": "file:langgraph/api/chat.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tests/integration/test_graph.py",
+   "target": "file:langgraph/graphs/research_graph.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tests/unit/test_embedding_tool.py",
+   "target": "file:langgraph/tools/embedding.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tests/unit/test_planner.py",
+   "target": "file:langgraph/nodes/research/planner.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tests/unit/test_qdrant_tool.py",
+   "target": "file:langgraph/tools/qdrant.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tests/unit/test_retrieve.py",
+   "target": "file:langgraph/nodes/research/retrieve.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tools/chunker.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tools/docling.py",
+   "target": "file:langgraph/config/settings.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tools/docling.py",
+   "target": "file:langgraph/config/policy_loader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tools/document_tools.py",
+   "target": "file:langgraph/tools/docling.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tools/document_tools.py",
+   "target": "file:langgraph/tools/minio.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tools/document_tools.py",
+   "target": "file:langgraph/tools/chunker.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tools/embedding.py",
+   "target": "file:langgraph/config/settings.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  },
+  {
+   "source": "file:langgraph/tools/knowledge_tools.py",
+   "target": "file:langgraph/config/settings.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "imports"
+  }
+ ]
+}

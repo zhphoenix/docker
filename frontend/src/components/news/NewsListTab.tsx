@@ -153,7 +153,7 @@ export function NewsListTab() {
         </div>
         <Select
           value={category}
-          onValueChange={(v) => { setCategory(v === 'all' ? '' : v); setPage(0) }}
+          onValueChange={(v) => { setCategory(v === 'all' ? '' : (v ?? '')); setPage(0) }}
         >
           <SelectTrigger className="w-[130px]">
             <SelectValue placeholder="全部分类" />
@@ -167,7 +167,7 @@ export function NewsListTab() {
             ))}
           </SelectContent>
         </Select>
-        <Select value={days} onValueChange={(v) => { setDays(v); setPage(0) }}>
+        <Select value={days} onValueChange={(v) => { setDays(v ?? ''); setPage(0) }}>
           <SelectTrigger className="w-[130px]">
             <SelectValue />
           </SelectTrigger>

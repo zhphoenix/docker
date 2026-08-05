@@ -8,6 +8,7 @@ Jobs:
   - news_collect_high: 每 30 分钟采集高优先级新闻源（RSS）
   - news_collect_normal: 每 2 小时采集普通新闻源（Crawler）
   - news_collect_low: 每 6 小时采集低优先级新闻源
+  - watchlist_daily: 每日 Watchlist 监控（时间/开关由 watchlist_settings 配置）
 """
 
 import logging
@@ -221,6 +222,85 @@ async def _job_news_collect(priority: str = "high"):
         logger.error("[Scheduler] News collection failed | %s", e)
 
 
+async def _job_watchlist_daily():
+    """每日 Watchlist 自选股监控任务
+
+    读取 watchlist_settings 的 schedule_time 与 auto_enabled 决定时间与开关。
+    任务内以 asyncio.create_task 异步执行监控主流程，避免阻塞调度循环。
+    注：job 是否注册由 start_scheduler/resync_watchlist_job 控制，
+    此处仅当 auto_enabled 开启时才会被调度器触发。
+    """
+    from tools.postgres import postgres_tool
+
+    logger.info("[Scheduler] Watchlist daily triggered")
+    try:
+        rows = await postgres_tool.query(
+            "SELECT auto_enabled FROM watchlist.watchlist_settings WHERE id = 1"
+        )
+        if rows and not rows[0].get("auto_enabled", True):
+            logger.info("[Scheduler] Watchlist auto disabled, skip")
+            return
+    except Exception as e:  # noqa: BLE001
+        logger.error("[Scheduler] Watchlist settings check failed | %s", e)
+        return
+
+    # 异步执行监控主流程（采集/入库/报告/告警）
+    async def _wrapped():
+        try:
+            from monitoring.watchlist_monitor import run_watchlist_monitoring
+            result = await run_watchlist_monitoring()
+            logger.info("[Scheduler] Watchlist monitoring done | %s", result)
+        except Exception as e:  # noqa: BLE001
+            logger.error("[Scheduler] Watchlist monitoring failed | %s", e)
+
+    import asyncio
+    asyncio.create_task(_wrapped())
+
+
+async def resync_watchlist_job() -> None:
+    """按 watchlist_settings 重新注册 watchlist_daily job
+
+    在 PUT /api/watchlist/config 修改 schedule_time / auto_enabled 后调用：
+    - auto_enabled=false 时移除 job；
+    - 否则按 schedule_time 重设 cron 触发（replace_existing）。
+    """
+    global _scheduler
+    if _scheduler is None:
+        logger.info("[Scheduler] Scheduler not started, skip resync")
+        return
+
+    try:
+        from tools.postgres import postgres_tool
+
+        rows = await postgres_tool.query(
+            "SELECT schedule_time, auto_enabled FROM watchlist.watchlist_settings WHERE id = 1"
+        )
+        if not rows:
+            logger.warning("[Scheduler] Watchlist settings row missing")
+            return
+
+        cfg = rows[0]
+        auto_enabled = bool(cfg.get("auto_enabled", True))
+        schedule_time = str(cfg.get("schedule_time") or "07:00")
+        hour, minute = schedule_time.split(":")[:2]
+
+        if auto_enabled:
+            _scheduler.add_job(
+                _job_watchlist_daily,
+                trigger=CronTrigger(hour=int(hour), minute=int(minute)),
+                id="watchlist_daily",
+                name="Watchlist Daily Monitoring",
+                replace_existing=True,
+            )
+            logger.info("[Scheduler] Watchlist job resynced | daily %s", schedule_time)
+        else:
+            if _scheduler.get_job("watchlist_daily"):
+                _scheduler.remove_job("watchlist_daily")
+            logger.info("[Scheduler] Watchlist job removed (auto disabled)")
+    except Exception as e:  # noqa: BLE001
+        logger.error("[Scheduler] Watchlist resync failed | %s", e)
+
+
 async def _job_news_lifecycle():
     """DLM 新闻生命周期维护任务
 
@@ -320,6 +400,18 @@ def start_scheduler() -> None:
         name="News Lifecycle Maintenance",
         replace_existing=True,
     )
+
+    # ── Watchlist 每日监控（按 watchlist_settings 配置） ──
+    # start_scheduler 为同步函数，需通过当前事件循环调度异步 resync
+    import asyncio
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            loop.create_task(resync_watchlist_job())
+        else:
+            loop.run_until_complete(resync_watchlist_job())
+    except RuntimeError as e:
+        logger.warning("[Scheduler] Watchlist resync skipped | %s", e)
 
     _scheduler.start()
     logger.info("[Scheduler] Started with %d jobs", len(_scheduler.get_jobs()))

@@ -34,7 +34,7 @@ import {
   fetchTaskDetail,
   retryTask,
   triggerBatchEmbed,
-  reindexDocument,
+  reembedDocument,
 } from '@/services/tasks'
 import type { TaskInfo } from '@/services/tasks'
 import { cn } from '@/lib/utils'
@@ -46,7 +46,7 @@ const TASK_TYPE_LABELS: Record<string, string> = {
   doc_pipeline: '文档处理 Pipeline',
   batch_embed: '批量向量化',
   approval: 'Inbox 审核',
-  reindex: '重新索引',
+  're-embed': '重新向量化',
 }
 
 const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -211,15 +211,15 @@ export function KnowledgeTasksPanel({ focusTaskId }: KnowledgeTasksPanelProps) {
     },
   })
 
-  const reindexMutation = useMutation({
-    mutationFn: (documentId: string) => reindexDocument(documentId),
+  const reembedMutation = useMutation({
+    mutationFn: (documentId: string) => reembedDocument(documentId),
     onSuccess: () => {
-      setTriggerMsg({ type: 'success', msg: '已触发重新索引任务' })
+      setTriggerMsg({ type: 'success', msg: '已触发重新向量化任务' })
       queryClient.invalidateQueries({ queryKey: ['knowledge-tasks'] })
       setTimeout(() => setTriggerMsg(null), 5000)
     },
     onError: (err: Error) => {
-      setTriggerMsg({ type: 'error', msg: err.message || '重新索引触发失败' })
+      setTriggerMsg({ type: 'error', msg: err.message || '重新向量化触发失败' })
     },
   })
 
@@ -229,12 +229,12 @@ export function KnowledgeTasksPanel({ focusTaskId }: KnowledgeTasksPanelProps) {
     retryMutation.mutate(task.id)
   }
 
-  const handleReindex = () => {
+  const handleReembed = () => {
     if (!docId.trim()) {
-      setTriggerMsg({ type: 'error', msg: '请输入要重新索引的文档 ID' })
+      setTriggerMsg({ type: 'error', msg: '请输入要重新向量化的文档 ID' })
       return
     }
-    reindexMutation.mutate(docId.trim())
+    reembedMutation.mutate(docId.trim())
   }
 
   return (
@@ -276,7 +276,7 @@ export function KnowledgeTasksPanel({ focusTaskId }: KnowledgeTasksPanelProps) {
             <SelectItem value="knowledge_extraction">知识提取</SelectItem>
             <SelectItem value="doc_pipeline">文档处理 Pipeline</SelectItem>
             <SelectItem value="batch_embed">批量向量化</SelectItem>
-            <SelectItem value="reindex">重新索引</SelectItem>
+            <SelectItem value="re-embed">重新向量化</SelectItem>
             <SelectItem value="approval">Inbox 审核</SelectItem>
           </SelectContent>
         </Select>
@@ -290,7 +290,7 @@ export function KnowledgeTasksPanel({ focusTaskId }: KnowledgeTasksPanelProps) {
           刷新
         </Button>
 
-        {/* 触发入口：批量向量化 / 重新索引 */}
+        {/* 触发入口：批量向量化 / 重新向量化 */}
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
@@ -308,17 +308,17 @@ export function KnowledgeTasksPanel({ focusTaskId }: KnowledgeTasksPanelProps) {
               className="h-8 w-36"
               value={docId}
               onChange={(e) => setDocId(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleReindex()}
+              onKeyDown={(e) => e.key === 'Enter' && handleReembed()}
             />
             <Button
               variant="outline"
               size="sm"
               className="gap-1.5"
-              onClick={handleReindex}
-              disabled={reindexMutation.isPending}
+              onClick={handleReembed}
+              disabled={reembedMutation.isPending}
             >
               <RefreshCcw className="size-3.5" />
-              {reindexMutation.isPending ? '索引中...' : '重新索引'}
+              {reembedMutation.isPending ? '向量化中...' : '重新向量化'}
             </Button>
           </div>
         </div>

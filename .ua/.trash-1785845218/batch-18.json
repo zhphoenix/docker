@@ -1,0 +1,149 @@
+{
+ "nodes": [
+  {
+   "id": "resource:postgres/init/01-init.sql",
+   "type": "resource",
+   "name": "01-init.sql",
+   "filePath": "postgres/init/01-init.sql",
+   "summary": "01-init.sql（postgres/init）",
+   "tags": [
+    "postgres"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:postgres/init/02-migrate-tables.sql",
+   "type": "resource",
+   "name": "02-migrate-tables.sql",
+   "filePath": "postgres/init/02-migrate-tables.sql",
+   "summary": "02-migrate-tables.sql（postgres/init）",
+   "tags": [
+    "postgres"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:postgres/init/03-financial-statements.sql",
+   "type": "resource",
+   "name": "03-financial-statements.sql",
+   "filePath": "postgres/init/03-financial-statements.sql",
+   "summary": "03-financial-statements.sql（postgres/init）",
+   "tags": [
+    "postgres"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:postgres/init/04-web-pages.sql",
+   "type": "resource",
+   "name": "04-web-pages.sql",
+   "filePath": "postgres/init/04-web-pages.sql",
+   "summary": "04-web-pages.sql（postgres/init）",
+   "tags": [
+    "postgres"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:postgres/init/05-web-chunks.sql",
+   "type": "resource",
+   "name": "05-web-chunks.sql",
+   "filePath": "postgres/init/05-web-chunks.sql",
+   "summary": "05-web-chunks.sql（postgres/init）",
+   "tags": [
+    "postgres"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:postgres/init/06-knowledge-schema.sql",
+   "type": "resource",
+   "name": "06-knowledge-schema.sql",
+   "filePath": "postgres/init/06-knowledge-schema.sql",
+   "summary": "06-knowledge-schema.sql（postgres/init）",
+   "tags": [
+    "postgres"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:postgres/init/07-knowledge-database.sql",
+   "type": "resource",
+   "name": "07-knowledge-database.sql",
+   "filePath": "postgres/init/07-knowledge-database.sql",
+   "summary": "07-knowledge-database.sql（postgres/init）",
+   "tags": [
+    "postgres"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:postgres/init/08-age-init.sql",
+   "type": "resource",
+   "name": "08-age-init.sql",
+   "filePath": "postgres/init/08-age-init.sql",
+   "summary": "08-age-init.sql（postgres/init）",
+   "tags": [
+    "postgres"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:postgres/init/09-news-schema.sql",
+   "type": "resource",
+   "name": "09-news-schema.sql",
+   "filePath": "postgres/init/09-news-schema.sql",
+   "summary": "09-news-schema.sql（postgres/init）",
+   "tags": [
+    "postgres"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:postgres/init/10-news-tier.sql",
+   "type": "resource",
+   "name": "10-news-tier.sql",
+   "filePath": "postgres/init/10-news-tier.sql",
+   "summary": "10-news-tier.sql（postgres/init）",
+   "tags": [
+    "postgres"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:postgres/init/11-knowledge-siyuan.sql",
+   "type": "resource",
+   "name": "11-knowledge-siyuan.sql",
+   "filePath": "postgres/init/11-knowledge-siyuan.sql",
+   "summary": "11-knowledge-siyuan.sql（postgres/init）",
+   "tags": [
+    "postgres"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:postgres/init/12-task-logs.sql",
+   "type": "resource",
+   "name": "12-task-logs.sql",
+   "filePath": "postgres/init/12-task-logs.sql",
+   "summary": "12-task-logs.sql（postgres/init）",
+   "tags": [
+    "postgres"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

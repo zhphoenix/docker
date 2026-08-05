@@ -1,0 +1,17 @@
+{
+ "nodes": [
+  {
+   "id": "resource:postgres/Dockerfile",
+   "type": "resource",
+   "name": "Dockerfile",
+   "filePath": "postgres/Dockerfile",
+   "summary": "Dockerfile（postgres）",
+   "tags": [
+    "postgres"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

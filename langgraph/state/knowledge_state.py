@@ -1,4 +1,4 @@
-"""KnowledgeState 定义 - Knowledge Organization Agent 的数据载体
+"""KnowledgeState 定义 - Knowledge Ingestion Agent 的数据载体
 
 注意：不含 messages 字段（非对话型 Agent，是处理流水线）。
 """

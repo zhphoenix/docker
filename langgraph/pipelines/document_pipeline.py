@@ -330,8 +330,8 @@ class DocumentPipeline:
         )
         return {r["status"]: r["cnt"] for r in rows}
 
-    async def reindex_document(self, doc_id: str) -> bool:
-        """重新索引单个文档（清除旧 Qdrant 向量 + 旧 chunks + 重新处理）"""
+    async def reembed_document(self, doc_id: str) -> bool:
+        """重新向量化单个文档（清除旧 Qdrant 向量 + 旧 chunks + 重新处理）"""
         # 先删 Qdrant 旧向量（按 collection 分组），避免重索引后新旧向量并存
         try:
             rows = await postgres_tool.query(
@@ -344,7 +344,7 @@ class DocumentPipeline:
             for coll, ids in by_coll.items():
                 await qdrant_tool.delete_points(coll, ids)
         except Exception as e:
-            logger.warning("Reindex: Qdrant old points cleanup failed | %s | %s", doc_id[:8], e)
+            logger.warning("Re-embed: Qdrant old points cleanup failed | %s | %s", doc_id[:8], e)
 
         # 删除旧 chunks
         await postgres_tool.execute(
@@ -362,7 +362,8 @@ class DocumentPipeline:
     )
 
     async def register_pending_from_minio(
-        self, bucket: str = "documents", prefix: str = "", market: str = ""
+        self, bucket: str = "documents", prefix: str = "", market: str = "",
+        task_id: str = "",
     ) -> dict[str, int]:
         """扫描 MinIO 桶，把年报对象注册为 pending documents（幂等）
 
@@ -370,8 +371,10 @@ class DocumentPipeline:
         已存在（按 object_key 判重）或无法解析路径的对象跳过；
         已存在但处于失败态的记录重置为 pending（计入 reset）。
 
+        task_id 非空时启用协作式控制：逐对象上报进度、支持暂停/取消。
+
         Returns:
-            {"added": N, "skipped": M, "found": K, "reset": R}
+            {"added": N, "skipped": M, "found": K, "reset": R, "cancelled": bool}
         """
         object_keys = await minio_tool.list_objects(bucket, prefix)
         if market:
@@ -382,10 +385,22 @@ class DocumentPipeline:
         skipped = 0
         reset = 0
 
-        for key in object_keys:
+        # 异步任务模式下先设定总数，供进度百分比计算
+        if task_id:
+            await task_queue.set_total_items(task_id, found)
+
+        for i, key in enumerate(object_keys, start=1):
+            # 协作式取消/暂停（仅 task_id 非空时生效）
+            if task_id:
+                if task_queue.is_cancelled(task_id):
+                    logger.info("[IngestMinio] %s cancelled by user", task_id[:8])
+                    break
+                await task_queue.wait_if_paused(task_id)
+
             m = self._ANNUAL_REPORT_RE.match(key)
             if not m:
                 skipped += 1
+                await self._report_progress(task_id, i, found, key, added, skipped, reset)
                 continue
 
             mkt = m.group("market")
@@ -394,6 +409,7 @@ class DocumentPipeline:
                 year = int(m.group("year"))
             except ValueError:
                 skipped += 1
+                await self._report_progress(task_id, i, found, key, added, skipped, reset)
                 continue
             doc_type = "annual_report" if key.endswith(".pdf") else "markdown"
 
@@ -412,6 +428,7 @@ class DocumentPipeline:
                     reset += 1
                 else:
                     skipped += 1
+                await self._report_progress(task_id, i, found, key, added, skipped, reset)
                 continue
 
             doc_id = str(uuid.uuid4())
@@ -432,12 +449,30 @@ class DocumentPipeline:
                 "Registered pending doc | %s | %s/%s | year=%d",
                 doc_id[:8], mkt, symbol, year,
             )
+            await self._report_progress(task_id, i, found, key, added, skipped, reset)
 
         logger.info(
             "MinIO pending registration done | bucket=%s prefix=%r | found=%d added=%d skipped=%d reset=%d",
             bucket, prefix, found, added, skipped, reset,
         )
-        return {"added": added, "skipped": skipped, "found": found, "reset": reset}
+        cancelled = task_id and task_queue.is_cancelled(task_id)
+        return {
+            "added": added, "skipped": skipped, "found": found, "reset": reset,
+            "cancelled": bool(cancelled),
+        }
+
+    @staticmethod
+    async def _report_progress(
+        task_id: str, i: int, found: int, key: str,
+        added: int, skipped: int, reset: int,
+    ) -> None:
+        """异步任务模式下上报单个对象处理进度（task_id 为空时跳过）"""
+        if not task_id:
+            return
+        stage = f"{i}/{found} · 新增{added} 跳过{skipped} 重置{reset}"
+        await task_queue.update_progress(
+            task_id, current_item=i, stage=stage, current_name=key,
+        )
 
 
 # 模块级单例

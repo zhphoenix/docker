@@ -60,7 +60,7 @@ export function TimelineTab() {
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           />
         </div>
-        <Select value={days} onValueChange={setDays}>
+        <Select value={days} onValueChange={(v) => setDays(v ?? '')}>
           <SelectTrigger className="w-[120px]">
             <SelectValue />
           </SelectTrigger>

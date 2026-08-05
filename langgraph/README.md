@@ -58,7 +58,7 @@ langgraph/
 │   ├── llm.py / embedding.py / reranker.py
 │   ├── qdrant.py / postgres.py / minio.py / docling.py / chunker.py
 │   ├── market_tools.py         #   金融数据（AKShare/yfinance，原 financial_data）
-│   ├── knowledge_tools.py      #   MCP Knowledge Server 调用
+│   ├── knowledge_tools.py      #   Knowledge MCP Server 调用
 │   ├── search_tools.py         #   检索+重排序组合
 │   └── document_tools.py       #   文档解析/存储/分片组合
 │

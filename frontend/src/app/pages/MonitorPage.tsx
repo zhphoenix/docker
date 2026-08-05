@@ -119,7 +119,7 @@ const SERVICES: ServiceInfo[] = [
   {
     name: 'open-webui',
     label: 'Open WebUI',
-    port: '3001',
+    port: '3000',
     icon: MessageSquare,
     category: 'application',
     command: 'docker compose up -d open-webui',
@@ -182,10 +182,14 @@ export default function MonitorPage() {
 
   const getStatus = (name: string): 'up' | 'down' | 'unknown' => {
     if (!backendReachable) return 'unknown'
+    // langgraph 是健康检查宿主（自身不探测自身），能返回 /health 即代表在线
+    if (name === 'langgraph') return 'up'
     return services[name] === 'up' ? 'up' : 'down'
   }
 
-  const upCount = Object.values(services).filter((s) => s === 'up').length
+  const upCount =
+    Object.values(services).filter((s) => s === 'up').length +
+    (backendReachable ? 1 : 0) // langgraph 宿主本身
   const totalCount = SERVICES.length
 
   return (

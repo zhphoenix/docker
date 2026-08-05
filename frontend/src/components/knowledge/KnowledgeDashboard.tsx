@@ -58,7 +58,7 @@ const TASK_TYPE_LABELS: Record<string, string> = {
   doc_pipeline: '文档 Pipeline',
   batch_embed: '批量向量化',
   approval: 'Inbox 审核',
-  reindex: '重新索引',
+  're-embed': '重新向量化',
 }
 
 const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {

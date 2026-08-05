@@ -1,0 +1,4266 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "louvain",
+  "totalFiles": 403,
+  "totalBatches": 32,
+  "exportsByPath": {
+    ".ua/.understandignore": [],
+    "frontend/src/app/pages/AgentsPage.tsx": [
+      "AgentsPage"
+    ],
+    "frontend/src/app/pages/ChatPage.tsx": [
+      "ChatPage"
+    ],
+    "frontend/src/app/pages/DashboardPage.tsx": [
+      "DashboardPage"
+    ],
+    "frontend/src/app/pages/DocumentsPage.tsx": [
+      "DocumentsPage"
+    ],
+    "frontend/src/app/pages/KnowledgePage.tsx": [
+      "KnowledgePage"
+    ],
+    "frontend/src/app/pages/KnowledgeReviewPage.tsx": [
+      "KnowledgeReviewPage"
+    ],
+    "frontend/src/app/pages/ModelsPage.tsx": [
+      "ModelsPage"
+    ],
+    "frontend/src/app/pages/MonitorPage.tsx": [
+      "MonitorPage"
+    ],
+    "frontend/src/app/pages/NewsPage.tsx": [
+      "NewsPage"
+    ],
+    "frontend/src/app/pages/ResearchPage.tsx": [
+      "ResearchPage"
+    ],
+    "frontend/src/app/pages/SettingsPage.tsx": [
+      "SettingsPage"
+    ],
+    "frontend/src/app/pages/VectorDbPage.tsx": [
+      "VectorDbPage"
+    ],
+    "frontend/src/app/pages/WorkflowPage.tsx": [
+      "WorkflowPage"
+    ],
+    "frontend/src/app/router.tsx": [
+      "router"
+    ],
+    "frontend/src/components/common/EmptyState.tsx": [
+      "EmptyState"
+    ],
+    "frontend/src/components/health/HealthProvider.tsx": [
+      "HEALTH_QUERY_KEY",
+      "HealthProvider"
+    ],
+    "frontend/src/components/knowledge/CollectionGrid.tsx": [
+      "CollectionGrid"
+    ],
+    "frontend/src/components/knowledge/EntityBrowser.tsx": [
+      "EntityBrowser"
+    ],
+    "frontend/src/components/knowledge/EntityDetailDialog.tsx": [
+      "EntityDetailDialog"
+    ],
+    "frontend/src/components/knowledge/KnowledgeDashboard.tsx": [
+      "KnowledgeDashboard"
+    ],
+    "frontend/src/components/knowledge/KnowledgeTasksPanel.tsx": [
+      "KnowledgeTasksPanel"
+    ],
+    "frontend/src/components/knowledge/SemanticSearchPanel.tsx": [
+      "SemanticSearchPanel"
+    ],
+    "frontend/src/components/layout/AppShell.tsx": [
+      "AppShell"
+    ],
+    "frontend/src/components/layout/CommandPalette.tsx": [
+      "CommandPalette"
+    ],
+    "frontend/src/components/layout/Header.tsx": [
+      "Header"
+    ],
+    "frontend/src/components/layout/Sidebar.tsx": [
+      "Sidebar"
+    ],
+    "frontend/src/components/layout/StatusBar.tsx": [
+      "StatusBar"
+    ],
+    "frontend/src/components/news/ArticleDetailDialog.tsx": [
+      "ArticleDetailDialog"
+    ],
+    "frontend/src/components/news/EventsTab.tsx": [
+      "EventsTab"
+    ],
+    "frontend/src/components/news/ImpactTab.tsx": [
+      "ImpactTab"
+    ],
+    "frontend/src/components/news/NewsListTab.tsx": [
+      "NewsListTab"
+    ],
+    "frontend/src/components/news/TimelineTab.tsx": [
+      "TimelineTab"
+    ],
+    "frontend/src/components/ui/badge.tsx": [
+      "Badge",
+      "badgeVariants"
+    ],
+    "frontend/src/components/ui/button.tsx": [
+      "Button",
+      "buttonVariants"
+    ],
+    "frontend/src/components/ui/card.tsx": [
+      "Card",
+      "CardHeader",
+      "CardFooter",
+      "CardTitle",
+      "CardAction",
+      "CardDescription",
+      "CardContent"
+    ],
+    "frontend/src/components/ui/command.tsx": [
+      "Command",
+      "CommandDialog",
+      "CommandInput",
+      "CommandList",
+      "CommandEmpty",
+      "CommandGroup",
+      "CommandItem",
+      "CommandSeparator"
+    ],
+    "frontend/src/components/ui/dialog.tsx": [
+      "Dialog",
+      "DialogClose",
+      "DialogContent",
+      "DialogDescription",
+      "DialogFooter",
+      "DialogHeader",
+      "DialogOverlay",
+      "DialogPortal",
+      "DialogTitle",
+      "DialogTrigger"
+    ],
+    "frontend/src/components/ui/input.tsx": [
+      "Input"
+    ],
+    "frontend/src/components/ui/progress.tsx": [
+      "Progress",
+      "ProgressTrack",
+      "ProgressIndicator",
+      "ProgressLabel",
+      "ProgressValue"
+    ],
+    "frontend/src/components/ui/resizable.tsx": [
+      "ResizablePanelGroup",
+      "ResizablePanel",
+      "ResizableHandle"
+    ],
+    "frontend/src/components/ui/scroll-area.tsx": [
+      "ScrollArea",
+      "ScrollBar"
+    ],
+    "frontend/src/components/ui/select.tsx": [
+      "Select",
+      "SelectContent",
+      "SelectGroup",
+      "SelectItem",
+      "SelectLabel",
+      "SelectScrollDownButton",
+      "SelectScrollUpButton",
+      "SelectSeparator",
+      "SelectTrigger",
+      "SelectValue"
+    ],
+    "frontend/src/components/ui/separator.tsx": [
+      "Separator"
+    ],
+    "frontend/src/components/ui/skeleton.tsx": [
+      "Skeleton"
+    ],
+    "frontend/src/components/ui/table.tsx": [
+      "Table",
+      "TableHeader",
+      "TableBody",
+      "TableFooter",
+      "TableHead",
+      "TableRow",
+      "TableCell",
+      "TableCaption"
+    ],
+    "frontend/src/components/ui/tabs.tsx": [
+      "Tabs",
+      "TabsList",
+      "TabsTrigger",
+      "TabsContent",
+      "tabsListVariants"
+    ],
+    "frontend/src/components/ui/textarea.tsx": [
+      "Textarea"
+    ],
+    "frontend/src/components/ui/tooltip.tsx": [
+      "Tooltip",
+      "TooltipTrigger",
+      "TooltipContent",
+      "TooltipProvider"
+    ],
+    "frontend/src/hooks/useDebounce.ts": [
+      "useDebounce"
+    ],
+    "frontend/src/lib/utils.ts": [
+      "cn"
+    ],
+    "frontend/src/main.tsx": [],
+    "frontend/src/services/agents.ts": [
+      "fetchAgents"
+    ],
+    "frontend/src/services/api-client.ts": [
+      "ApiError",
+      "apiFetch"
+    ],
+    "frontend/src/services/approvals.ts": [
+      "fetchPendingApprovals",
+      "approveApproval",
+      "rejectApproval"
+    ],
+    "frontend/src/services/chat.ts": [
+      "streamChatCompletion"
+    ],
+    "frontend/src/services/documents.ts": [
+      "DOCUMENT_STATUS_LABELS",
+      "fetchDocuments",
+      "fetchDocumentStats",
+      "fetchDocumentDetail",
+      "fetchDocumentChunks",
+      "fetchDocumentEntities",
+      "deleteDocument",
+      "uploadDocumentPdf",
+      "uploadFolderPdf"
+    ],
+    "frontend/src/services/health.ts": [
+      "fetchHealth"
+    ],
+    "frontend/src/services/knowledge.ts": [
+      "fetchKnowledgeCollections",
+      "fetchKnowledgeStats",
+      "fetchEntities",
+      "fetchEntityDetail",
+      "fetchEntityNeighbors",
+      "fetchFacts",
+      "searchKnowledge",
+      "graphragSearch",
+      "triggerIngest",
+      "triggerExtraction",
+      "triggerIngestMinio",
+      "fetchBrowseDirs",
+      "fetchPathMapping"
+    ],
+    "frontend/src/services/models.ts": [
+      "fetchModels"
+    ],
+    "frontend/src/services/news.ts": [
+      "fetchNewsArticles",
+      "fetchNewsArticle",
+      "fetchNewsEvents",
+      "fetchEventImpact",
+      "fetchNewsImpact",
+      "fetchNewsTimeline",
+      "fetchNewsSources",
+      "triggerNewsCollect"
+    ],
+    "frontend/src/services/query-client.ts": [
+      "queryClient"
+    ],
+    "frontend/src/services/reports.ts": [
+      "fetchReports",
+      "fetchReportDetail",
+      "triggerAnalysis"
+    ],
+    "frontend/src/services/research.ts": [
+      "fetchResearch",
+      "fetchResearchDetail"
+    ],
+    "frontend/src/services/tasks.ts": [
+      "fetchTasks",
+      "fetchTaskDetail",
+      "retryTask",
+      "fetchTaskLogs",
+      "cancelTask",
+      "pauseTask",
+      "resumeTask",
+      "deleteTask",
+      "cloneTask",
+      "fetchTaskStats",
+      "fetchWorkers",
+      "fetchSchedule",
+      "triggerPipeline",
+      "triggerBatchEmbed",
+      "reembedDocument",
+      "fetchPipelineStatus"
+    ],
+    "frontend/src/services/vector.ts": [
+      "fetchVectorCollections"
+    ],
+    "frontend/src/stores/app-store.ts": [
+      "useAppStore"
+    ],
+    "frontend/src/stores/chat-store.ts": [
+      "useChatStore"
+    ],
+    "frontend/src/theme/ThemeProvider.tsx": [
+      "ThemeProvider",
+      "useTheme"
+    ],
+    "frontend/vite.config.ts": [],
+    "langgraph/agents/__init__.py": [],
+    "langgraph/agents/base_agent.py": [
+      "BaseAgent",
+      "_build_context"
+    ],
+    "langgraph/agents/chat_agent.py": [
+      "ChatAgent"
+    ],
+    "langgraph/agents/investment_agent.py": [
+      "InvestmentAgent"
+    ],
+    "langgraph/agents/kb_agent.py": [
+      "KBAgent"
+    ],
+    "langgraph/agents/research_agent.py": [
+      "ResearchAgent"
+    ],
+    "langgraph/api/__init__.py": [],
+    "langgraph/api/agents.py": [
+      "list_agents"
+    ],
+    "langgraph/api/approvals.py": [
+      "_get_approval_params",
+      "_approve_knowledge_inbox",
+      "RejectRequest",
+      "get_approvals",
+      "approve_task",
+      "reject_task"
+    ],
+    "langgraph/api/chat.py": [
+      "chat_completions"
+    ],
+    "langgraph/api/documents.py": [
+      "_doc_row_to_dict",
+      "document_stats",
+      "list_documents",
+      "_get_document_or_404",
+      "get_document",
+      "get_document_chunks",
+      "get_document_entities",
+      "delete_document",
+      "_purge_document_resources",
+      "CleanupRequest",
+      "RetryFailedRequest",
+      "download_document_file",
+      "cleanup_documents",
+      "retry_failed_documents",
+      "upload_document",
+      "_infer_market_from_path",
+      "_parse_pdf_filename",
+      "upload_folder_pdfs",
+      "_run_upload_folder_sync",
+      "_run_upload_folder_async"
+    ],
+    "langgraph/api/health.py": [
+      "_check_http",
+      "_check_mcp",
+      "health_check",
+      "metrics",
+      "status_summary"
+    ],
+    "langgraph/api/knowledge.py": [
+      "list_collections",
+      "knowledge_stats",
+      "list_entities",
+      "get_entity_detail",
+      "get_entity_neighbors",
+      "list_facts",
+      "HybridSearchRequest",
+      "hybrid_search",
+      "GraphRAGRequest",
+      "_build_rag_context",
+      "graphrag_search",
+      "ExtractRequest",
+      "trigger_extraction",
+      "browse_dirs",
+      "path_mapping",
+      "MinioIngestRequest",
+      "trigger_ingest_minio",
+      "_run_ingest_minio_async",
+      "IngestRequest",
+      "_run_ingest",
+      "trigger_ingest"
+    ],
+    "langgraph/api/models.py": [
+      "list_models"
+    ],
+    "langgraph/api/news.py": [
+      "_serialize",
+      "list_articles",
+      "get_article",
+      "list_events",
+      "get_event_impact",
+      "analyze_impact",
+      "get_timeline",
+      "CollectRequest",
+      "_run_collection",
+      "trigger_collect",
+      "list_sources"
+    ],
+    "langgraph/api/path_utils.py": [
+      "_is_windows_path",
+      "_windows_to_wsl",
+      "_wsl_to_container",
+      "normalize_path",
+      "validate_container_path",
+      "get_volume_mapping_info"
+    ],
+    "langgraph/api/providers.py": [
+      "ProviderOut",
+      "list_providers",
+      "get_provider",
+      "test_provider"
+    ],
+    "langgraph/api/reports.py": [
+      "parse_filename",
+      "build_report_id",
+      "scan_reports",
+      "list_reports",
+      "get_report",
+      "AnalyzeRequest",
+      "trigger_analysis",
+      "_run_analysis"
+    ],
+    "langgraph/api/research.py": [
+      "list_research",
+      "get_research"
+    ],
+    "langgraph/api/server.py": [
+      "lifespan",
+      "add_request_id",
+      "global_exception_handler"
+    ],
+    "langgraph/api/tasks.py": [
+      "TriggerPipelineRequest",
+      "ReembedRequest",
+      "BatchEmbedRequest",
+      "list_tasks",
+      "pipeline_status",
+      "trigger_pipeline",
+      "trigger_batch_embed",
+      "reembed_document",
+      "worker_status",
+      "schedule_list",
+      "task_stats",
+      "get_task",
+      "get_task_logs",
+      "pause_task",
+      "resume_task",
+      "cancel_task",
+      "delete_task",
+      "clone_task",
+      "retry_task"
+    ],
+    "langgraph/api/vector.py": [
+      "list_vector_collections"
+    ],
+    "langgraph/collectors/__init__.py": [],
+    "langgraph/collectors/rss_collector.py": [
+      "collect_rss"
+    ],
+    "langgraph/collectors/source_registry.py": [
+      "NewsSource",
+      "SourceRegistry"
+    ],
+    "langgraph/collectors/web_collector.py": [
+      "_get_provider",
+      "collect_web",
+      "close"
+    ],
+    "langgraph/config/__init__.py": [],
+    "langgraph/config/policy_loader.py": [
+      "_load_policies",
+      "get_policy",
+      "get_routing_rules",
+      "get_rate_limit",
+      "get_retry_config",
+      "_load_yaml_file",
+      "get_agents_registry",
+      "get_workflows_registry"
+    ],
+    "langgraph/config/settings.py": [
+      "Settings"
+    ],
+    "langgraph/graphs/__init__.py": [
+      "_resolve_builder",
+      "get_graph",
+      "get_research_graph",
+      "get_chat_graph",
+      "get_kb_graph",
+      "get_news_graph",
+      "get_knowledge_graph",
+      "get_document_graph",
+      "list_workflows"
+    ],
+    "langgraph/graphs/document_graph.py": [
+      "process",
+      "build_document_graph"
+    ],
+    "langgraph/graphs/knowledge_graph.py": [
+      "_timed",
+      "build_knowledge_ingestion_graph"
+    ],
+    "langgraph/graphs/news_analysis_graph.py": [
+      "_timed",
+      "build_news_intelligence_graph",
+      "get_news_graph"
+    ],
+    "langgraph/graphs/research_graph.py": [
+      "should_continue",
+      "build_research_graph",
+      "build_chat_graph",
+      "build_kb_graph"
+    ],
+    "langgraph/main.py": [],
+    "langgraph/memory/__init__.py": [],
+    "langgraph/memory/checkpoint.py": [
+      "get_checkpointer"
+    ],
+    "langgraph/memory/memory_store.py": [
+      "MemoryManager"
+    ],
+    "langgraph/memory/thread_manager.py": [
+      "new_thread_id",
+      "build_run_config"
+    ],
+    "langgraph/nodes/__init__.py": [],
+    "langgraph/nodes/knowledge/__init__.py": [],
+    "langgraph/nodes/knowledge/entity.py": [
+      "entity_extractor",
+      "_parse_entities"
+    ],
+    "langgraph/nodes/knowledge/fact.py": [
+      "fact_extractor",
+      "_parse_facts"
+    ],
+    "langgraph/nodes/knowledge/merger.py": [
+      "knowledge_merger"
+    ],
+    "langgraph/nodes/knowledge/parser.py": [
+      "document_parser"
+    ],
+    "langgraph/nodes/knowledge/relation.py": [
+      "relation_extractor",
+      "_parse_relations"
+    ],
+    "langgraph/nodes/knowledge/validator.py": [
+      "knowledge_validator"
+    ],
+    "langgraph/nodes/news/__init__.py": [],
+    "langgraph/nodes/news/classifier.py": [
+      "_score_to_tier",
+      "news_classifier"
+    ],
+    "langgraph/nodes/news/cleaner.py": [
+      "_detect_language",
+      "_clean_content",
+      "_content_hash",
+      "news_cleaner"
+    ],
+    "langgraph/nodes/news/deduplicator.py": [
+      "_title_similarity",
+      "news_deduplicator"
+    ],
+    "langgraph/nodes/news/embedding_dedup.py": [
+      "embedding_dedup",
+      "_ensure_collection"
+    ],
+    "langgraph/nodes/news/entity.py": [
+      "news_entity_extractor"
+    ],
+    "langgraph/nodes/news/event.py": [
+      "news_event_extractor"
+    ],
+    "langgraph/nodes/news/impact.py": [
+      "news_impact_analyzer"
+    ],
+    "langgraph/nodes/news/publisher.py": [
+      "news_publisher",
+      "_trigger_knowledge_agent",
+      "_upload_raw_to_minio",
+      "_sync_events_to_age"
+    ],
+    "langgraph/nodes/news/utils.py": [
+      "extract_json_array"
+    ],
+    "langgraph/nodes/research/__init__.py": [],
+    "langgraph/nodes/research/finish.py": [
+      "finish"
+    ],
+    "langgraph/nodes/research/planner.py": [
+      "planner",
+      "_extract_json"
+    ],
+    "langgraph/nodes/research/query_rewrite.py": [
+      "query_rewrite",
+      "_extract_json"
+    ],
+    "langgraph/nodes/research/reason.py": [
+      "reason",
+      "_build_context"
+    ],
+    "langgraph/nodes/research/reflect.py": [
+      "reflect",
+      "_extract_json"
+    ],
+    "langgraph/nodes/research/rerank.py": [
+      "rerank"
+    ],
+    "langgraph/nodes/research/retrieve.py": [
+      "retrieve",
+      "_build_filter",
+      "_detect_market",
+      "_normalize_market",
+      "_normalize_symbol"
+    ],
+    "langgraph/nodes/research/writer.py": [
+      "writer"
+    ],
+    "langgraph/pipelines/__init__.py": [],
+    "langgraph/pipelines/document_pipeline.py": [
+      "DocumentPipeline"
+    ],
+    "langgraph/pipelines/web/__init__.py": [],
+    "langgraph/pipelines/web/chunker.py": [
+      "clean_markdown",
+      "_is_nav_link_line",
+      "Chunk",
+      "WebChunker"
+    ],
+    "langgraph/pipelines/web/diff_detector.py": [
+      "ChangeStatus",
+      "ChangeDetectionResult",
+      "DiffDetector"
+    ],
+    "langgraph/pipelines/web/link_extractor.py": [
+      "ExtractedArticle",
+      "_extract_date_from_url",
+      "LinkExtractor"
+    ],
+    "langgraph/pipelines/web/rate_limiter.py": [
+      "TokenBucket",
+      "RateLimiter"
+    ],
+    "langgraph/pipelines/web/retry.py": [
+      "RetryPolicy"
+    ],
+    "langgraph/pipelines/web/summarizer.py": [
+      "ArticleSummarizer"
+    ],
+    "langgraph/pipelines/web_pipeline.py": [
+      "PipelineStats",
+      "WebPipeline"
+    ],
+    "langgraph/prompts/loader.py": [
+      "_read_prompt_file",
+      "load_prompt",
+      "list_prompts"
+    ],
+    "langgraph/providers/__init__.py": [],
+    "langgraph/providers/web/__init__.py": [],
+    "langgraph/providers/web/crawl4ai_provider.py": [
+      "CrawlResult",
+      "Crawl4AIProvider"
+    ],
+    "langgraph/runtime/__init__.py": [],
+    "langgraph/runtime/executor.py": [
+      "run_graph",
+      "stream_graph",
+      "get_compiled_graph"
+    ],
+    "langgraph/runtime/queue.py": [
+      "TaskQueue"
+    ],
+    "langgraph/runtime/scheduler.py": [
+      "_job_daily_pipeline",
+      "_job_task_retry",
+      "_job_weekly_consistency",
+      "_job_monthly_cleanup",
+      "_job_news_collect",
+      "_job_news_lifecycle",
+      "start_scheduler",
+      "get_scheduler_jobs",
+      "stop_scheduler"
+    ],
+    "langgraph/runtime/worker.py": [
+      "get_worker_status",
+      "register_handler",
+      "_handle_doc_pipeline",
+      "_handle_reembed",
+      "_handle_batch_embed",
+      "_handle_knowledge_extraction",
+      "_worker_loop",
+      "start_worker",
+      "stop_worker"
+    ],
+    "langgraph/schemas/__init__.py": [],
+    "langgraph/schemas/authority.py": [
+      "get_authority_level",
+      "filter_by_authority"
+    ],
+    "langgraph/schemas/chat.py": [
+      "ChatMessage",
+      "ChatRequest",
+      "UsageInfo",
+      "ChatChoice",
+      "ChatResponse",
+      "StreamDelta",
+      "StreamChoice",
+      "StreamChunk",
+      "ErrorDetail",
+      "ErrorResponse",
+      "ModelInfo",
+      "ModelsResponse"
+    ],
+    "langgraph/schemas/financial.py": [
+      "ExchangeRateCard",
+      "StockPriceCard",
+      "AuthorityLevel",
+      "TimeRange"
+    ],
+    "langgraph/scripts/clean_qdrant.py": [
+      "main"
+    ],
+    "langgraph/scripts/clear_minio.py": [],
+    "langgraph/scripts/mi_probe.py": [
+      "main"
+    ],
+    "langgraph/scripts/setup_probe.py": [
+      "main"
+    ],
+    "langgraph/scripts/verify_code.py": [
+      "main"
+    ],
+    "langgraph/services/__init__.py": [],
+    "langgraph/services/approval.py": [
+      "register_approval_callback",
+      "create_approval",
+      "approve",
+      "reject",
+      "list_pending_approvals"
+    ],
+    "langgraph/services/batch_embed.py": [
+      "cancel_batch_embed",
+      "run_batch_embed"
+    ],
+    "langgraph/services/lifecycle.py": [
+      "NewsLifecycleService"
+    ],
+    "langgraph/services/news_storage.py": [
+      "NewsStorageService"
+    ],
+    "langgraph/services/router.py": [
+      "_build_agent_registry",
+      "dispatch_agent",
+      "list_agents"
+    ],
+    "langgraph/skills/__init__.py": [],
+    "langgraph/skills/base_skill.py": [
+      "BaseSkill"
+    ],
+    "langgraph/skills/investment_research.py": [
+      "InvestmentResearchSkill"
+    ],
+    "langgraph/skills/master_analysis.py": [
+      "MasterAnalysisSkill"
+    ],
+    "langgraph/skills/rag_search.py": [
+      "RAGSearchSkill"
+    ],
+    "langgraph/skills/registry.py": [
+      "SkillRegistry",
+      "get_skill",
+      "list_skills",
+      "register_skill",
+      "get_registry"
+    ],
+    "langgraph/skills/web_article_summary.py": [
+      "_extract_date",
+      "_clean_markdown",
+      "_filter_article_links",
+      "WebArticleSummarySkill"
+    ],
+    "langgraph/state/__init__.py": [],
+    "langgraph/state/document_state.py": [
+      "DocumentState"
+    ],
+    "langgraph/state/knowledge_state.py": [
+      "KnowledgeState"
+    ],
+    "langgraph/state/news_state.py": [
+      "NewsState"
+    ],
+    "langgraph/state/research_state.py": [
+      "AgentState"
+    ],
+    "langgraph/storage/__init__.py": [],
+    "langgraph/storage/knowledge/__init__.py": [],
+    "langgraph/storage/knowledge/age.py": [
+      "_escape",
+      "KnowledgeAGEStorage"
+    ],
+    "langgraph/storage/knowledge/postgres.py": [
+      "KnowledgePostgresStorage"
+    ],
+    "langgraph/storage/knowledge/qdrant.py": [
+      "KnowledgeQdrantStorage"
+    ],
+    "langgraph/storage/news/__init__.py": [],
+    "langgraph/storage/news/postgres.py": [
+      "NewsPostgresStorage"
+    ],
+    "langgraph/tests/__init__.py": [],
+    "langgraph/tests/api/__init__.py": [],
+    "langgraph/tests/api/test_chat.py": [
+      "test_app_imports",
+      "test_models_endpoint",
+      "test_health_endpoint_structure",
+      "test_chat_endpoint_structure"
+    ],
+    "langgraph/tests/integration/__init__.py": [],
+    "langgraph/tests/integration/test_graph.py": [
+      "test_chat_graph_builds",
+      "test_research_graph_builds",
+      "test_should_continue_good",
+      "test_should_continue_bad_retry",
+      "test_should_continue_force_finish"
+    ],
+    "langgraph/tests/unit/__init__.py": [],
+    "langgraph/tests/unit/test_embedding_tool.py": [
+      "test_embedding_embed",
+      "test_embedding_embed_single"
+    ],
+    "langgraph/tests/unit/test_planner.py": [
+      "test_planner_generates_plan",
+      "test_planner_handles_invalid_json"
+    ],
+    "langgraph/tests/unit/test_qdrant_tool.py": [
+      "test_qdrant_search",
+      "test_qdrant_search_empty"
+    ],
+    "langgraph/tests/unit/test_retrieve.py": [
+      "test_retrieve_returns_documents",
+      "test_retrieve_empty_results"
+    ],
+    "langgraph/tools/__init__.py": [],
+    "langgraph/tools/chunker.py": [
+      "chunk_markdown",
+      "_split_by_headings",
+      "_sliding_window",
+      "_find_cut_point"
+    ],
+    "langgraph/tools/docling.py": [
+      "DoclingTool",
+      "DoclingError"
+    ],
+    "langgraph/tools/document_tools.py": [
+      "DocumentTools"
+    ],
+    "langgraph/tools/embedding.py": [
+      "EmbeddingTool"
+    ],
+    "langgraph/tools/knowledge_tools.py": [
+      "KnowledgeTools"
+    ],
+    "langgraph/tools/llm.py": [
+      "LLMTool"
+    ],
+    "langgraph/tools/market_tools.py": [
+      "FinancialDataTool"
+    ],
+    "langgraph/tools/minio.py": [
+      "MinIOTool"
+    ],
+    "langgraph/tools/postgres.py": [
+      "PostgresTool"
+    ],
+    "langgraph/tools/qdrant.py": [
+      "QdrantTool"
+    ],
+    "langgraph/tools/reranker.py": [
+      "RerankerTool"
+    ],
+    "langgraph/tools/search_tools.py": [
+      "SearchTools"
+    ],
+    "mcp-knowledge/server/__init__.py": [],
+    "mcp-knowledge/server/adapters/__init__.py": [],
+    "mcp-knowledge/server/adapters/siyuan/__init__.py": [],
+    "mcp-knowledge/server/adapters/siyuan/client.py": [
+      "SiYuanError",
+      "SiYuanClient"
+    ],
+    "mcp-knowledge/server/adapters/siyuan/config.py": [
+      "SiYuanConfig",
+      "get_siyuan_config"
+    ],
+    "mcp-knowledge/server/adapters/siyuan/mapper.py": [
+      "_sanitize_path_segment",
+      "entity_to_path",
+      "notebook_for",
+      "section_path",
+      "entity_to_template_context",
+      "fact_to_section"
+    ],
+    "mcp-knowledge/server/adapters/siyuan/sync.py": [
+      "SiYuanSync"
+    ],
+    "mcp-knowledge/server/adapters/siyuan/templates.py": [
+      "TemplateRenderer"
+    ],
+    "mcp-knowledge/server/cache.py": [
+      "KnowledgeCache"
+    ],
+    "mcp-knowledge/server/config.py": [
+      "MCPSettings"
+    ],
+    "mcp-knowledge/server/llm.py": [
+      "LLMClient"
+    ],
+    "mcp-knowledge/server/main.py": [
+      "lifespan",
+      "health_check"
+    ],
+    "mcp-knowledge/server/rendering/__init__.py": [],
+    "mcp-knowledge/server/rendering/diff.py": [
+      "KnowledgeDiff"
+    ],
+    "mcp-knowledge/server/rendering/engine.py": [
+      "RenderEngine"
+    ],
+    "mcp-knowledge/server/rendering/metrics.py": [
+      "RenderMetrics"
+    ],
+    "mcp-knowledge/server/rendering/renderer.py": [
+      "_group_facts",
+      "_fact_row",
+      "KnowledgeRenderer"
+    ],
+    "mcp-knowledge/server/rendering/worker.py": [
+      "RenderWorker",
+      "main"
+    ],
+    "mcp-knowledge/server/storage/__init__.py": [],
+    "mcp-knowledge/server/storage/age.py": [
+      "AGEStorage"
+    ],
+    "mcp-knowledge/server/storage/postgres.py": [
+      "PostgresStorage"
+    ],
+    "mcp-knowledge/server/storage/qdrant.py": [
+      "QdrantStorage"
+    ],
+    "mcp-knowledge/server/tools/__init__.py": [],
+    "mcp-knowledge/server/tools/analysis.py": [
+      "register_analysis_tools"
+    ],
+    "mcp-knowledge/server/tools/entity.py": [
+      "register_entity_tools"
+    ],
+    "mcp-knowledge/server/tools/fact.py": [
+      "register_fact_tools"
+    ],
+    "mcp-knowledge/server/tools/graph.py": [
+      "_resolve_entity_name_map",
+      "_resolve_entity_names",
+      "register_graph_tools"
+    ],
+    "mcp-knowledge/server/tools/inbox.py": [
+      "register_inbox_tools"
+    ],
+    "mcp-knowledge/server/tools/semantic.py": [
+      "register_semantic_tools"
+    ],
+    "mcp-knowledge/server/tools/siyuan.py": [
+      "_escape_markdown",
+      "_render_entity",
+      "register_siyuan_tools"
+    ],
+    "mcp-knowledge/server/tools/write.py": [
+      "register_write_tools"
+    ],
+    "mcp-knowledge/server/utils.py": [
+      "serialize"
+    ],
+    "mcp-knowledge/tests/test_inbox.py": [
+      "fake_pg",
+      "fake_cache",
+      "mcp",
+      "_capture_tools",
+      "_run",
+      "test_list_inbox_valid",
+      "test_list_inbox_invalid_status",
+      "test_review_inbox_approve",
+      "test_review_inbox_reject",
+      "test_review_inbox_invalid_action",
+      "test_review_inbox_wrong_state",
+      "test_archive_inbox",
+      "test_archive_inbox_normal_status"
+    ],
+    "mcp-knowledge/tests/test_render_metrics.py": [
+      "test_claim_done_count",
+      "test_avg_duration",
+      "test_fail_retry_counting",
+      "test_snapshot_structure",
+      "test_running_never_negative"
+    ],
+    "mcp-knowledge/tests/test_render_worker.py": [
+      "worker",
+      "fake_job",
+      "test_queue_maxsize_backpressure",
+      "test_consumer_processes_job",
+      "test_consumer_failure_calls_fail",
+      "test_producer_claims_batch",
+      "test_start_creates_workers"
+    ],
+    "mcp-knowledge/tests/test_siyuan.py": [
+      "mcp",
+      "fake_pg",
+      "fake_cache",
+      "fake_sync",
+      "fake_client",
+      "_run",
+      "_patch",
+      "_Spec",
+      "test_search_notes",
+      "test_get_note_found",
+      "test_get_note_not_found",
+      "test_create_knowledge_object",
+      "test_create_knowledge_object_invalid_type",
+      "test_create_knowledge_object_no_render",
+      "test_update_knowledge_object",
+      "test_update_knowledge_object_not_found",
+      "test_create_research_report",
+      "test_create_research_report_not_found",
+      "test_create_event_note",
+      "test_create_event_note_not_found"
+    ],
+    "mcp-knowledge/tests/test_siyuan_client.py": [
+      "client",
+      "test_concurrency_limited",
+      "test_upsert_idempotent_updates_existing",
+      "test_upsert_idempotent_creates_when_missing",
+      "test_retry_on_429",
+      "test_business_error_not_retried",
+      "test_429_retry_then_success",
+      "test_mapper_paths",
+      "test_template_render_company",
+      "test_content_hash_stable"
+    ],
+    "mcp-knowledge/verify_b4.py": [
+      "main",
+      "_print"
+    ],
+    "mcp-knowledge/verify_graphrag_tmp.py": [
+      "run",
+      "main"
+    ],
+    "mcp-news/server/__init__.py": [],
+    "mcp-news/server/config.py": [
+      "NewsMCPSettings"
+    ],
+    "mcp-news/server/main.py": [
+      "lifespan",
+      "health_check"
+    ],
+    "mcp-news/server/storage/__init__.py": [],
+    "mcp-news/server/storage/postgres.py": [
+      "NewsPostgresStorage"
+    ],
+    "mcp-news/server/tools/__init__.py": [],
+    "mcp-news/server/tools/analysis.py": [
+      "_serialize",
+      "register_analysis_tools"
+    ],
+    "mcp-news/server/tools/article.py": [
+      "_serialize",
+      "register_article_tools"
+    ],
+    "mcp-news/server/tools/event.py": [
+      "_serialize",
+      "register_event_tools"
+    ],
+    "mcp-news/server/tools/source.py": [
+      "_serialize",
+      "register_source_tools"
+    ],
+    "qdrant/init_qdrant.py": [
+      "create_client",
+      "create_collections",
+      "verify",
+      "main"
+    ],
+    "scripts/archive/crawl_qiushi_summary.py": [
+      "run_pipeline",
+      "main"
+    ],
+    "scripts/archive/test_downstream_pipeline.py": [
+      "main",
+      "cleanup"
+    ],
+    "scripts/archive/test_pipeline_integration.py": [
+      "main",
+      "cleanup"
+    ],
+    "scripts/archive/test_web_ingestion.py": [
+      "test_retry_policy",
+      "test_rate_limiter",
+      "test_diff_detector",
+      "test_crawl4ai_provider",
+      "main"
+    ],
+    "scripts/batch_embed_to_qdrant.py": [
+      "embed_batch",
+      "embed_concurrent",
+      "main"
+    ],
+    "scripts/check_architecture.py": [
+      "Violation",
+      "get_python_files",
+      "get_imports",
+      "check_arch_003",
+      "check_mcp_002",
+      "check_prm_004",
+      "check_dep_002",
+      "main"
+    ],
+    "scripts/dedupe_vault.py": [
+      "extract_code",
+      "normalize_name",
+      "is_canonical",
+      "scan",
+      "plan",
+      "apply",
+      "main"
+    ],
+    "scripts/import_company_basic.py": [
+      "parse_filename",
+      "get_exchange",
+      "main"
+    ],
+    "scripts/import_providers.py": [
+      "main"
+    ],
+    "scripts/init_news_qdrant.py": [
+      "main"
+    ],
+    "scripts/sync_to_age.py": [
+      "escape_cypher",
+      "verify_age",
+      "sync_entities",
+      "sync_relations",
+      "print_graph_stats",
+      "main"
+    ],
+    "scripts/upload_analysis_reports.py": [
+      "parse_filename",
+      "upload_reports"
+    ],
+    "scripts/web_scheduler.py": [
+      "create_pipeline",
+      "load_target_urls",
+      "job_incremental_crawl",
+      "job_sync_vectors",
+      "job_dead_letter_retry",
+      "job_cleanup",
+      "_find_orphan_qdrant_points",
+      "run_scheduler",
+      "run_once",
+      "main"
+    ]
+  },
+  "batches": [
+    {
+      "batchIndex": 1,
+      "files": [
+        {
+          "path": "langgraph/.dockerignore",
+          "language": "unknown",
+          "sizeLines": 8,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "langgraph/Dockerfile",
+          "language": "dockerfile",
+          "sizeLines": 16,
+          "fileCategory": "infra"
+        }
+      ],
+      "batchImportData": {
+        "langgraph/.dockerignore": [],
+        "langgraph/Dockerfile": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 2,
+      "files": [
+        {
+          "path": "mcp-knowledge/Dockerfile",
+          "language": "dockerfile",
+          "sizeLines": 16,
+          "fileCategory": "infra"
+        }
+      ],
+      "batchImportData": {
+        "mcp-knowledge/Dockerfile": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 3,
+      "files": [
+        {
+          "path": "mcp-news/Dockerfile",
+          "language": "dockerfile",
+          "sizeLines": 16,
+          "fileCategory": "infra"
+        }
+      ],
+      "batchImportData": {
+        "mcp-news/Dockerfile": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 4,
+      "files": [
+        {
+          "path": "postgres/Dockerfile",
+          "language": "dockerfile",
+          "sizeLines": 36,
+          "fileCategory": "infra"
+        }
+      ],
+      "batchImportData": {
+        "postgres/Dockerfile": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 5,
+      "files": [
+        {
+          "path": ".env.example",
+          "language": "config",
+          "sizeLines": 153,
+          "fileCategory": "config"
+        },
+        {
+          "path": "CLAUDE.md",
+          "language": "markdown",
+          "sizeLines": 42,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "compose.yml",
+          "language": "yaml",
+          "sizeLines": 45,
+          "fileCategory": "infra"
+        }
+      ],
+      "batchImportData": {
+        ".env.example": [],
+        "CLAUDE.md": [],
+        "compose.yml": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 6,
+      "files": [
+        {
+          "path": ".qoder/plans/AI_Platform_Refactoring_Plan_d90acfeb.md",
+          "language": "markdown",
+          "sizeLines": 491,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/plans/AI_Platform_UI_构建_6d097b82.md",
+          "language": "markdown",
+          "sizeLines": 207,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/plans/Apache_AGE_Full_Integration_b62f454e.md",
+          "language": "markdown",
+          "sizeLines": 184,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/plans/Knowledge_Agent_Implementation_fe8dfd8e.md",
+          "language": "markdown",
+          "sizeLines": 141,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/plans/Knowledge_Schema_实现_cb9966b8.md",
+          "language": "markdown",
+          "sizeLines": 388,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/plans/LangGraph_目录架构重组_597be49e.md",
+          "language": "markdown",
+          "sizeLines": 139,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/plans/SPEC_SYSTEM_ROADMAP.md",
+          "language": "markdown",
+          "sizeLines": 95,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/plans/SiYuan_Knowledge_Workspace_Integration_610245ad.md",
+          "language": "markdown",
+          "sizeLines": 325,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/plans/年报分析系统前端接入_6600706d.md",
+          "language": "markdown",
+          "sizeLines": 213,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/plans/建立_Project_Inventory_技能_35b76ccb.md",
+          "language": "markdown",
+          "sizeLines": 93,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/plans/知识库页面重构规划_4dcef2f8.md",
+          "language": "markdown",
+          "sizeLines": 58,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        ".qoder/plans/AI_Platform_Refactoring_Plan_d90acfeb.md": [],
+        ".qoder/plans/AI_Platform_UI_构建_6d097b82.md": [],
+        ".qoder/plans/Apache_AGE_Full_Integration_b62f454e.md": [],
+        ".qoder/plans/Knowledge_Agent_Implementation_fe8dfd8e.md": [],
+        ".qoder/plans/Knowledge_Schema_实现_cb9966b8.md": [],
+        ".qoder/plans/LangGraph_目录架构重组_597be49e.md": [],
+        ".qoder/plans/SPEC_SYSTEM_ROADMAP.md": [],
+        ".qoder/plans/SiYuan_Knowledge_Workspace_Integration_610245ad.md": [],
+        ".qoder/plans/年报分析系统前端接入_6600706d.md": [],
+        ".qoder/plans/建立_Project_Inventory_技能_35b76ccb.md": [],
+        ".qoder/plans/知识库页面重构规划_4dcef2f8.md": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 7,
+      "files": [
+        {
+          "path": "docling/Dockerfile.cuda13",
+          "language": "dockerfile",
+          "sizeLines": 58,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "docling/compose.yml",
+          "language": "yaml",
+          "sizeLines": 47,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "docling/entrypoint.sh",
+          "language": "shell",
+          "sizeLines": 20,
+          "fileCategory": "script"
+        }
+      ],
+      "batchImportData": {
+        "docling/Dockerfile.cuda13": [],
+        "docling/compose.yml": [],
+        "docling/entrypoint.sh": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 8,
+      "files": [
+        {
+          "path": "docs/00_Architecture_Decisions.md",
+          "language": "markdown",
+          "sizeLines": 13,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/00_Glossary.md",
+          "language": "markdown",
+          "sizeLines": 56,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/00_Project_Inventory.md",
+          "language": "markdown",
+          "sizeLines": 0,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        "docs/00_Architecture_Decisions.md": [],
+        "docs/00_Glossary.md": [],
+        "docs/00_Project_Inventory.md": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 9,
+      "files": [
+        {
+          "path": "docs/architecture/API_Design_Guide.md",
+          "language": "markdown",
+          "sizeLines": 0,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/architecture/Agent_Architecture.md",
+          "language": "markdown",
+          "sizeLines": 0,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/architecture/Backend_Architecture.md",
+          "language": "markdown",
+          "sizeLines": 0,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/architecture/Data_Architecture.md",
+          "language": "markdown",
+          "sizeLines": 0,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/architecture/Deployment_Architecture.md",
+          "language": "markdown",
+          "sizeLines": 0,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/architecture/Frontend_Architecture.md",
+          "language": "markdown",
+          "sizeLines": 0,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/architecture/README.md",
+          "language": "markdown",
+          "sizeLines": 0,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/architecture/System_Architecture.md",
+          "language": "markdown",
+          "sizeLines": 0,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/architecture/UI_Guidelines.md",
+          "language": "markdown",
+          "sizeLines": 0,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        "docs/architecture/API_Design_Guide.md": [],
+        "docs/architecture/Agent_Architecture.md": [],
+        "docs/architecture/Backend_Architecture.md": [],
+        "docs/architecture/Data_Architecture.md": [],
+        "docs/architecture/Deployment_Architecture.md": [],
+        "docs/architecture/Frontend_Architecture.md": [],
+        "docs/architecture/README.md": [],
+        "docs/architecture/System_Architecture.md": [],
+        "docs/architecture/UI_Guidelines.md": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 10,
+      "files": [
+        {
+          "path": "frontend/.oxlintrc.json",
+          "language": "json",
+          "sizeLines": 8,
+          "fileCategory": "config"
+        },
+        {
+          "path": "frontend/README.md",
+          "language": "markdown",
+          "sizeLines": 32,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "frontend/components.json",
+          "language": "json",
+          "sizeLines": 25,
+          "fileCategory": "config"
+        },
+        {
+          "path": "frontend/index.html",
+          "language": "html",
+          "sizeLines": 13,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "frontend/package.json",
+          "language": "json",
+          "sizeLines": 43,
+          "fileCategory": "config"
+        },
+        {
+          "path": "frontend/tsconfig.app.json",
+          "language": "json",
+          "sizeLines": 33,
+          "fileCategory": "config"
+        },
+        {
+          "path": "frontend/tsconfig.json",
+          "language": "json",
+          "sizeLines": 14,
+          "fileCategory": "config"
+        },
+        {
+          "path": "frontend/tsconfig.node.json",
+          "language": "json",
+          "sizeLines": 23,
+          "fileCategory": "config"
+        }
+      ],
+      "batchImportData": {
+        "frontend/.oxlintrc.json": [],
+        "frontend/README.md": [],
+        "frontend/components.json": [],
+        "frontend/index.html": [],
+        "frontend/package.json": [],
+        "frontend/tsconfig.app.json": [],
+        "frontend/tsconfig.json": [],
+        "frontend/tsconfig.node.json": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 11,
+      "files": [
+        {
+          "path": "langgraph/.env.example",
+          "language": "config",
+          "sizeLines": 34,
+          "fileCategory": "config"
+        },
+        {
+          "path": "langgraph/Dockerfile.dev",
+          "language": "dockerfile",
+          "sizeLines": 12,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "langgraph/README.md",
+          "language": "markdown",
+          "sizeLines": 286,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/compose.prod.yml",
+          "language": "yaml",
+          "sizeLines": 65,
+          "fileCategory": "config"
+        },
+        {
+          "path": "langgraph/compose.yml",
+          "language": "yaml",
+          "sizeLines": 63,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "langgraph/pyproject.toml",
+          "language": "toml",
+          "sizeLines": 18,
+          "fileCategory": "config"
+        },
+        {
+          "path": "langgraph/requirements.txt",
+          "language": "txt",
+          "sizeLines": 19,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        "langgraph/.env.example": [],
+        "langgraph/Dockerfile.dev": [],
+        "langgraph/README.md": [],
+        "langgraph/compose.prod.yml": [],
+        "langgraph/compose.yml": [],
+        "langgraph/pyproject.toml": [],
+        "langgraph/requirements.txt": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 12,
+      "files": [
+        {
+          "path": "langgraph/config/agents.yaml",
+          "language": "yaml",
+          "sizeLines": 21,
+          "fileCategory": "config"
+        },
+        {
+          "path": "langgraph/config/mcp_servers.yaml",
+          "language": "yaml",
+          "sizeLines": 25,
+          "fileCategory": "config"
+        },
+        {
+          "path": "langgraph/config/policies.yaml",
+          "language": "yaml",
+          "sizeLines": 112,
+          "fileCategory": "config"
+        },
+        {
+          "path": "langgraph/config/workflows.yaml",
+          "language": "yaml",
+          "sizeLines": 32,
+          "fileCategory": "config"
+        }
+      ],
+      "batchImportData": {
+        "langgraph/config/agents.yaml": [],
+        "langgraph/config/mcp_servers.yaml": [],
+        "langgraph/config/policies.yaml": [],
+        "langgraph/config/workflows.yaml": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 13,
+      "files": [
+        {
+          "path": "langgraph/prompts/earnings_call_analysis.md",
+          "language": "markdown",
+          "sizeLines": 89,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/prompts/planner.md",
+          "language": "markdown",
+          "sizeLines": 47,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/prompts/query_rewrite.md",
+          "language": "markdown",
+          "sizeLines": 37,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/prompts/reason.md",
+          "language": "markdown",
+          "sizeLines": 17,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/prompts/reflect.md",
+          "language": "markdown",
+          "sizeLines": 34,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/prompts/writer.md",
+          "language": "markdown",
+          "sizeLines": 13,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        "langgraph/prompts/earnings_call_analysis.md": [],
+        "langgraph/prompts/planner.md": [],
+        "langgraph/prompts/query_rewrite.md": [],
+        "langgraph/prompts/reason.md": [],
+        "langgraph/prompts/reflect.md": [],
+        "langgraph/prompts/writer.md": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 14,
+      "files": [
+        {
+          "path": "langgraph/prompts/kb/entity_extraction.md",
+          "language": "markdown",
+          "sizeLines": 58,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/prompts/kb/fact_extraction.md",
+          "language": "markdown",
+          "sizeLines": 67,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/prompts/kb/relation_extraction.md",
+          "language": "markdown",
+          "sizeLines": 72,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/prompts/kb/system.md",
+          "language": "markdown",
+          "sizeLines": 20,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/prompts/kb/validation.md",
+          "language": "markdown",
+          "sizeLines": 73,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        "langgraph/prompts/kb/entity_extraction.md": [],
+        "langgraph/prompts/kb/fact_extraction.md": [],
+        "langgraph/prompts/kb/relation_extraction.md": [],
+        "langgraph/prompts/kb/system.md": [],
+        "langgraph/prompts/kb/validation.md": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 15,
+      "files": [
+        {
+          "path": "langgraph/prompts/news/classification.md",
+          "language": "markdown",
+          "sizeLines": 47,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/prompts/news/entity_extraction.md",
+          "language": "markdown",
+          "sizeLines": 75,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/prompts/news/event_extraction.md",
+          "language": "markdown",
+          "sizeLines": 68,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/prompts/news/impact_analysis.md",
+          "language": "markdown",
+          "sizeLines": 67,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/prompts/news/system.md",
+          "language": "markdown",
+          "sizeLines": 36,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        "langgraph/prompts/news/classification.md": [],
+        "langgraph/prompts/news/entity_extraction.md": [],
+        "langgraph/prompts/news/event_extraction.md": [],
+        "langgraph/prompts/news/impact_analysis.md": [],
+        "langgraph/prompts/news/system.md": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 16,
+      "files": [
+        {
+          "path": "mcp-knowledge/server/adapters/siyuan/templates/company.md",
+          "language": "markdown",
+          "sizeLines": 21,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mcp-knowledge/server/adapters/siyuan/templates/default.md",
+          "language": "markdown",
+          "sizeLines": 16,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mcp-knowledge/server/adapters/siyuan/templates/event.md",
+          "language": "markdown",
+          "sizeLines": 15,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mcp-knowledge/server/adapters/siyuan/templates/industry.md",
+          "language": "markdown",
+          "sizeLines": 15,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mcp-knowledge/server/adapters/siyuan/templates/section.md",
+          "language": "markdown",
+          "sizeLines": 1,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        "mcp-knowledge/server/adapters/siyuan/templates/company.md": [],
+        "mcp-knowledge/server/adapters/siyuan/templates/default.md": [],
+        "mcp-knowledge/server/adapters/siyuan/templates/event.md": [],
+        "mcp-knowledge/server/adapters/siyuan/templates/industry.md": [],
+        "mcp-knowledge/server/adapters/siyuan/templates/section.md": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 17,
+      "files": [
+        {
+          "path": "minio/compose.yml",
+          "language": "yaml",
+          "sizeLines": 55,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "minio/init-buckets.sh",
+          "language": "shell",
+          "sizeLines": 113,
+          "fileCategory": "script"
+        },
+        {
+          "path": "minio/mc-config.json",
+          "language": "json",
+          "sizeLines": 12,
+          "fileCategory": "config"
+        }
+      ],
+      "batchImportData": {
+        "minio/compose.yml": [],
+        "minio/init-buckets.sh": [],
+        "minio/mc-config.json": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 18,
+      "files": [
+        {
+          "path": "postgres/init/01-init.sql",
+          "language": "sql",
+          "sizeLines": 205,
+          "fileCategory": "data"
+        },
+        {
+          "path": "postgres/init/02-migrate-tables.sql",
+          "language": "sql",
+          "sizeLines": 81,
+          "fileCategory": "data"
+        },
+        {
+          "path": "postgres/init/03-financial-statements.sql",
+          "language": "sql",
+          "sizeLines": 239,
+          "fileCategory": "data"
+        },
+        {
+          "path": "postgres/init/04-web-pages.sql",
+          "language": "sql",
+          "sizeLines": 77,
+          "fileCategory": "data"
+        },
+        {
+          "path": "postgres/init/05-web-chunks.sql",
+          "language": "sql",
+          "sizeLines": 32,
+          "fileCategory": "data"
+        },
+        {
+          "path": "postgres/init/06-knowledge-schema.sql",
+          "language": "sql",
+          "sizeLines": 169,
+          "fileCategory": "data"
+        },
+        {
+          "path": "postgres/init/07-knowledge-database.sql",
+          "language": "sql",
+          "sizeLines": 306,
+          "fileCategory": "data"
+        },
+        {
+          "path": "postgres/init/08-age-init.sql",
+          "language": "sql",
+          "sizeLines": 119,
+          "fileCategory": "data"
+        },
+        {
+          "path": "postgres/init/09-news-schema.sql",
+          "language": "sql",
+          "sizeLines": 144,
+          "fileCategory": "data"
+        },
+        {
+          "path": "postgres/init/10-news-tier.sql",
+          "language": "sql",
+          "sizeLines": 22,
+          "fileCategory": "data"
+        },
+        {
+          "path": "postgres/init/11-knowledge-siyuan.sql",
+          "language": "sql",
+          "sizeLines": 71,
+          "fileCategory": "data"
+        },
+        {
+          "path": "postgres/init/12-task-logs.sql",
+          "language": "sql",
+          "sizeLines": 14,
+          "fileCategory": "data"
+        }
+      ],
+      "batchImportData": {
+        "postgres/init/01-init.sql": [],
+        "postgres/init/02-migrate-tables.sql": [],
+        "postgres/init/03-financial-statements.sql": [],
+        "postgres/init/04-web-pages.sql": [],
+        "postgres/init/05-web-chunks.sql": [],
+        "postgres/init/06-knowledge-schema.sql": [],
+        "postgres/init/07-knowledge-database.sql": [],
+        "postgres/init/08-age-init.sql": [],
+        "postgres/init/09-news-schema.sql": [],
+        "postgres/init/10-news-tier.sql": [],
+        "postgres/init/11-knowledge-siyuan.sql": [],
+        "postgres/init/12-task-logs.sql": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 19,
+      "files": [
+        {
+          "path": "specs/agent-registry.yaml",
+          "language": "yaml",
+          "sizeLines": 115,
+          "fileCategory": "config"
+        },
+        {
+          "path": "specs/architecture.yaml",
+          "language": "yaml",
+          "sizeLines": 234,
+          "fileCategory": "config"
+        },
+        {
+          "path": "specs/ontology.yaml",
+          "language": "yaml",
+          "sizeLines": 282,
+          "fileCategory": "config"
+        }
+      ],
+      "batchImportData": {
+        "specs/agent-registry.yaml": [],
+        "specs/architecture.yaml": [],
+        "specs/ontology.yaml": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 20,
+      "files": [
+        {
+          "path": ".qoder/skills/glossary/SKILL.md",
+          "language": "markdown",
+          "sizeLines": 73,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/skills/glossary/actions/verbs.md",
+          "language": "markdown",
+          "sizeLines": 20,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/skills/glossary/architecture/terms.md",
+          "language": "markdown",
+          "sizeLines": 120,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/skills/glossary/code-analysis/README.md",
+          "language": "markdown",
+          "sizeLines": 115,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/skills/glossary/copywriting/chinese.md",
+          "language": "markdown",
+          "sizeLines": 23,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/skills/glossary/mappings/legacy.md",
+          "language": "markdown",
+          "sizeLines": 16,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/skills/glossary/naming/pages.md",
+          "language": "markdown",
+          "sizeLines": 22,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/skills/glossary/pipeline/stages.md",
+          "language": "markdown",
+          "sizeLines": 26,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/skills/glossary/status/enums.md",
+          "language": "markdown",
+          "sizeLines": 29,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/skills/open-code-review/SKILL.md",
+          "language": "markdown",
+          "sizeLines": 203,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".qoder/skills/project-inventory/SKILL.md",
+          "language": "markdown",
+          "sizeLines": 186,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".ua/.understandignore",
+          "language": "unknown",
+          "sizeLines": 97,
+          "fileCategory": "code"
+        },
+        {
+          "path": ".ua/config.json",
+          "language": "json",
+          "sizeLines": 1,
+          "fileCategory": "config"
+        },
+        {
+          "path": "AI-Platform-System-Design/schemas/metadata.schema.json",
+          "language": "json",
+          "sizeLines": 167,
+          "fileCategory": "config"
+        },
+        {
+          "path": "config/crawl4ai.yaml",
+          "language": "yaml",
+          "sizeLines": 128,
+          "fileCategory": "config"
+        },
+        {
+          "path": "crawl4ai/compose.yml",
+          "language": "yaml",
+          "sizeLines": 43,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "embedding/compose.yml",
+          "language": "yaml",
+          "sizeLines": 50,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "frontend/src/app/pages/AgentsPage.tsx",
+          "language": "typescript",
+          "sizeLines": 156,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/app/pages/ChatPage.tsx",
+          "language": "typescript",
+          "sizeLines": 267,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/app/pages/DashboardPage.tsx",
+          "language": "typescript",
+          "sizeLines": 203,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/app/pages/DocumentsPage.tsx",
+          "language": "typescript",
+          "sizeLines": 1831,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/app/pages/KnowledgePage.tsx",
+          "language": "typescript",
+          "sizeLines": 68,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/app/pages/KnowledgeReviewPage.tsx",
+          "language": "typescript",
+          "sizeLines": 259,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/app/pages/ModelsPage.tsx",
+          "language": "typescript",
+          "sizeLines": 167,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/app/pages/MonitorPage.tsx",
+          "language": "typescript",
+          "sizeLines": 337,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        ".qoder/skills/glossary/SKILL.md": [],
+        ".qoder/skills/glossary/actions/verbs.md": [],
+        ".qoder/skills/glossary/architecture/terms.md": [],
+        ".qoder/skills/glossary/code-analysis/README.md": [],
+        ".qoder/skills/glossary/copywriting/chinese.md": [],
+        ".qoder/skills/glossary/mappings/legacy.md": [],
+        ".qoder/skills/glossary/naming/pages.md": [],
+        ".qoder/skills/glossary/pipeline/stages.md": [],
+        ".qoder/skills/glossary/status/enums.md": [],
+        ".qoder/skills/open-code-review/SKILL.md": [],
+        ".qoder/skills/project-inventory/SKILL.md": [],
+        ".ua/.understandignore": [],
+        ".ua/config.json": [],
+        "AI-Platform-System-Design/schemas/metadata.schema.json": [],
+        "config/crawl4ai.yaml": [],
+        "crawl4ai/compose.yml": [],
+        "embedding/compose.yml": [],
+        "frontend/src/app/pages/AgentsPage.tsx": [],
+        "frontend/src/app/pages/ChatPage.tsx": [],
+        "frontend/src/app/pages/DashboardPage.tsx": [],
+        "frontend/src/app/pages/DocumentsPage.tsx": [],
+        "frontend/src/app/pages/KnowledgePage.tsx": [],
+        "frontend/src/app/pages/KnowledgeReviewPage.tsx": [],
+        "frontend/src/app/pages/ModelsPage.tsx": [],
+        "frontend/src/app/pages/MonitorPage.tsx": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 21,
+      "files": [
+        {
+          "path": "frontend/src/app/pages/NewsPage.tsx",
+          "language": "typescript",
+          "sizeLines": 51,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/app/pages/ResearchPage.tsx",
+          "language": "typescript",
+          "sizeLines": 699,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/app/pages/SettingsPage.tsx",
+          "language": "typescript",
+          "sizeLines": 132,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/app/pages/VectorDbPage.tsx",
+          "language": "typescript",
+          "sizeLines": 196,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/app/pages/WorkflowPage.tsx",
+          "language": "typescript",
+          "sizeLines": 917,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/app/router.tsx",
+          "language": "typescript",
+          "sizeLines": 148,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/common/EmptyState.tsx",
+          "language": "typescript",
+          "sizeLines": 34,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/health/HealthProvider.tsx",
+          "language": "typescript",
+          "sizeLines": 25,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/knowledge/CollectionGrid.tsx",
+          "language": "typescript",
+          "sizeLines": 364,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/knowledge/EntityBrowser.tsx",
+          "language": "typescript",
+          "sizeLines": 137,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/knowledge/EntityDetailDialog.tsx",
+          "language": "typescript",
+          "sizeLines": 140,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/knowledge/KnowledgeDashboard.tsx",
+          "language": "typescript",
+          "sizeLines": 543,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/knowledge/KnowledgeTasksPanel.tsx",
+          "language": "typescript",
+          "sizeLines": 636,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/knowledge/SemanticSearchPanel.tsx",
+          "language": "typescript",
+          "sizeLines": 370,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/layout/AppShell.tsx",
+          "language": "typescript",
+          "sizeLines": 28,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/layout/CommandPalette.tsx",
+          "language": "typescript",
+          "sizeLines": 189,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/layout/Header.tsx",
+          "language": "typescript",
+          "sizeLines": 54,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/layout/Sidebar.tsx",
+          "language": "typescript",
+          "sizeLines": 134,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/layout/StatusBar.tsx",
+          "language": "typescript",
+          "sizeLines": 65,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/news/ArticleDetailDialog.tsx",
+          "language": "typescript",
+          "sizeLines": 152,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/news/EventsTab.tsx",
+          "language": "typescript",
+          "sizeLines": 191,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/news/ImpactTab.tsx",
+          "language": "typescript",
+          "sizeLines": 202,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/news/NewsListTab.tsx",
+          "language": "typescript",
+          "sizeLines": 335,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/news/TimelineTab.tsx",
+          "language": "typescript",
+          "sizeLines": 185,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ui/badge.tsx",
+          "language": "typescript",
+          "sizeLines": 52,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "frontend/src/app/pages/NewsPage.tsx": [],
+        "frontend/src/app/pages/ResearchPage.tsx": [],
+        "frontend/src/app/pages/SettingsPage.tsx": [],
+        "frontend/src/app/pages/VectorDbPage.tsx": [],
+        "frontend/src/app/pages/WorkflowPage.tsx": [],
+        "frontend/src/app/router.tsx": [],
+        "frontend/src/components/common/EmptyState.tsx": [],
+        "frontend/src/components/health/HealthProvider.tsx": [],
+        "frontend/src/components/knowledge/CollectionGrid.tsx": [],
+        "frontend/src/components/knowledge/EntityBrowser.tsx": [],
+        "frontend/src/components/knowledge/EntityDetailDialog.tsx": [],
+        "frontend/src/components/knowledge/KnowledgeDashboard.tsx": [],
+        "frontend/src/components/knowledge/KnowledgeTasksPanel.tsx": [],
+        "frontend/src/components/knowledge/SemanticSearchPanel.tsx": [],
+        "frontend/src/components/layout/AppShell.tsx": [],
+        "frontend/src/components/layout/CommandPalette.tsx": [],
+        "frontend/src/components/layout/Header.tsx": [],
+        "frontend/src/components/layout/Sidebar.tsx": [],
+        "frontend/src/components/layout/StatusBar.tsx": [],
+        "frontend/src/components/news/ArticleDetailDialog.tsx": [],
+        "frontend/src/components/news/EventsTab.tsx": [],
+        "frontend/src/components/news/ImpactTab.tsx": [],
+        "frontend/src/components/news/NewsListTab.tsx": [],
+        "frontend/src/components/news/TimelineTab.tsx": [],
+        "frontend/src/components/ui/badge.tsx": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 22,
+      "files": [
+        {
+          "path": "frontend/src/components/ui/button.tsx",
+          "language": "typescript",
+          "sizeLines": 58,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ui/card.tsx",
+          "language": "typescript",
+          "sizeLines": 103,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ui/command.tsx",
+          "language": "typescript",
+          "sizeLines": 170,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ui/dialog.tsx",
+          "language": "typescript",
+          "sizeLines": 158,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ui/input.tsx",
+          "language": "typescript",
+          "sizeLines": 20,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ui/progress.tsx",
+          "language": "typescript",
+          "sizeLines": 81,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ui/resizable.tsx",
+          "language": "typescript",
+          "sizeLines": 43,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ui/scroll-area.tsx",
+          "language": "typescript",
+          "sizeLines": 52,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ui/select.tsx",
+          "language": "typescript",
+          "sizeLines": 201,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ui/separator.tsx",
+          "language": "typescript",
+          "sizeLines": 25,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ui/skeleton.tsx",
+          "language": "typescript",
+          "sizeLines": 13,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ui/table.tsx",
+          "language": "typescript",
+          "sizeLines": 114,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ui/tabs.tsx",
+          "language": "typescript",
+          "sizeLines": 80,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ui/textarea.tsx",
+          "language": "typescript",
+          "sizeLines": 18,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ui/tooltip.tsx",
+          "language": "typescript",
+          "sizeLines": 64,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/hooks/useDebounce.ts",
+          "language": "typescript",
+          "sizeLines": 16,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/index.css",
+          "language": "css",
+          "sizeLines": 211,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "frontend/src/lib/utils.ts",
+          "language": "typescript",
+          "sizeLines": 6,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/main.tsx",
+          "language": "typescript",
+          "sizeLines": 21,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/services/agents.ts",
+          "language": "typescript",
+          "sizeLines": 20,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/services/api-client.ts",
+          "language": "typescript",
+          "sizeLines": 50,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/services/approvals.ts",
+          "language": "typescript",
+          "sizeLines": 40,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/services/chat.ts",
+          "language": "typescript",
+          "sizeLines": 103,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/services/documents.ts",
+          "language": "typescript",
+          "sizeLines": 223,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/services/health.ts",
+          "language": "typescript",
+          "sizeLines": 10,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "frontend/src/components/ui/button.tsx": [],
+        "frontend/src/components/ui/card.tsx": [],
+        "frontend/src/components/ui/command.tsx": [],
+        "frontend/src/components/ui/dialog.tsx": [],
+        "frontend/src/components/ui/input.tsx": [],
+        "frontend/src/components/ui/progress.tsx": [],
+        "frontend/src/components/ui/resizable.tsx": [],
+        "frontend/src/components/ui/scroll-area.tsx": [],
+        "frontend/src/components/ui/select.tsx": [],
+        "frontend/src/components/ui/separator.tsx": [],
+        "frontend/src/components/ui/skeleton.tsx": [],
+        "frontend/src/components/ui/table.tsx": [],
+        "frontend/src/components/ui/tabs.tsx": [],
+        "frontend/src/components/ui/textarea.tsx": [],
+        "frontend/src/components/ui/tooltip.tsx": [],
+        "frontend/src/hooks/useDebounce.ts": [],
+        "frontend/src/index.css": [],
+        "frontend/src/lib/utils.ts": [],
+        "frontend/src/main.tsx": [],
+        "frontend/src/services/agents.ts": [],
+        "frontend/src/services/api-client.ts": [],
+        "frontend/src/services/approvals.ts": [],
+        "frontend/src/services/chat.ts": [],
+        "frontend/src/services/documents.ts": [],
+        "frontend/src/services/health.ts": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 23,
+      "files": [
+        {
+          "path": "frontend/src/services/knowledge.ts",
+          "language": "typescript",
+          "sizeLines": 322,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/services/models.ts",
+          "language": "typescript",
+          "sizeLines": 17,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/services/news.ts",
+          "language": "typescript",
+          "sizeLines": 206,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/services/query-client.ts",
+          "language": "typescript",
+          "sizeLines": 11,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/services/reports.ts",
+          "language": "typescript",
+          "sizeLines": 58,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/services/research.ts",
+          "language": "typescript",
+          "sizeLines": 47,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/services/tasks.ts",
+          "language": "typescript",
+          "sizeLines": 215,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/services/vector.ts",
+          "language": "typescript",
+          "sizeLines": 21,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/stores/app-store.ts",
+          "language": "typescript",
+          "sizeLines": 13,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/stores/chat-store.ts",
+          "language": "typescript",
+          "sizeLines": 89,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/theme/ThemeProvider.tsx",
+          "language": "typescript",
+          "sizeLines": 78,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/vite.config.ts",
+          "language": "typescript",
+          "sizeLines": 35,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/agents/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/agents/base_agent.py",
+          "language": "python",
+          "sizeLines": 223,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/agents/chat_agent.py",
+          "language": "python",
+          "sizeLines": 17,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/agents/investment_agent.py",
+          "language": "python",
+          "sizeLines": 25,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/agents/kb_agent.py",
+          "language": "python",
+          "sizeLines": 21,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/agents/research_agent.py",
+          "language": "python",
+          "sizeLines": 18,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/api/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/api/agents.py",
+          "language": "python",
+          "sizeLines": 63,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/api/approvals.py",
+          "language": "python",
+          "sizeLines": 83,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/api/chat.py",
+          "language": "python",
+          "sizeLines": 59,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/api/documents.py",
+          "language": "python",
+          "sizeLines": 820,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/api/health.py",
+          "language": "python",
+          "sizeLines": 199,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/api/knowledge.py",
+          "language": "python",
+          "sizeLines": 1002,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "frontend/src/services/knowledge.ts": [],
+        "frontend/src/services/models.ts": [],
+        "frontend/src/services/news.ts": [],
+        "frontend/src/services/query-client.ts": [],
+        "frontend/src/services/reports.ts": [],
+        "frontend/src/services/research.ts": [],
+        "frontend/src/services/tasks.ts": [],
+        "frontend/src/services/vector.ts": [],
+        "frontend/src/stores/app-store.ts": [],
+        "frontend/src/stores/chat-store.ts": [],
+        "frontend/src/theme/ThemeProvider.tsx": [],
+        "frontend/vite.config.ts": [],
+        "langgraph/agents/__init__.py": [],
+        "langgraph/agents/base_agent.py": [],
+        "langgraph/agents/chat_agent.py": [],
+        "langgraph/agents/investment_agent.py": [],
+        "langgraph/agents/kb_agent.py": [],
+        "langgraph/agents/research_agent.py": [],
+        "langgraph/api/__init__.py": [],
+        "langgraph/api/agents.py": [],
+        "langgraph/api/approvals.py": [],
+        "langgraph/api/chat.py": [],
+        "langgraph/api/documents.py": [],
+        "langgraph/api/health.py": [],
+        "langgraph/api/knowledge.py": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 24,
+      "files": [
+        {
+          "path": "langgraph/api/models.py",
+          "language": "python",
+          "sizeLines": 33,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/api/news.py",
+          "language": "python",
+          "sizeLines": 269,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/api/path_utils.py",
+          "language": "python",
+          "sizeLines": 137,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/api/providers.py",
+          "language": "python",
+          "sizeLines": 76,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/api/reports.py",
+          "language": "python",
+          "sizeLines": 247,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/api/research.py",
+          "language": "python",
+          "sizeLines": 99,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/api/server.py",
+          "language": "python",
+          "sizeLines": 157,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/api/tasks.py",
+          "language": "python",
+          "sizeLines": 255,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/api/vector.py",
+          "language": "python",
+          "sizeLines": 58,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/collectors/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/collectors/rss_collector.py",
+          "language": "python",
+          "sizeLines": 74,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/collectors/source_registry.py",
+          "language": "python",
+          "sizeLines": 105,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/collectors/web_collector.py",
+          "language": "python",
+          "sizeLines": 120,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/config/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/config/policy_loader.py",
+          "language": "python",
+          "sizeLines": 102,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/config/settings.py",
+          "language": "python",
+          "sizeLines": 95,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/graphs/__init__.py",
+          "language": "python",
+          "sizeLines": 99,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/graphs/document_graph.py",
+          "language": "python",
+          "sizeLines": 50,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/graphs/knowledge_graph.py",
+          "language": "python",
+          "sizeLines": 76,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/graphs/news_analysis_graph.py",
+          "language": "python",
+          "sizeLines": 97,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/graphs/research_graph.py",
+          "language": "python",
+          "sizeLines": 122,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/main.py",
+          "language": "python",
+          "sizeLines": 17,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/memory/__init__.py",
+          "language": "python",
+          "sizeLines": 14,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/memory/checkpoint.py",
+          "language": "python",
+          "sizeLines": 24,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/memory/memory_store.py",
+          "language": "python",
+          "sizeLines": 173,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "langgraph/api/models.py": [],
+        "langgraph/api/news.py": [],
+        "langgraph/api/path_utils.py": [],
+        "langgraph/api/providers.py": [],
+        "langgraph/api/reports.py": [],
+        "langgraph/api/research.py": [],
+        "langgraph/api/server.py": [],
+        "langgraph/api/tasks.py": [],
+        "langgraph/api/vector.py": [],
+        "langgraph/collectors/__init__.py": [],
+        "langgraph/collectors/rss_collector.py": [],
+        "langgraph/collectors/source_registry.py": [],
+        "langgraph/collectors/web_collector.py": [],
+        "langgraph/config/__init__.py": [],
+        "langgraph/config/policy_loader.py": [],
+        "langgraph/config/settings.py": [],
+        "langgraph/graphs/__init__.py": [],
+        "langgraph/graphs/document_graph.py": [],
+        "langgraph/graphs/knowledge_graph.py": [],
+        "langgraph/graphs/news_analysis_graph.py": [],
+        "langgraph/graphs/research_graph.py": [],
+        "langgraph/main.py": [],
+        "langgraph/memory/__init__.py": [],
+        "langgraph/memory/checkpoint.py": [],
+        "langgraph/memory/memory_store.py": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 25,
+      "files": [
+        {
+          "path": "langgraph/memory/thread_manager.py",
+          "language": "python",
+          "sizeLines": 33,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/knowledge/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/knowledge/entity.py",
+          "language": "python",
+          "sizeLines": 115,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/knowledge/fact.py",
+          "language": "python",
+          "sizeLines": 160,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/knowledge/merger.py",
+          "language": "python",
+          "sizeLines": 340,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/knowledge/parser.py",
+          "language": "python",
+          "sizeLines": 46,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/knowledge/relation.py",
+          "language": "python",
+          "sizeLines": 148,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/knowledge/validator.py",
+          "language": "python",
+          "sizeLines": 159,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/news/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/news/classifier.py",
+          "language": "python",
+          "sizeLines": 130,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/news/cleaner.py",
+          "language": "python",
+          "sizeLines": 88,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/news/deduplicator.py",
+          "language": "python",
+          "sizeLines": 71,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/news/embedding_dedup.py",
+          "language": "python",
+          "sizeLines": 137,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/news/entity.py",
+          "language": "python",
+          "sizeLines": 142,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/news/event.py",
+          "language": "python",
+          "sizeLines": 117,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/news/impact.py",
+          "language": "python",
+          "sizeLines": 144,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/news/publisher.py",
+          "language": "python",
+          "sizeLines": 332,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/news/utils.py",
+          "language": "python",
+          "sizeLines": 76,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/research/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/research/finish.py",
+          "language": "python",
+          "sizeLines": 24,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/research/planner.py",
+          "language": "python",
+          "sizeLines": 77,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/research/query_rewrite.py",
+          "language": "python",
+          "sizeLines": 115,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/research/reason.py",
+          "language": "python",
+          "sizeLines": 79,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/research/reflect.py",
+          "language": "python",
+          "sizeLines": 79,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "langgraph/memory/thread_manager.py": [],
+        "langgraph/nodes/__init__.py": [],
+        "langgraph/nodes/knowledge/__init__.py": [],
+        "langgraph/nodes/knowledge/entity.py": [],
+        "langgraph/nodes/knowledge/fact.py": [],
+        "langgraph/nodes/knowledge/merger.py": [],
+        "langgraph/nodes/knowledge/parser.py": [],
+        "langgraph/nodes/knowledge/relation.py": [],
+        "langgraph/nodes/knowledge/validator.py": [],
+        "langgraph/nodes/news/__init__.py": [],
+        "langgraph/nodes/news/classifier.py": [],
+        "langgraph/nodes/news/cleaner.py": [],
+        "langgraph/nodes/news/deduplicator.py": [],
+        "langgraph/nodes/news/embedding_dedup.py": [],
+        "langgraph/nodes/news/entity.py": [],
+        "langgraph/nodes/news/event.py": [],
+        "langgraph/nodes/news/impact.py": [],
+        "langgraph/nodes/news/publisher.py": [],
+        "langgraph/nodes/news/utils.py": [],
+        "langgraph/nodes/research/__init__.py": [],
+        "langgraph/nodes/research/finish.py": [],
+        "langgraph/nodes/research/planner.py": [],
+        "langgraph/nodes/research/query_rewrite.py": [],
+        "langgraph/nodes/research/reason.py": [],
+        "langgraph/nodes/research/reflect.py": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 26,
+      "files": [
+        {
+          "path": "langgraph/nodes/research/rerank.py",
+          "language": "python",
+          "sizeLines": 67,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/research/retrieve.py",
+          "language": "python",
+          "sizeLines": 237,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/nodes/research/writer.py",
+          "language": "python",
+          "sizeLines": 22,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/pipelines/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/pipelines/document_pipeline.py",
+          "language": "python",
+          "sizeLines": 479,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/pipelines/web/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/pipelines/web/chunker.py",
+          "language": "python",
+          "sizeLines": 302,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/pipelines/web/diff_detector.py",
+          "language": "python",
+          "sizeLines": 282,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/pipelines/web/link_extractor.py",
+          "language": "python",
+          "sizeLines": 183,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/pipelines/web/rate_limiter.py",
+          "language": "python",
+          "sizeLines": 171,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/pipelines/web/retry.py",
+          "language": "python",
+          "sizeLines": 146,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/pipelines/web/summarizer.py",
+          "language": "python",
+          "sizeLines": 183,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/pipelines/web_pipeline.py",
+          "language": "python",
+          "sizeLines": 879,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/prompts/chat/system.md",
+          "language": "markdown",
+          "sizeLines": 23,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/prompts/investment/system.md",
+          "language": "markdown",
+          "sizeLines": 154,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/prompts/loader.py",
+          "language": "python",
+          "sizeLines": 72,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/prompts/research/system.md",
+          "language": "markdown",
+          "sizeLines": 28,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "langgraph/providers/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/providers/web/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/providers/web/crawl4ai_provider.py",
+          "language": "python",
+          "sizeLines": 331,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/runtime/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/runtime/executor.py",
+          "language": "python",
+          "sizeLines": 59,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/runtime/queue.py",
+          "language": "python",
+          "sizeLines": 313,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/runtime/scheduler.py",
+          "language": "python",
+          "sizeLines": 353,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/runtime/worker.py",
+          "language": "python",
+          "sizeLines": 254,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "langgraph/nodes/research/rerank.py": [],
+        "langgraph/nodes/research/retrieve.py": [],
+        "langgraph/nodes/research/writer.py": [],
+        "langgraph/pipelines/__init__.py": [],
+        "langgraph/pipelines/document_pipeline.py": [],
+        "langgraph/pipelines/web/__init__.py": [],
+        "langgraph/pipelines/web/chunker.py": [],
+        "langgraph/pipelines/web/diff_detector.py": [],
+        "langgraph/pipelines/web/link_extractor.py": [],
+        "langgraph/pipelines/web/rate_limiter.py": [],
+        "langgraph/pipelines/web/retry.py": [],
+        "langgraph/pipelines/web/summarizer.py": [],
+        "langgraph/pipelines/web_pipeline.py": [],
+        "langgraph/prompts/chat/system.md": [],
+        "langgraph/prompts/investment/system.md": [],
+        "langgraph/prompts/loader.py": [],
+        "langgraph/prompts/research/system.md": [],
+        "langgraph/providers/__init__.py": [],
+        "langgraph/providers/web/__init__.py": [],
+        "langgraph/providers/web/crawl4ai_provider.py": [],
+        "langgraph/runtime/__init__.py": [],
+        "langgraph/runtime/executor.py": [],
+        "langgraph/runtime/queue.py": [],
+        "langgraph/runtime/scheduler.py": [],
+        "langgraph/runtime/worker.py": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 27,
+      "files": [
+        {
+          "path": "langgraph/schemas/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/schemas/authority.py",
+          "language": "python",
+          "sizeLines": 99,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/schemas/chat.py",
+          "language": "python",
+          "sizeLines": 93,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/schemas/financial.py",
+          "language": "python",
+          "sizeLines": 68,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/scripts/clean_qdrant.py",
+          "language": "python",
+          "sizeLines": 50,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/scripts/clear_minio.py",
+          "language": "python",
+          "sizeLines": 45,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/scripts/mi_probe.py",
+          "language": "python",
+          "sizeLines": 35,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/scripts/setup_probe.py",
+          "language": "python",
+          "sizeLines": 54,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/scripts/verify_code.py",
+          "language": "python",
+          "sizeLines": 39,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/services/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/services/approval.py",
+          "language": "python",
+          "sizeLines": 180,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/services/batch_embed.py",
+          "language": "python",
+          "sizeLines": 234,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/services/lifecycle.py",
+          "language": "python",
+          "sizeLines": 209,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/services/news_storage.py",
+          "language": "python",
+          "sizeLines": 256,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/services/router.py",
+          "language": "python",
+          "sizeLines": 92,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/skills/__init__.py",
+          "language": "python",
+          "sizeLines": 17,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/skills/base_skill.py",
+          "language": "python",
+          "sizeLines": 60,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/skills/investment_research.py",
+          "language": "python",
+          "sizeLines": 169,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/skills/master_analysis.py",
+          "language": "python",
+          "sizeLines": 380,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/skills/rag_search.py",
+          "language": "python",
+          "sizeLines": 128,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/skills/registry.py",
+          "language": "python",
+          "sizeLines": 86,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/skills/web_article_summary.py",
+          "language": "python",
+          "sizeLines": 430,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/state/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/state/document_state.py",
+          "language": "python",
+          "sizeLines": 29,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/state/knowledge_state.py",
+          "language": "python",
+          "sizeLines": 43,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "langgraph/schemas/__init__.py": [],
+        "langgraph/schemas/authority.py": [],
+        "langgraph/schemas/chat.py": [],
+        "langgraph/schemas/financial.py": [],
+        "langgraph/scripts/clean_qdrant.py": [],
+        "langgraph/scripts/clear_minio.py": [],
+        "langgraph/scripts/mi_probe.py": [],
+        "langgraph/scripts/setup_probe.py": [],
+        "langgraph/scripts/verify_code.py": [],
+        "langgraph/services/__init__.py": [],
+        "langgraph/services/approval.py": [],
+        "langgraph/services/batch_embed.py": [],
+        "langgraph/services/lifecycle.py": [],
+        "langgraph/services/news_storage.py": [],
+        "langgraph/services/router.py": [],
+        "langgraph/skills/__init__.py": [],
+        "langgraph/skills/base_skill.py": [],
+        "langgraph/skills/investment_research.py": [],
+        "langgraph/skills/master_analysis.py": [],
+        "langgraph/skills/rag_search.py": [],
+        "langgraph/skills/registry.py": [],
+        "langgraph/skills/web_article_summary.py": [],
+        "langgraph/state/__init__.py": [],
+        "langgraph/state/document_state.py": [],
+        "langgraph/state/knowledge_state.py": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 28,
+      "files": [
+        {
+          "path": "langgraph/state/news_state.py",
+          "language": "python",
+          "sizeLines": 39,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/state/research_state.py",
+          "language": "python",
+          "sizeLines": 36,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/storage/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/storage/knowledge/__init__.py",
+          "language": "python",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/storage/knowledge/age.py",
+          "language": "python",
+          "sizeLines": 240,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/storage/knowledge/postgres.py",
+          "language": "python",
+          "sizeLines": 563,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/storage/knowledge/qdrant.py",
+          "language": "python",
+          "sizeLines": 261,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/storage/news/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/storage/news/postgres.py",
+          "language": "python",
+          "sizeLines": 322,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tests/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tests/api/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tests/api/test_chat.py",
+          "language": "python",
+          "sizeLines": 56,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tests/integration/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tests/integration/test_graph.py",
+          "language": "python",
+          "sizeLines": 61,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tests/unit/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tests/unit/test_embedding_tool.py",
+          "language": "python",
+          "sizeLines": 56,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tests/unit/test_planner.py",
+          "language": "python",
+          "sizeLines": 56,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tests/unit/test_qdrant_tool.py",
+          "language": "python",
+          "sizeLines": 44,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tests/unit/test_retrieve.py",
+          "language": "python",
+          "sizeLines": 73,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tools/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tools/chunker.py",
+          "language": "python",
+          "sizeLines": 155,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tools/docling.py",
+          "language": "python",
+          "sizeLines": 165,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tools/document_tools.py",
+          "language": "python",
+          "sizeLines": 78,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tools/embedding.py",
+          "language": "python",
+          "sizeLines": 194,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tools/knowledge_tools.py",
+          "language": "python",
+          "sizeLines": 130,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "langgraph/state/news_state.py": [],
+        "langgraph/state/research_state.py": [],
+        "langgraph/storage/__init__.py": [],
+        "langgraph/storage/knowledge/__init__.py": [],
+        "langgraph/storage/knowledge/age.py": [],
+        "langgraph/storage/knowledge/postgres.py": [],
+        "langgraph/storage/knowledge/qdrant.py": [],
+        "langgraph/storage/news/__init__.py": [],
+        "langgraph/storage/news/postgres.py": [],
+        "langgraph/tests/__init__.py": [],
+        "langgraph/tests/api/__init__.py": [],
+        "langgraph/tests/api/test_chat.py": [],
+        "langgraph/tests/integration/__init__.py": [],
+        "langgraph/tests/integration/test_graph.py": [],
+        "langgraph/tests/unit/__init__.py": [],
+        "langgraph/tests/unit/test_embedding_tool.py": [],
+        "langgraph/tests/unit/test_planner.py": [],
+        "langgraph/tests/unit/test_qdrant_tool.py": [],
+        "langgraph/tests/unit/test_retrieve.py": [],
+        "langgraph/tools/__init__.py": [],
+        "langgraph/tools/chunker.py": [],
+        "langgraph/tools/docling.py": [],
+        "langgraph/tools/document_tools.py": [],
+        "langgraph/tools/embedding.py": [],
+        "langgraph/tools/knowledge_tools.py": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 29,
+      "files": [
+        {
+          "path": "langgraph/tools/llm.py",
+          "language": "python",
+          "sizeLines": 133,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tools/market_tools.py",
+          "language": "python",
+          "sizeLines": 186,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tools/minio.py",
+          "language": "python",
+          "sizeLines": 117,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tools/postgres.py",
+          "language": "python",
+          "sizeLines": 100,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tools/qdrant.py",
+          "language": "python",
+          "sizeLines": 91,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tools/reranker.py",
+          "language": "python",
+          "sizeLines": 211,
+          "fileCategory": "code"
+        },
+        {
+          "path": "langgraph/tools/search_tools.py",
+          "language": "python",
+          "sizeLines": 96,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/compose.yml",
+          "language": "yaml",
+          "sizeLines": 48,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "mcp-knowledge/requirements.txt",
+          "language": "txt",
+          "sizeLines": 7,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mcp-knowledge/server/__init__.py",
+          "language": "python",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/adapters/__init__.py",
+          "language": "python",
+          "sizeLines": 4,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/adapters/siyuan/__init__.py",
+          "language": "python",
+          "sizeLines": 20,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/adapters/siyuan/client.py",
+          "language": "python",
+          "sizeLines": 207,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/adapters/siyuan/config.py",
+          "language": "python",
+          "sizeLines": 41,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/adapters/siyuan/mapper.py",
+          "language": "python",
+          "sizeLines": 98,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/adapters/siyuan/sync.py",
+          "language": "python",
+          "sizeLines": 114,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/adapters/siyuan/templates.py",
+          "language": "python",
+          "sizeLines": 74,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/cache.py",
+          "language": "python",
+          "sizeLines": 90,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/config.py",
+          "language": "python",
+          "sizeLines": 59,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/llm.py",
+          "language": "python",
+          "sizeLines": 145,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/main.py",
+          "language": "python",
+          "sizeLines": 99,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/rendering/__init__.py",
+          "language": "python",
+          "sizeLines": 12,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/rendering/diff.py",
+          "language": "python",
+          "sizeLines": 81,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/rendering/engine.py",
+          "language": "python",
+          "sizeLines": 133,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/rendering/metrics.py",
+          "language": "python",
+          "sizeLines": 107,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "langgraph/tools/llm.py": [],
+        "langgraph/tools/market_tools.py": [],
+        "langgraph/tools/minio.py": [],
+        "langgraph/tools/postgres.py": [],
+        "langgraph/tools/qdrant.py": [],
+        "langgraph/tools/reranker.py": [],
+        "langgraph/tools/search_tools.py": [],
+        "mcp-knowledge/compose.yml": [],
+        "mcp-knowledge/requirements.txt": [],
+        "mcp-knowledge/server/__init__.py": [],
+        "mcp-knowledge/server/adapters/__init__.py": [],
+        "mcp-knowledge/server/adapters/siyuan/__init__.py": [],
+        "mcp-knowledge/server/adapters/siyuan/client.py": [],
+        "mcp-knowledge/server/adapters/siyuan/config.py": [],
+        "mcp-knowledge/server/adapters/siyuan/mapper.py": [],
+        "mcp-knowledge/server/adapters/siyuan/sync.py": [],
+        "mcp-knowledge/server/adapters/siyuan/templates.py": [],
+        "mcp-knowledge/server/cache.py": [],
+        "mcp-knowledge/server/config.py": [],
+        "mcp-knowledge/server/llm.py": [],
+        "mcp-knowledge/server/main.py": [],
+        "mcp-knowledge/server/rendering/__init__.py": [],
+        "mcp-knowledge/server/rendering/diff.py": [],
+        "mcp-knowledge/server/rendering/engine.py": [],
+        "mcp-knowledge/server/rendering/metrics.py": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 30,
+      "files": [
+        {
+          "path": "mcp-knowledge/server/rendering/renderer.py",
+          "language": "python",
+          "sizeLines": 91,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/rendering/worker.py",
+          "language": "python",
+          "sizeLines": 146,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/storage/__init__.py",
+          "language": "python",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/storage/age.py",
+          "language": "python",
+          "sizeLines": 436,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/storage/postgres.py",
+          "language": "python",
+          "sizeLines": 580,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/storage/qdrant.py",
+          "language": "python",
+          "sizeLines": 154,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/tools/__init__.py",
+          "language": "python",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/tools/analysis.py",
+          "language": "python",
+          "sizeLines": 253,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/tools/entity.py",
+          "language": "python",
+          "sizeLines": 118,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/tools/fact.py",
+          "language": "python",
+          "sizeLines": 130,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/tools/graph.py",
+          "language": "python",
+          "sizeLines": 344,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/tools/inbox.py",
+          "language": "python",
+          "sizeLines": 134,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/tools/semantic.py",
+          "language": "python",
+          "sizeLines": 80,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/tools/siyuan.py",
+          "language": "python",
+          "sizeLines": 273,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/tools/write.py",
+          "language": "python",
+          "sizeLines": 176,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/server/utils.py",
+          "language": "python",
+          "sizeLines": 17,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/tests/test_inbox.py",
+          "language": "python",
+          "sizeLines": 165,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/tests/test_render_metrics.py",
+          "language": "python",
+          "sizeLines": 64,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/tests/test_render_worker.py",
+          "language": "python",
+          "sizeLines": 141,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/tests/test_siyuan.py",
+          "language": "python",
+          "sizeLines": 290,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/tests/test_siyuan_client.py",
+          "language": "python",
+          "sizeLines": 198,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/verify_b4.py",
+          "language": "python",
+          "sizeLines": 59,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-knowledge/verify_graphrag_tmp.py",
+          "language": "python",
+          "sizeLines": 30,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-news/compose.yml",
+          "language": "yaml",
+          "sizeLines": 47,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "mcp-news/requirements.txt",
+          "language": "txt",
+          "sizeLines": 5,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        "mcp-knowledge/server/rendering/renderer.py": [],
+        "mcp-knowledge/server/rendering/worker.py": [],
+        "mcp-knowledge/server/storage/__init__.py": [],
+        "mcp-knowledge/server/storage/age.py": [],
+        "mcp-knowledge/server/storage/postgres.py": [],
+        "mcp-knowledge/server/storage/qdrant.py": [],
+        "mcp-knowledge/server/tools/__init__.py": [],
+        "mcp-knowledge/server/tools/analysis.py": [],
+        "mcp-knowledge/server/tools/entity.py": [],
+        "mcp-knowledge/server/tools/fact.py": [],
+        "mcp-knowledge/server/tools/graph.py": [],
+        "mcp-knowledge/server/tools/inbox.py": [],
+        "mcp-knowledge/server/tools/semantic.py": [],
+        "mcp-knowledge/server/tools/siyuan.py": [],
+        "mcp-knowledge/server/tools/write.py": [],
+        "mcp-knowledge/server/utils.py": [],
+        "mcp-knowledge/tests/test_inbox.py": [],
+        "mcp-knowledge/tests/test_render_metrics.py": [],
+        "mcp-knowledge/tests/test_render_worker.py": [],
+        "mcp-knowledge/tests/test_siyuan.py": [],
+        "mcp-knowledge/tests/test_siyuan_client.py": [],
+        "mcp-knowledge/verify_b4.py": [],
+        "mcp-knowledge/verify_graphrag_tmp.py": [],
+        "mcp-news/compose.yml": [],
+        "mcp-news/requirements.txt": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 31,
+      "files": [
+        {
+          "path": "mcp-news/server/__init__.py",
+          "language": "python",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-news/server/config.py",
+          "language": "python",
+          "sizeLines": 32,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-news/server/main.py",
+          "language": "python",
+          "sizeLines": 75,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-news/server/storage/__init__.py",
+          "language": "python",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-news/server/storage/postgres.py",
+          "language": "python",
+          "sizeLines": 260,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-news/server/tools/__init__.py",
+          "language": "python",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-news/server/tools/analysis.py",
+          "language": "python",
+          "sizeLines": 87,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-news/server/tools/article.py",
+          "language": "python",
+          "sizeLines": 71,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-news/server/tools/event.py",
+          "language": "python",
+          "sizeLines": 65,
+          "fileCategory": "code"
+        },
+        {
+          "path": "mcp-news/server/tools/source.py",
+          "language": "python",
+          "sizeLines": 41,
+          "fileCategory": "code"
+        },
+        {
+          "path": "openwebui/compose.yml",
+          "language": "yaml",
+          "sizeLines": 50,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "paddleocr/compose.yml",
+          "language": "yaml",
+          "sizeLines": 51,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "paddleocr/vllm_config.yaml",
+          "language": "yaml",
+          "sizeLines": 8,
+          "fileCategory": "config"
+        },
+        {
+          "path": "postgres/compose.yml",
+          "language": "yaml",
+          "sizeLines": 80,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "qdrant/compose.yml",
+          "language": "yaml",
+          "sizeLines": 40,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "qdrant/init_qdrant.py",
+          "language": "python",
+          "sizeLines": 164,
+          "fileCategory": "code"
+        },
+        {
+          "path": "registry/news_sources.yaml",
+          "language": "yaml",
+          "sizeLines": 195,
+          "fileCategory": "config"
+        },
+        {
+          "path": "registry/websites.yaml",
+          "language": "yaml",
+          "sizeLines": 145,
+          "fileCategory": "config"
+        },
+        {
+          "path": "reranker/compose.yml",
+          "language": "yaml",
+          "sizeLines": 55,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "scripts/archive/crawl_qiushi_summary.py",
+          "language": "python",
+          "sizeLines": 268,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/archive/test_downstream_pipeline.py",
+          "language": "python",
+          "sizeLines": 190,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/archive/test_pipeline_integration.py",
+          "language": "python",
+          "sizeLines": 168,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/archive/test_web_ingestion.py",
+          "language": "python",
+          "sizeLines": 184,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/batch_embed_to_qdrant.py",
+          "language": "python",
+          "sizeLines": 308,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/check_architecture.py",
+          "language": "python",
+          "sizeLines": 274,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "mcp-news/server/__init__.py": [],
+        "mcp-news/server/config.py": [],
+        "mcp-news/server/main.py": [],
+        "mcp-news/server/storage/__init__.py": [],
+        "mcp-news/server/storage/postgres.py": [],
+        "mcp-news/server/tools/__init__.py": [],
+        "mcp-news/server/tools/analysis.py": [],
+        "mcp-news/server/tools/article.py": [],
+        "mcp-news/server/tools/event.py": [],
+        "mcp-news/server/tools/source.py": [],
+        "openwebui/compose.yml": [],
+        "paddleocr/compose.yml": [],
+        "paddleocr/vllm_config.yaml": [],
+        "postgres/compose.yml": [],
+        "qdrant/compose.yml": [],
+        "qdrant/init_qdrant.py": [],
+        "registry/news_sources.yaml": [],
+        "registry/websites.yaml": [],
+        "reranker/compose.yml": [],
+        "scripts/archive/crawl_qiushi_summary.py": [],
+        "scripts/archive/test_downstream_pipeline.py": [],
+        "scripts/archive/test_pipeline_integration.py": [],
+        "scripts/archive/test_web_ingestion.py": [],
+        "scripts/batch_embed_to_qdrant.py": [],
+        "scripts/check_architecture.py": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 32,
+      "files": [
+        {
+          "path": "scripts/collect_out/glossary_term_facts.json",
+          "language": "json",
+          "sizeLines": 266,
+          "fileCategory": "config"
+        },
+        {
+          "path": "scripts/dedupe_vault.py",
+          "language": "python",
+          "sizeLines": 167,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/import_company_basic.py",
+          "language": "python",
+          "sizeLines": 146,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/import_providers.py",
+          "language": "python",
+          "sizeLines": 124,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/init_news_qdrant.py",
+          "language": "python",
+          "sizeLines": 97,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/sync_to_age.py",
+          "language": "python",
+          "sizeLines": 278,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/upload_analysis_reports.py",
+          "language": "python",
+          "sizeLines": 117,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scripts/web_scheduler.py",
+          "language": "python",
+          "sizeLines": 590,
+          "fileCategory": "code"
+        },
+        {
+          "path": "sisyphus/compose.yml",
+          "language": "yaml",
+          "sizeLines": 59,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "siyuan/compose.yml",
+          "language": "yaml",
+          "sizeLines": 41,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "skills/glossary/skill.md",
+          "language": "markdown",
+          "sizeLines": 153,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        "scripts/collect_out/glossary_term_facts.json": [],
+        "scripts/dedupe_vault.py": [],
+        "scripts/import_company_basic.py": [],
+        "scripts/import_providers.py": [],
+        "scripts/init_news_qdrant.py": [],
+        "scripts/sync_to_age.py": [],
+        "scripts/upload_analysis_reports.py": [],
+        "scripts/web_scheduler.py": [],
+        "sisyphus/compose.yml": [],
+        "siyuan/compose.yml": [],
+        "skills/glossary/skill.md": []
+      },
+      "neighborMap": {}
+    }
+  ]
+}

@@ -708,34 +708,78 @@ class MinioIngestRequest(BaseModel):
 
 @router.post("/ingest-minio")
 async def trigger_ingest_minio(req: MinioIngestRequest):
-    """从 MinIO 采集年报对象并注册为 pending documents
+    """从 MinIO 采集年报对象并注册为 pending documents（异步任务，支持进度/暂停/取消）
 
-    用 minio_tool 列出 bucket 下的对象，识别 /annual_report/{year}/report.{pdf|md}
-    形态的路径，写入 documents 表（幂等）。可选触发 doc_pipeline worker 处理。
+    调用 register_pending_from_minio 扫描 bucket 下的对象，识别
+    /annual_report/{year}/report.{pdf|md} 形态的路径，写入 documents 表（幂等）。
+    可选触发 doc_pipeline worker 处理。
     """
-    try:
-        result = await doc_pipeline.register_pending_from_minio(
-            bucket=req.bucket, prefix=req.prefix, market=req.market
-        )
-    except Exception as e:
-        logger.exception("MinIO ingest failed")
-        raise HTTPException(status_code=500, detail=str(e))
-
-    task_id = None
-    if req.trigger and result.get("added", 0) > 0:
-        task_id = await task_queue.create_task(
-            task_type="doc_pipeline",
-            title=f"文档处理 Pipeline ({result['added']} docs, MinIO)",
-            params={"limit": result["added"]},
-            total_items=result["added"],
-            created_by="api",
-        )
-
+    task_id = await task_queue.create_task(
+        task_type="ingest_minio",
+        title=f"MinIO 导入: {req.bucket}/{req.prefix or '*'}"
+        + (f" [{req.market}]" if req.market else ""),
+        params={
+            "bucket": req.bucket, "prefix": req.prefix,
+            "market": req.market, "trigger": req.trigger,
+        },
+        created_by="api",
+    )
+    logger.info("[IngestMinio] async task created: %s | bucket=%s prefix=%r", task_id[:8], req.bucket, req.prefix)
     return {
         "status": "ok",
-        "registered": result,
-        "pipeline_task_id": task_id,
+        "task_id": task_id,
+        "async_mode": True,
     }
+
+
+async def _run_ingest_minio_async(task_id: str, req: MinioIngestRequest) -> None:
+    """异步任务：扫描 MinIO 并注册 pending 文档，支持暂停/恢复/终止"""
+    try:
+        result = await doc_pipeline.register_pending_from_minio(
+            bucket=req.bucket, prefix=req.prefix, market=req.market,
+            task_id=task_id,
+        )
+        if result.get("cancelled"):
+            await task_queue.fail_task(
+                task_id, "任务已终止（用户取消，部分文档可能已注册）"
+            )
+            await task_queue.log_task(
+                task_id, "warn",
+                f"MinIO 导入已终止，已注册 {result.get('added', 0)} 个文档",
+            )
+            return
+
+        await task_queue.update_progress(
+            task_id, result.get("found", 0),
+            stage=f"完成 · 新增{result.get('added', 0)} 跳过{result.get('skipped', 0)} 重置{result.get('reset', 0)}",
+            current_name="",
+        )
+        await task_queue.complete_task(task_id)
+        await task_queue.log_task(
+            task_id, "info",
+            f"MinIO 导入完成: found={result.get('found', 0)} added={result.get('added', 0)} "
+            f"skipped={result.get('skipped', 0)} reset={result.get('reset', 0)}",
+        )
+
+        if req.trigger and result.get("found", 0) > 0:
+            # 只要扫描到对象即触发处理（已存在 pending 文档也会由
+            # process_pending_documents 原子认领处理，避免因 added=0 永不触发）
+            pipeline_task_id = await task_queue.create_task(
+                task_type="doc_pipeline",
+                title=f"文档处理 Pipeline ({result['found']} docs, MinIO)",
+                params={"limit": result["found"]},
+                total_items=result["found"],
+                created_by="api",
+            )
+            await task_queue.log_task(task_id, "info", f"已触发 Pipeline: {pipeline_task_id}")
+    except asyncio.CancelledError:
+        logger.info("[IngestMinio] %s terminated", task_id[:8])
+        await task_queue.fail_task(task_id, "任务已终止（用户取消）")
+    except Exception as e:
+        logger.exception("[IngestMinio] %s failed", task_id[:8])
+        await task_queue.fail_task(task_id, str(e))
+    finally:
+        task_queue.purge_control(task_id)
 
 
 class IngestRequest(BaseModel):

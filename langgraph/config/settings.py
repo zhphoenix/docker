@@ -63,14 +63,17 @@ class Settings(BaseSettings):
     # PaddleOCR
     PADDLEOCR_URL: str = "http://localhost:8118"
 
-    # SiYuan
+    # SiYuan（展示层，PostgreSQL 为 SoT）
     SIYUAN_URL: str = "http://localhost:6806"
+    SIYUAN_TOKEN: str = ""
+    SIYUAN_NOTEBOOK: str = "Web Summaries"
+    SIYUAN_ENABLED: bool = True
 
     # Crawl4AI
     CRAWL4AI_URL: str = "http://localhost:11235"
 
-    # Open WebUI（宿主机映射端口 3001 → 容器内 8084）
-    OPENWEBUI_URL: str = "http://localhost:3001"
+    # Open WebUI（宿主机映射端口 3000 → 容器内 8084；3001 留给前端 Vite 开发服务器）
+    OPENWEBUI_URL: str = "http://localhost:3000"
 
     # MCP 服务（FastMCP，JSON-RPC over HTTP POST /mcp）
     MCP_KNOWLEDGE_URL: str = "http://localhost:8200"

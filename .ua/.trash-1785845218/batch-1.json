@@ -1,0 +1,29 @@
+{
+ "nodes": [
+  {
+   "id": "resource:langgraph/.dockerignore",
+   "type": "resource",
+   "name": ".dockerignore",
+   "filePath": "langgraph/.dockerignore",
+   "summary": ".dockerignore（langgraph）",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  },
+  {
+   "id": "resource:langgraph/Dockerfile",
+   "type": "resource",
+   "name": "Dockerfile",
+   "filePath": "langgraph/Dockerfile",
+   "summary": "Dockerfile（langgraph）",
+   "tags": [
+    "langgraph"
+   ],
+   "complexity": "simple",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

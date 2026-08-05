@@ -41,7 +41,7 @@ class MinIOTool:
         return await asyncio.to_thread(_download)
 
     async def delete(self, bucket: str, key: str) -> None:
-        """删除对象；对象不存在视为成功（幂等）"""
+        """删除对象最新版本；对象不存在视为成功（幂等）"""
         def _del():
             try:
                 self.client.remove_object(bucket, key)
@@ -50,6 +50,42 @@ class MinIOTool:
                     raise
         await asyncio.to_thread(_del)
         logger.info("Deleted %s/%s", bucket, key)
+
+    async def delete_versions(self, bucket: str, key: str) -> int:
+        """彻底删除对象（含所有历史版本），返回删除的版本数
+
+        版本控制（mc version enable）开启后，remove_object 只删除最新版本，
+        历史版本仍残留。本方法通过 list_objects(include_version=True) 列出
+        该对象的所有版本（含删除标记），逐个删除以彻底清除。
+        """
+        def _purge() -> int:
+            removed = 0
+            try:
+                objs = self.client.list_objects(
+                    bucket, prefix=key, recursive=True, include_version=True
+                )
+                for obj in objs:
+                    if obj.object_name != key:
+                        continue
+                    try:
+                        self.client.remove_object(
+                            bucket, key, version_id=obj.version_id
+                        )
+                        removed += 1
+                    except S3Error as e:
+                        if e.code != "NoSuchKey":
+                            raise
+            except Exception:
+                # list 失败（如对象不存在）时兜底删除最新版本
+                try:
+                    self.client.remove_object(bucket, key)
+                    removed += 1
+                except S3Error as e:
+                    if e.code != "NoSuchKey":
+                        raise
+            logger.info("Purged %s/%s (versions=%d)", bucket, key, removed)
+            return removed
+        return await asyncio.to_thread(_purge)
 
     async def exists(self, bucket: str, key: str) -> bool:
         """检查对象是否存在"""

@@ -1,0 +1,137 @@
+{
+ "nodes": [
+  {
+   "id": "document:.qoder/plans/AI_Platform_Refactoring_Plan_d90acfeb.md",
+   "type": "document",
+   "name": "AI_Platform_Refactoring_Plan_d90acfeb.md",
+   "filePath": ".qoder/plans/AI_Platform_Refactoring_Plan_d90acfeb.md",
+   "summary": "文档：AI_Platform_Refactoring_Plan_d90acfeb.md",
+   "tags": [
+    ".qoder"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/plans/AI_Platform_UI_构建_6d097b82.md",
+   "type": "document",
+   "name": "AI_Platform_UI_构建_6d097b82.md",
+   "filePath": ".qoder/plans/AI_Platform_UI_构建_6d097b82.md",
+   "summary": "文档：AI_Platform_UI_构建_6d097b82.md",
+   "tags": [
+    ".qoder"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/plans/Apache_AGE_Full_Integration_b62f454e.md",
+   "type": "document",
+   "name": "Apache_AGE_Full_Integration_b62f454e.md",
+   "filePath": ".qoder/plans/Apache_AGE_Full_Integration_b62f454e.md",
+   "summary": "文档：Apache_AGE_Full_Integration_b62f454e.md",
+   "tags": [
+    ".qoder"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/plans/Knowledge_Agent_Implementation_fe8dfd8e.md",
+   "type": "document",
+   "name": "Knowledge_Agent_Implementation_fe8dfd8e.md",
+   "filePath": ".qoder/plans/Knowledge_Agent_Implementation_fe8dfd8e.md",
+   "summary": "文档：Knowledge_Agent_Implementation_fe8dfd8e.md",
+   "tags": [
+    ".qoder"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/plans/Knowledge_Schema_实现_cb9966b8.md",
+   "type": "document",
+   "name": "Knowledge_Schema_实现_cb9966b8.md",
+   "filePath": ".qoder/plans/Knowledge_Schema_实现_cb9966b8.md",
+   "summary": "文档：Knowledge_Schema_实现_cb9966b8.md",
+   "tags": [
+    ".qoder"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/plans/LangGraph_目录架构重组_597be49e.md",
+   "type": "document",
+   "name": "LangGraph_目录架构重组_597be49e.md",
+   "filePath": ".qoder/plans/LangGraph_目录架构重组_597be49e.md",
+   "summary": "文档：LangGraph_目录架构重组_597be49e.md",
+   "tags": [
+    ".qoder"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/plans/SPEC_SYSTEM_ROADMAP.md",
+   "type": "document",
+   "name": "SPEC_SYSTEM_ROADMAP.md",
+   "filePath": ".qoder/plans/SPEC_SYSTEM_ROADMAP.md",
+   "summary": "文档：SPEC_SYSTEM_ROADMAP.md",
+   "tags": [
+    ".qoder"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/plans/SiYuan_Knowledge_Workspace_Integration_610245ad.md",
+   "type": "document",
+   "name": "SiYuan_Knowledge_Workspace_Integration_610245ad.md",
+   "filePath": ".qoder/plans/SiYuan_Knowledge_Workspace_Integration_610245ad.md",
+   "summary": "文档：SiYuan_Knowledge_Workspace_Integration_610245ad.md",
+   "tags": [
+    ".qoder"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/plans/年报分析系统前端接入_6600706d.md",
+   "type": "document",
+   "name": "年报分析系统前端接入_6600706d.md",
+   "filePath": ".qoder/plans/年报分析系统前端接入_6600706d.md",
+   "summary": "文档：年报分析系统前端接入_6600706d.md",
+   "tags": [
+    ".qoder"
+   ],
+   "complexity": "complex",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/plans/建立_Project_Inventory_技能_35b76ccb.md",
+   "type": "document",
+   "name": "建立_Project_Inventory_技能_35b76ccb.md",
+   "filePath": ".qoder/plans/建立_Project_Inventory_技能_35b76ccb.md",
+   "summary": "文档：建立_Project_Inventory_技能_35b76ccb.md",
+   "tags": [
+    ".qoder"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  },
+  {
+   "id": "document:.qoder/plans/知识库页面重构规划_4dcef2f8.md",
+   "type": "document",
+   "name": "知识库页面重构规划_4dcef2f8.md",
+   "filePath": ".qoder/plans/知识库页面重构规划_4dcef2f8.md",
+   "summary": "文档：知识库页面重构规划_4dcef2f8.md",
+   "tags": [
+    ".qoder"
+   ],
+   "complexity": "moderate",
+   "languageNotes": ""
+  }
+ ],
+ "edges": []
+}

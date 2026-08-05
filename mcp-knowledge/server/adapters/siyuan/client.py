@@ -7,10 +7,15 @@
 
 参考 SiYuan HTTP API（b3log/siyuan -> /api/...）：
   - /api/filetree/createDocWithMd
-  - /api/filetree/getDocByPath
-  - /api/filetree/updateDoc
-  - /api/filetree/removeDoc
+  - /api/filetree/getIDsByHPath（按 HPath 查询文档 id，幂等判断）
+  - /api/filetree/removeDocByID
   - /api/notebook/lsNotebooks / createNotebook
+
+注意：本 SiYuan 版本已移除 getDocByPath / updateDoc 可用 API（getDocByPath 未注册、
+updateDoc 返回空且不生效），且 createDocWithMd 不幂等（同路径重复创建）。
+因此：按路径查询用 getIDsByHPath；更新采用 removeDocByID + createDocWithMd 重建，
+保证幂等且不产生重复。文档 id 随重建变化，但 SiYuan 块引用 [[标题]] 按标题解析，
+关系图不受影响。
 """
 
 import asyncio
@@ -156,12 +161,18 @@ class SiYuanClient:
     # ──────────────────────────────
     # 文档（Doc）— 幂等 upsert
     # ──────────────────────────────
-    async def get_doc_by_path(self, notebook: str, path: str) -> dict | None:
-        """按 notebook + 路径查文档，返回 {id, box, path,...} 或 None"""
-        data = await self._post("/api/filetree/getDocByPath", {"notebook": notebook, "path": path})
-        if not data:
-            return None
-        return data if data.get("id") else None
+    async def get_doc_ids_by_hpath(self, notebook: str, path: str) -> list[str]:
+        """按人类可读路径（HPath）查询文档 id 列表。
+
+        返回可能包含历史重复文档（此前 createDocWithMd 重复创建所致），
+        upsert 时会一并清理并重建。
+
+        注意：getIDsByHPath 要求 HPath 带前导斜杠（如 /Indian_government），
+        而 entity_to_path 返回无斜杠路径（如 Indian_government），此处归一化。
+        """
+        hpath = path if path.startswith("/") else "/" + path
+        data = await self._post("/api/filetree/getIDsByHPath", {"notebook": notebook, "path": hpath})
+        return data or []
 
     async def create_doc(self, notebook: str, path: str, markdown: str) -> dict:
         """创建文档（createDocWithMd）"""
@@ -170,25 +181,29 @@ class SiYuanClient:
             {"notebook": notebook, "path": path, "markdown": markdown},
         )
 
-    async def update_doc(self, doc_id: str, markdown: str) -> dict:
-        """更新文档内容（updateDoc，幂等）"""
-        return await self._post("/api/filetree/updateDoc", {"id": doc_id, "markdown": markdown})
+    async def remove_doc_by_id(self, doc_id: str) -> dict:
+        """按 id 删除文档（removeDocByID）"""
+        return await self._post("/api/filetree/removeDocByID", {"id": doc_id})
 
     async def upsert_doc(self, notebook: str, path: str, markdown: str) -> dict:
-        """幂等写入文档：路径已存在则更新，否则创建。
+        """幂等写入文档：路径已存在则重建，否则创建。
+
+        说明：该 SiYuan 版本无 updateDoc 可用 API（updateDoc 返回空且不生效），
+        且 createDocWithMd 不幂等（同路径重复创建）。因此采用 getIDsByHPath 查出
+        已存在文档（含历史重复）→ removeDocByID 清理 → createDocWithMd 重建，
+        保证"路径存在则更新、不存在则创建"且不产生重复。文档 id 随重建变化，
+        但 SiYuan 块引用 [[标题]] 按标题解析，关系图不受影响。
+
+        notebook 参数为笔记本名称（如 "Companies"），内部先解析为笔记本 id。
 
         返回 {action: 'created'|'updated', id, path}
         """
-        existing = await self.get_doc_by_path(notebook, path)
-        if existing and existing.get("id"):
-            await self.update_doc(existing["id"], markdown)
-            return {"action": "updated", "id": existing["id"], "path": path}
-        await self.create_doc(notebook, path, markdown)
-        return {"action": "created", "id": "", "path": path}
-
-    async def remove_doc(self, doc_id: str) -> dict:
-        """删除文档"""
-        return await self._post("/api/filetree/removeDoc", {"id": doc_id})
+        box_id = await self.ensure_notebook(notebook)
+        existing_ids = await self.get_doc_ids_by_hpath(box_id, path)
+        for doc_id in existing_ids:
+            await self.remove_doc_by_id(doc_id)
+        await self.create_doc(box_id, path, markdown)
+        return {"action": "updated" if existing_ids else "created", "id": "", "path": path}
 
     # ──────────────────────────────
     # 工具
