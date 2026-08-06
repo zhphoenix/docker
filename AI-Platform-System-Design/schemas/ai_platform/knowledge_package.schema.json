@@ -1,0 +1,335 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ai-platform.local/schemas/ai_platform/knowledge_package.schema.json",
+  "title": "AI Platform Knowledge Package",
+  "description": "Document Pipeline 产出的知识包契约（DP-A1）。与 langgraph/schemas/knowledge_package.py pydantic v2 模型字段一一对应。payload 以 JSONB 存 knowledge_packages 表。",
+  "type": "object",
+  "required": [
+    "id",
+    "package_version",
+    "schema_version",
+    "source_type",
+    "status",
+    "source",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F-]{36}$",
+      "description": "Package 全局唯一 ID"
+    },
+    "package_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Package 版本号（从 1 递增）"
+    },
+    "schema_version": {
+      "type": "string",
+      "default": "1.0",
+      "description": "契约 schema 版本（预留演进）"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": ["annual_report", "news", "web", "general"],
+      "description": "源文档类型"
+    },
+    "document_id": {
+      "type": ["string", "null"],
+      "description": "关联文档 ID"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "published", "consumed", "failed"],
+      "description": "Package 状态"
+    },
+    "source": {
+      "$ref": "#/definitions/source_metadata"
+    },
+    "entities": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/entity" },
+      "description": "实体列表"
+    },
+    "relations": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/relation" },
+      "description": "关系列表"
+    },
+    "facts": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/fact" },
+      "description": "事实列表"
+    },
+    "events": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/event" },
+      "description": "事件列表"
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/evidence" },
+      "description": "证据列表"
+    },
+    "embeddings": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/embedding_ref" },
+      "description": "Embedding 引用列表（不内嵌向量）"
+    },
+    "processing_metadata": {
+      "$ref": "#/definitions/processing_metadata"
+    },
+    "history": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/package_version" },
+      "description": "版本历史（支持 Rollback/Diff）"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "创建时间（ISO 8601）"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "更新时间（ISO 8601）"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "confidence": {
+      "type": "object",
+      "properties": {
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "置信度得分 0-1"
+        },
+        "evidence_count": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "支撑证据数量"
+        },
+        "model": {
+          "type": ["string", "null"],
+          "description": "产出该置信度的模型"
+        }
+      },
+      "required": ["score"],
+      "additionalProperties": false
+    },
+    "source_metadata": {
+      "type": "object",
+      "properties": {
+        "source_type": {
+          "type": "string",
+          "enum": ["annual_report", "news", "web", "general"],
+          "description": "源类型"
+        },
+        "source_id": {
+          "type": "string",
+          "description": "数据源标识"
+        },
+        "document_id": {
+          "type": ["string", "null"],
+          "description": "document.documents.id"
+        },
+        "title": {
+          "type": ["string", "null"],
+          "description": "文档标题"
+        },
+        "url": {
+          "type": ["string", "null"],
+          "description": "来源 URL"
+        },
+        "file_path": {
+          "type": ["string", "null"],
+          "description": "本地文件路径"
+        },
+        "hash": {
+          "type": ["string", "null"],
+          "description": "文件 SHA256 哈希"
+        },
+        "publish_time": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "原文发布时间"
+        }
+      },
+      "required": ["source_type", "source_id"],
+      "additionalProperties": false
+    },
+    "entity": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "实体 UUID" },
+        "name": { "type": "string", "description": "实体名称" },
+        "entity_type": { "type": "string", "description": "实体类型" },
+        "aliases": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "别名"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "扩展属性"
+        },
+        "canonical_name": {
+          "type": ["string", "null"],
+          "description": "规范名"
+        },
+        "confidence": {
+          "oneOf": [
+            { "$ref": "#/definitions/confidence" },
+            { "type": "number", "description": "置信度（标量）" },
+            { "type": "null" }
+          ],
+          "description": "置信度"
+        }
+      },
+      "required": ["id", "name", "entity_type"],
+      "additionalProperties": false
+    },
+    "relation": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "关系 UUID" },
+        "source_entity": { "type": "string", "description": "源实体 ID" },
+        "target_entity": { "type": "string", "description": "目标实体 ID" },
+        "relation_type": { "type": "string", "description": "关系类型" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "confidence": {
+          "oneOf": [
+            { "$ref": "#/definitions/confidence" },
+            { "type": "number" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "required": ["id", "source_entity", "target_entity", "relation_type"],
+      "additionalProperties": false
+    },
+    "fact": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "事实 UUID" },
+        "subject_entity": { "type": "string", "description": "主体实体 ID" },
+        "predicate": { "type": "string", "description": "谓词" },
+        "object_value": { "description": "宾语值（标量或 JSON）" },
+        "unit": { "type": ["string", "null"], "description": "数值单位" },
+        "time_start": { "type": ["string", "null"], "format": "date-time" },
+        "time_end": { "type": ["string", "null"], "format": "date-time" },
+        "source_document": { "type": ["string", "null"], "description": "来源文档 ID" },
+        "confidence": {
+          "oneOf": [
+            { "$ref": "#/definitions/confidence" },
+            { "type": "number" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "required": ["id", "subject_entity", "predicate", "object_value"],
+      "additionalProperties": false
+    },
+    "event": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "事件 UUID" },
+        "name": { "type": "string", "description": "事件名称" },
+        "event_type": { "type": ["string", "null"], "description": "事件类型" },
+        "start_time": { "type": ["string", "null"], "format": "date-time" },
+        "end_time": { "type": ["string", "null"], "format": "date-time" },
+        "entities": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "关联实体 ID 列表"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "confidence": {
+          "oneOf": [
+            { "$ref": "#/definitions/confidence" },
+            { "type": "number" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "required": ["id", "name"],
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "证据 UUID" },
+        "fact_id": { "type": ["string", "null"], "description": "关联事实 ID" },
+        "document_id": { "type": ["string", "null"], "description": "来源文档 ID" },
+        "location": { "type": ["string", "null"], "description": "证据位置" },
+        "quote": { "type": ["string", "null"], "description": "原文引用" },
+        "confidence": { "type": ["number", "null"], "description": "证据置信度" }
+      },
+      "required": ["id"],
+      "additionalProperties": false
+    },
+    "embedding_ref": {
+      "type": "object",
+      "properties": {
+        "entity_id": { "type": ["string", "null"], "description": "实体 ID" },
+        "chunk_id": { "type": ["string", "null"], "description": "分片 ID" },
+        "vector_id": { "type": ["string", "null"], "description": "向量存储中的 ID" },
+        "model": { "type": ["string", "null"], "description": "Embedding 模型" },
+        "dimension": { "type": ["integer", "null"], "description": "向量维度" }
+      },
+      "additionalProperties": false
+    },
+    "processing_stage": {
+      "type": "object",
+      "properties": {
+        "stage": { "type": "string", "description": "阶段名" },
+        "status": { "type": "string", "description": "阶段状态" },
+        "started_at": { "type": ["string", "null"], "format": "date-time" },
+        "finished_at": { "type": ["string", "null"], "format": "date-time" },
+        "duration_ms": { "type": ["integer", "null"], "description": "耗时（毫秒）" }
+      },
+      "required": ["stage", "status"],
+      "additionalProperties": false
+    },
+    "processing_metadata": {
+      "type": "object",
+      "properties": {
+        "parser": { "type": ["string", "null"], "description": "解析器名" },
+        "parser_version": { "type": ["string", "null"], "description": "解析器版本" },
+        "chunk_strategy": { "type": ["string", "null"], "description": "切块策略" },
+        "embedding_model": { "type": ["string", "null"], "description": "Embedding 模型" },
+        "embedding_version": { "type": ["string", "null"], "description": "Embedding 版本" },
+        "stages": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/processing_stage" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "package_version": {
+      "type": "object",
+      "properties": {
+        "version": { "type": "integer", "minimum": 1, "description": "版本号" },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "published", "consumed", "failed"]
+        },
+        "created_at": { "type": "string", "format": "date-time" },
+        "change_note": { "type": ["string", "null"], "description": "变更说明" }
+      },
+      "required": ["version", "status", "created_at"],
+      "additionalProperties": false
+    }
+  }
+}

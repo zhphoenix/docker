@@ -32,7 +32,7 @@ async def entity_extractor(state: dict) -> dict:
     chunk_max_chars = get_policy("knowledge.extraction.chunk_max_chars", 3000)
     sem = asyncio.Semaphore(max_concurrent)
 
-    prompt_template = load_prompt("knowledge/entity_extraction")
+    prompt_template = load_prompt("kb/entity_extraction")
 
     async def extract_from_chunk(chunk: dict) -> list[dict]:
         """从单个 chunk 提取实体"""

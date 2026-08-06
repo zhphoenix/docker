@@ -60,6 +60,9 @@ pipeline:
   embed_batch_size: 16
   docling_timeout: 600
   docling_poll_interval: 5
+  # DP-C2 双通道开关：package=内嵌图调抽取并写 Package 草稿；direct=独立任务直写 core.* 作为回退
+  extraction:
+    mode: direct
 
 # Scheduler 定时任务
 scheduler:
@@ -80,6 +83,9 @@ knowledge:
     chunk_max_chars: 3000
     max_chunks_per_document: 200
     entity_similarity_threshold: 0.85
+  validation:
+    confidence_threshold: 0.6        # 低于此置信度 → 不合规，进 READY_REVIEW（KOC-A2）
+    min_evidence_count: 1            # Fact 至少需要 1 条 Evidence（KOC-A2）
   storage:
     entity_batch_size: 50
     relation_batch_size: 100

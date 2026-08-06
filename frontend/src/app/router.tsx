@@ -7,6 +7,7 @@ const ChatPage = lazy(() => import('@/app/pages/ChatPage'))
 const SettingsPage = lazy(() => import('@/app/pages/SettingsPage'))
 const MonitorPage = lazy(() => import('@/app/pages/MonitorPage'))
 const AgentsPage = lazy(() => import('@/app/pages/AgentsPage'))
+const AgentDetailPage = lazy(() => import('@/app/pages/AgentDetailPage'))
 const KnowledgePage = lazy(() => import('@/app/pages/KnowledgePage'))
 const KnowledgeReviewPage = lazy(() => import('@/app/pages/KnowledgeReviewPage'))
 const DocumentsPage = lazy(() => import('@/app/pages/DocumentsPage'))
@@ -56,6 +57,14 @@ export const router = createBrowserRouter([
         element: (
           <SuspenseWrapper>
             <AgentsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: '/agents/:id',
+        element: (
+          <SuspenseWrapper>
+            <AgentDetailPage />
           </SuspenseWrapper>
         ),
       },

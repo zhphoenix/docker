@@ -31,10 +31,28 @@ async def _get_approval_params(approval_id: str) -> dict:
 
 
 async def _approve_knowledge_inbox(action_params: dict) -> None:
-    """审批通过回调：将 knowledge_inbox 状态置为 APPROVED"""
+    """审批通过回调：将 knowledge_inbox 状态置为 APPROVED，写审核日志（KOC-A4），并入 Render Queue（KOC-F1）"""
     inbox_id = action_params.get("inbox_id")
     if inbox_id:
         await knowledge_storage.update_inbox_status(str(inbox_id), "APPROVED", reviewer="human")
+        # KOC-A4: 写 audit.knowledge_review_log（失败不阻塞审批主流程）
+        try:
+            await knowledge_storage.record_review_log(
+                str(inbox_id), "approve", reviewer="human", reason=""
+            )
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Failed to write review_log for approve: %s", e)
+        # KOC-F1: 审核通过 → 自动入 Render Queue（失败不阻塞）
+        try:
+            inbox = await knowledge_storage.get_inbox(str(inbox_id))
+            if inbox and inbox.get("object_id"):
+                content = inbox.get("content") or {}
+                entity_type = content.get("entity_type") or "Document"
+                await knowledge_storage.enqueue_render_job(
+                    str(inbox["object_id"]), entity_type
+                )
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Failed to enqueue render job for approve: %s", e)
         logger.info("Inbox approved via approval | inbox=%s", inbox_id)
 
 
@@ -78,6 +96,13 @@ async def reject_task(approval_id: str, req: RejectRequest):
         inbox_id = action_params.get("inbox_id")
         if inbox_id:
             await knowledge_storage.update_inbox_status(str(inbox_id), "REJECTED", reviewer="human")
+            # KOC-A4: 写 audit.knowledge_review_log（失败不阻塞）
+            try:
+                await knowledge_storage.record_review_log(
+                    str(inbox_id), "reject", reviewer="human", reason=req.reason
+                )
+            except Exception as e:  # noqa: BLE001
+                logger.warning("Failed to write review_log for reject: %s", e)
             logger.info("Inbox rejected via approval | inbox=%s", inbox_id)
 
     return result

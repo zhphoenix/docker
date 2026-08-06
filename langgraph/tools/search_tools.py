@@ -11,6 +11,7 @@ import logging
 from tools.embedding import embedding_tool
 from tools.qdrant import qdrant_tool
 from tools.reranker import reranker_tool
+from monitoring.agent_center import track_tool
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +36,14 @@ class SearchTools:
         Returns:
             [{"id": str, "score": float, "payload": dict}, ...]
         """
-        vector = await self.embed_query(query)
-        return await qdrant_tool.search(
-            collection=collection,
-            vector=vector,
-            limit=limit,
-            query_filter=query_filter,
-        )
+        async with track_tool("search"):
+            vector = await self.embed_query(query)
+            return await qdrant_tool.search(
+                collection=collection,
+                vector=vector,
+                limit=limit,
+                query_filter=query_filter,
+            )
 
     async def search_and_rerank(
         self,

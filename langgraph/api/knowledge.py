@@ -19,6 +19,14 @@ from storage.knowledge.postgres import knowledge_storage
 from storage.knowledge.qdrant import knowledge_qdrant
 from runtime.queue import task_queue
 from pipelines.document_pipeline import doc_pipeline
+from pipelines.acquire import (
+    AcquireOrigin,
+    AcquirePriority,
+    AcquireTrigger,
+    build_acquire_metadata,
+    merge_acquire_into_metadata,
+    sha256_hex,
+)
 from api.path_utils import normalize_path, get_volume_mapping_info
 
 logger = logging.getLogger(__name__)
@@ -834,11 +842,13 @@ async def _run_ingest(path: str, collection: str, task_id: str = "") -> dict[str
                     stats["skipped"] += 1
                     continue
 
-                # 去重检查：基于 source_path
+                # 去重检查：基于 source_path + 内容 checksum（DP-B2 统一判重）
                 source_path_str = str(md_file)
+                content_checksum = sha256_hex(content)
                 exists = await postgres_tool.query(
-                    "SELECT 1 FROM documents WHERE metadata->>'source_path' = $1",
-                    source_path_str,
+                    "SELECT 1 FROM documents WHERE metadata->>'source_path' = $1 "
+                    "OR metadata->'acquire'->>'checksum' = $2 LIMIT 1",
+                    source_path_str, content_checksum,
                 )
                 if exists:
                     logger.info("[Ingest] Skip duplicate | %s", md_file.name)
@@ -851,9 +861,20 @@ async def _run_ingest(path: str, collection: str, task_id: str = "") -> dict[str
                     stats["skipped"] += 1
                     continue
 
-                # 创建 document 记录
+                # 创建 document 记录（携带统一 acquire metadata）
                 doc_id = str(uuid_mod.uuid4())
                 file_name = md_file.stem
+                acquire_meta = merge_acquire_into_metadata(
+                    {"source_path": source_path_str, "ingest": "manual"},
+                    build_acquire_metadata(
+                        source_type="markdown",
+                        trigger=AcquireTrigger.MANUAL_INGEST,
+                        priority=AcquirePriority.NORMAL,
+                        checksum=content_checksum,
+                        origin=AcquireOrigin.MANUAL,
+                        source_path=source_path_str,
+                    ),
+                )
                 await postgres_tool.execute(
                     """
                     INSERT INTO documents (id, market, symbol, company, year,
@@ -862,8 +883,7 @@ async def _run_ingest(path: str, collection: str, task_id: str = "") -> dict[str
                     VALUES ($1, 'cn', $2, '', 0, 'markdown', 'indexing',
                             'direct', $3, $4::jsonb)
                     """,
-                    doc_id, file_name, len(chunks),
-                    json.dumps({"source_path": source_path_str, "ingest": "manual"}),
+                    doc_id, file_name, len(chunks), json.dumps(acquire_meta),
                 )
 
                 # Embedding（分批）
@@ -998,3 +1018,66 @@ async def trigger_ingest(req: IngestRequest):
         "collection": req.collection,
         "task_id": task_id,
     }
+
+
+# ============================================================
+# Render Queue 监控 API（KOC-F2）
+# ============================================================
+
+
+@router.get("/render-jobs")
+async def list_render_jobs(
+    status: str = Query("", description="状态过滤：pending/running/done/failed，空=全部"),
+    limit: int = Query(50, ge=1, le=200),
+):
+    """Render Queue 任务列表（KOC-F2）
+
+    按 priority 升序、created_at 升序返回，左侧优先展示高优先级任务。
+    """
+    try:
+        rows = await knowledge_storage.list_render_jobs(
+            status=status or None, limit=limit
+        )
+        return {
+            "jobs": [
+                {
+                    "id": str(r["id"]),
+                    "entity": str(r["entity"]) if r.get("entity") else None,
+                    "entity_name": r.get("entity_name"),
+                    "type": r["type"],
+                    "section": r.get("section"),
+                    "status": r["status"],
+                    "retry": r.get("retry", 0),
+                    "priority": r.get("priority", 5),
+                    "error_message": r.get("error_message"),
+                    "created_at": str(r["created_at"]) if r.get("created_at") else None,
+                    "updated_at": str(r["updated_at"]) if r.get("updated_at") else None,
+                }
+                for r in rows
+            ],
+            "total": len(rows),
+        }
+    except Exception as e:
+        logger.exception("Failed to list render jobs")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/render-jobs/{job_id}/retry")
+async def retry_render_job(job_id: str):
+    """手动重试失败的渲染任务（KOC-F2）
+
+    failed → pending，清空 error_message，由 render worker 重新领取。
+    """
+    try:
+        ok = await knowledge_storage.retry_render_job(job_id)
+        if not ok:
+            raise HTTPException(
+                status_code=409,
+                detail="仅 failed 状态的渲染任务可手动重试",
+            )
+        return {"status": "ok", "message": "渲染任务已重新入队", "job_id": job_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to retry render job %s", job_id)
+        raise HTTPException(status_code=500, detail=str(e))

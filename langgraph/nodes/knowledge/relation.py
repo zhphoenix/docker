@@ -47,7 +47,7 @@ async def relation_extractor(state: dict) -> dict:
         ensure_ascii=False,
     )
 
-    prompt_template = load_prompt("knowledge/relation_extraction")
+    prompt_template = load_prompt("kb/relation_extraction")
     # 预填实体列表
     prompt_base = prompt_template.replace("{entities}", entity_names)
 

@@ -1,0 +1,65 @@
+# Agent 元数据注册表（声明式）
+# Agent Center Registry 的展示元数据来源；规范命名对齐 specs/agent-registry.yaml。
+# 运行时能力（module/class）仍由 agents.yaml 管理，此处仅补充展示与依赖信息。
+
+meta:
+  chat:
+    display_name: Chat Agent
+    description: "通用对话 Agent（简化 RAG 流程）"
+    version: v1.0
+    author: System
+    default_model: null
+    workflows: [chat]
+    skills: []
+    tools: [postgres, qdrant, embedding, reranker, llm]
+    mcp: [knowledge]
+  research:
+    display_name: Research Agent
+    description: "深度研究 Agent（完整 Research Workflow）"
+    version: v1.0
+    author: System
+    default_model: null
+    workflows: [research]
+    skills: [rag_search, web_article_summary]
+    tools: [postgres, qdrant, embedding, reranker, llm, search, market]
+    mcp: [knowledge, news]
+  kb:
+    display_name: Knowledge Agent
+    description: "知识库 Agent（知识检索与笔记）"
+    version: v1.0
+    author: System
+    default_model: null
+    workflows: [kb]
+    skills: [rag_search]
+    tools: [qdrant, embedding, reranker, llm, knowledge]
+    mcp: [knowledge]
+  investment:
+    display_name: Investment Agent
+    description: "价值投资分析 Agent（巴菲特/芒格/费雪/林奇框架）"
+    version: v1.0
+    author: System
+    default_model: null
+    workflows: [research]
+    skills: [master_analysis, investment_research]
+    tools: [postgres, qdrant, embedding, reranker, llm, market]
+    mcp: [knowledge, news]
+  knowledge_ingestion:
+    display_name: Knowledge Ingestion Agent
+    description: "文档 → 结构化知识提取（解析/实体/关系/事实/验证/合并 6 节点 fan-out/fan-in）"
+    version: v1.0
+    author: System
+    default_model: null
+    workflows: [knowledge]
+    skills: []
+    tools: [postgres, qdrant, embedding, llm]
+    mcp: []
+  news_intelligence:
+    display_name: News Intelligence Agent
+    description: "新闻采集 → 清洗 → 去重 → 分类 → 实体/事件提取 → 影响分析（7 节点 fan-out/fan-in）"
+    version: v1.0
+    author: System
+    default_model: null
+    workflows: [news]
+    skills: []
+    tools: [postgres, qdrant, embedding, llm]
+    mcp: []

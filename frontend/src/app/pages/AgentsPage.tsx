@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Bot, Wrench, RefreshCw, Cpu } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Bot, Wrench, RefreshCw, Cpu, Clock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -19,7 +20,25 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 }
 
+function formatLastActive(ts: string | null): string {
+  if (!ts) return '从未运行'
+  const diff = Date.now() - new Date(ts).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return '刚刚'
+  if (mins < 60) return `${mins} 分钟前`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours} 小时前`
+  return `${Math.floor(hours / 24)} 天前`
+}
+
+const STATUS_META: Record<string, { label: string; dot: string }> = {
+  active: { label: '运行中', dot: 'bg-success' },
+  paused: { label: '已暂停', dot: 'bg-amber-500' },
+  deprecated: { label: '已下线', dot: 'bg-muted-foreground/40' },
+}
+
 export default function AgentsPage() {
+  const navigate = useNavigate()
   const agentsQuery = useQuery({
     queryKey: ['agents'],
     queryFn: fetchAgents,
@@ -83,73 +102,93 @@ export default function AgentsPage() {
           animate="show"
           className="grid grid-cols-1 gap-4 sm:grid-cols-2"
         >
-          {agents.map((agent) => (
-            <motion.div key={agent.id} variants={item}>
-              <Card className="h-full transition-shadow duration-200 hover:shadow-[var(--shadow-soft)]">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10">
-                        <Bot className="size-5 text-primary" strokeWidth={1.8} />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-foreground">
-                            {agent.name}
-                          </span>
-                          {/* Active 状态点 */}
-                          <span
-                            className={cn(
-                              'size-2 rounded-full',
-                              agent.is_active ? 'bg-success' : 'bg-muted-foreground/40'
-                            )}
-                            title={agent.is_active ? '运行中' : '已停用'}
-                          />
+          {agents.map((agent) => {
+            const meta = STATUS_META[agent.status] ?? STATUS_META.active
+            return (
+              <motion.div key={agent.id} variants={item}>
+                <Card
+                  className="h-full cursor-pointer transition-shadow duration-200 hover:shadow-[var(--shadow-soft)]"
+                  onClick={() => navigate(`/agents/${agent.id}`)}
+                >
+                  <CardContent className="p-5">
+                    <div className="flex items-start justify-between">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                          <Bot className="size-5 text-primary" strokeWidth={1.8} />
                         </div>
-                        <div className="mt-0.5 flex items-center gap-2">
-                          <Badge
-                            variant={agent.source === 'builtin' ? 'default' : 'secondary'}
-                            className="text-[10px]"
-                          >
-                            {agent.source === 'builtin' ? '内置' : '自定义'}
-                          </Badge>
-                          {agent.model && (
-                            <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                              <Cpu className="size-3" strokeWidth={1.8} />
-                              {agent.model}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate text-sm font-semibold text-foreground">
+                              {agent.display_name || agent.name}
                             </span>
-                          )}
+                            {/* 在线状态点 */}
+                            <span
+                              className={cn('size-2 shrink-0 rounded-full', meta.dot)}
+                              title={meta.label}
+                            />
+                          </div>
+                          <div className="mt-0.5 flex items-center gap-2">
+                            <Badge
+                              variant={agent.source === 'builtin' ? 'default' : 'secondary'}
+                              className="text-[10px]"
+                            >
+                              {agent.source === 'builtin' ? '内置' : '自定义'}
+                            </Badge>
+                            {agent.version && (
+                              <span className="text-[11px] text-muted-foreground">
+                                {agent.version}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  {agent.description && (
-                    <p className="mt-3 line-clamp-2 text-xs text-muted-foreground">
-                      {agent.description}
-                    </p>
-                  )}
+                    {agent.description && (
+                      <p className="mt-3 line-clamp-2 text-xs text-muted-foreground">
+                        {agent.description}
+                      </p>
+                    )}
 
-                  {agent.tools.length > 0 && (
-                    <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                      <Wrench className="size-3 text-muted-foreground" strokeWidth={1.8} />
-                      {agent.tools.map((tool) => (
-                        <Badge key={tool} variant="outline" className="text-[10px]">
-                          {tool}
-                        </Badge>
-                      ))}
+                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                      {agent.model && (
+                        <span className="flex items-center gap-1">
+                          <Cpu className="size-3" strokeWidth={1.8} />
+                          {agent.model}
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <Clock className="size-3" strokeWidth={1.8} />
+                        {formatLastActive(agent.last_active_at)}
+                      </span>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+
+                    {agent.tools.length > 0 && (
+                      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                        <Wrench className="size-3 text-muted-foreground" strokeWidth={1.8} />
+                        {agent.tools.slice(0, 5).map((tool) => (
+                          <Badge key={tool} variant="outline" className="text-[10px]">
+                            {tool}
+                          </Badge>
+                        ))}
+                        {agent.tools.length > 5 && (
+                          <span className="text-[10px] text-muted-foreground">
+                            +{agent.tools.length - 5}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )
+          })}
         </motion.div>
       )}
 
       {/* Footer note */}
       <p className="text-center text-xs text-muted-foreground">
-        Agent 配置为只读展示 · 创建与编辑功能将在后续版本开放
+        点击卡片进入详情页 · 更多管理能力将在后续开放
       </p>
     </div>
   )

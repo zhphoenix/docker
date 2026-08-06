@@ -241,6 +241,83 @@ class NewsStorageService:
         )
 
     # ──────────────────────────────────────────────
+    # Source Health（NIC-C2）
+    # ──────────────────────────────────────────────
+
+    @staticmethod
+    def _health_status(r: dict) -> str:
+        """根据采集指标判定健康状态
+
+        - disabled : 已停用
+        - no_data  : 已启用但从未采集
+        - healthy  : 最近成功且无连续失败
+        - degraded : 有 1 次近期失败但非连续
+        - error    : 最近一次失败或连续失败 >= 2（异常源，红色标记）
+        """
+        if not r["enabled"]:
+            return "disabled"
+        total = r["total_runs"] or 0
+        failed = r["failed_count"] or 0
+        if total == 0 or r["last_collected_at"] is None:
+            return "no_data"
+        if r["last_success"] is False:
+            return "error"
+        if failed >= 2:
+            return "error"
+        if failed == 1:
+            return "degraded"
+        return "healthy"
+
+    async def get_source_health(self, days: int = 30) -> dict:
+        """Source Health 聚合（news.sources 扩列 + news.collect_runs 统计）
+
+        对每个源返回 Latency/Errors/Articles/Duplicates 四项指标 + 覆盖率。
+        """
+        rows = await self.query(
+            """
+            SELECT
+                s.source_id, s.name, s.source_type, s.category, s.market,
+                s.priority, s.enabled,
+                s.last_latency_ms, s.last_success, s.last_error,
+                s.error_count, s.last_collected_at,
+                COUNT(c.id)                                    AS total_runs,
+                COUNT(c.id) FILTER (WHERE c.success)           AS success_count,
+                COUNT(c.id) FILTER (WHERE NOT c.success)       AS failed_count,
+                COALESCE(AVG(c.latency_ms)::float, 0)          AS avg_latency_ms,
+                COALESCE(SUM(c.articles_fetched), 0)           AS total_articles,
+                COALESCE(SUM(c.articles_stored), 0)            AS total_stored,
+                COALESCE(SUM(c.duplicates), 0)                 AS total_duplicates
+            FROM news.sources s
+            LEFT JOIN news.collect_runs c
+                ON c.source_id = s.source_id
+                AND c.created_at > NOW() - ($1 || ' days')::interval
+            GROUP BY s.source_id, s.name, s.source_type, s.category, s.market,
+                     s.priority, s.enabled, s.last_latency_ms, s.last_success,
+                     s.last_error, s.error_count, s.last_collected_at
+            ORDER BY s.enabled DESC, s.priority DESC, s.name
+            """,
+            str(days),
+        )
+
+        # 覆盖率：enabled 源中健康（无连续失败且最近成功）的比例
+        enabled_sources = [r for r in rows if r["enabled"]]
+        total_enabled = len(enabled_sources)
+        healthy_enabled = sum(1 for r in enabled_sources if self._health_status(r) == "healthy")
+        coverage = healthy_enabled / total_enabled if total_enabled else 0.0
+
+        for r in rows:
+            r["status"] = self._health_status(r)
+
+        return {
+            "sources": rows,
+            "coverage": round(coverage, 3),
+            "total_sources": len(rows),
+            "enabled_sources": total_enabled,
+            "healthy_sources": healthy_enabled,
+            "days": days,
+        }
+
+    # ──────────────────────────────────────────────
     # Article 更新
     # ──────────────────────────────────────────────
 

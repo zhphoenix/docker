@@ -102,6 +102,7 @@ async def _handle_batch_embed(task: dict) -> None:
 async def _handle_knowledge_extraction(task: dict) -> None:
     """处理 knowledge_extraction 类型任务（知识提取流水线）"""
     from graphs.knowledge_graph import build_knowledge_ingestion_graph
+    from monitoring.agent_center import invoke_tracked
     from tools.postgres import postgres_tool
 
     params = task.get("params", {}) or {}
@@ -139,7 +140,7 @@ async def _handle_knowledge_extraction(task: dict) -> None:
         )
         doc_type = doc_meta[0].get("document_type", "") if doc_meta else ""
 
-        # 执行知识提取 Graph
+        # 执行知识提取 Graph（统一埋点包装器，写 agent_runs task_kind=pipeline）
         initial_state = {
             "document_id": doc_id,
             "document_type": doc_type,
@@ -158,7 +159,12 @@ async def _handle_knowledge_extraction(task: dict) -> None:
         }
 
         try:
-            result = await graph.ainvoke(initial_state)
+            result = await invoke_tracked(
+                graph,
+                initial_state,
+                agent_id="knowledge_ingestion",
+                question=f"knowledge_extraction doc={doc_id[:8]} type={doc_type}",
+            )
             logger.info(
                 "[Worker] knowledge_extraction done | doc=%s | entities=%d | facts=%d | errors=%d",
                 doc_id[:8],

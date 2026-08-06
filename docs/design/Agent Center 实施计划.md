@@ -1,9 +1,36 @@
 # Agent Center（Agent 控制中心）实施计划
 
-> Version: v1.0
-> Status: Ready for Execution
+> Version: v1.2（Phase 1 + 2 + P3-1 已执行并验证）
+> Status: Phase 1+2+P3-1 ✅ 已落地 · Phase 3/4 待执行
 > 依据: 《Agent Center 设计规范 v1.0》（docs/design/gent Center 设计规范.md）
 > 范围: frontend/（React + Vite）、langgraph/（FastAPI + LangGraph）、postgres/init/（DDL）、mcp-knowledge / mcp-news
+
+## 执行状态（2026-08-05）
+
+| 阶段 | 状态 | 说明 |
+|---|---|---|
+| P1-1 数据库迁移 | ✅ | `postgres/init/13-agent-center.sql` 已应用且幂等（agent_prompts / agent_configs_history / agent_runs / agent_tool_stats / mcp_connections） |
+| P1-2 Registry API | ✅ | `api/agents.py` 元数据合并 + detail/toggle/配置端点；`config/agent_meta.yaml` + `config/agent_meta.py`；lifespan 内置 upsert |
+| P1-3 卡片升级 | ✅ | AgentsPage 状态点/版本/最后活跃/可点击进详情 |
+| P1-4 详情页 | ✅ | `AgentDetailPage.tsx` 路由 + 7 Tab（概览/提示词/配置/技能/工具/MCP/记忆） |
+| P1-5 Prompt 迁 DB | ✅ | `scripts/migrate_prompts_to_db.py`（19/19 对账）；`loader.py` 仅读 DB；`api/prompts.py`；PromptTab |
+| P1-6 配置管理 | ✅ | 配置保存/历史/回滚/校验端点 + ConfigTab |
+| P2-1 Skill | ✅ | `skills/registry.py` enabled+reload；`api/skills.py`；SkillsTab |
+| P2-2 Tool | ✅ | `monitoring/agent_center.py` 埋点（agent_runs + agent_tool_stats）；`api/tools.py`；ToolsTab |
+| P2-3 MCP | ✅ | `monitoring/mcp_manager.py` 纳管+心跳；`api/mcp.py`；McpTab |
+| P2-4 Memory | ✅ | `api/memory.py` 三层记忆概览+情景/运行列表；MemoryTab |
+| P3-1 埋点+归档 | ✅ | chat 路径 agent_runs 埋点；scheduler `agent_center_archive` 每日归档 job |
+
+> 备注：前端补充缺失的 `components/ui/label.tsx`；修复多处 asyncpg 参数类型推断（trace JSONB、MCP 状态 CASE、interval 拼接）。
+
+## 已确认决策（2026-08-05 用户确认）
+
+| 决策点 | 结论 | 影响 |
+|---|---|---|
+| 实施范围 | **本批执行 Phase 1 + 2**（Phase 3/4 下批） | agent_runs 表与埋点（P3-1）提前至本批，作为 P2-2 Tool 统计与后续 Metrics 的统一数据基础 |
+| Prompt 存储 | **全量迁移 DB**：文件型 Prompt Hub 一次性导入 DB 后删除，loader 仅读 DB | P1-5 增加迁移脚本与全调用点切换；风险等级上调（见第 4 节风险 #3） |
+| 运行记录 | **新建 agent_runs 表**（与 research_tasks、tasks 口径分离） | 建表提前至 P1-1 迁移文件 |
+| Workflow 可视化 | **LangGraph 原生导出（get_graph().to_json()）+ ReactFlow** | P3-2 实现方式锁定，回退方案为静态节点序列 |
 
 ---
 
@@ -133,6 +160,24 @@ CREATE TABLE IF NOT EXISTS agent_configs_history (
     changed_by VARCHAR(100) DEFAULT 'ui',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- 4. agent_runs 表：Agent 运行记录（Metrics/Logs 统一数据源，已确认新建）
+CREATE TABLE IF NOT EXISTS agent_runs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    agent_id VARCHAR(100) NOT NULL,
+    task_kind VARCHAR(50) NOT NULL,          -- chat / research / pipeline
+    status VARCHAR(20) DEFAULT 'running',    -- running / success / failed
+    question TEXT,
+    duration_ms BIGINT,
+    tokens_in INTEGER DEFAULT 0,
+    tokens_out INTEGER DEFAULT 0,
+    error TEXT,
+    error_category VARCHAR(50),              -- tool_timeout / embedding_error / mcp_error / other
+    trace JSONB DEFAULT '[]',                -- 节点级轨迹
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_agent_runs_agent ON agent_runs(agent_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_agent_runs_status ON agent_runs(status, created_at);
 ```
 
 - **验收标准**：在已运行的存量 DB 上执行不报错、可重复执行；`docker compose exec postgres psql` 验证表/列存在。
@@ -167,20 +212,21 @@ CREATE TABLE IF NOT EXISTS agent_configs_history (
 - Tabs：`概览 | Prompt | 配置`（Phase 2 追加 Skills/Tools/MCP/Memory Tab）。
 - **验收标准**：任一 Agent 详情页可展示规范 §5 全部字段；刷新不丢失；返回 Registry 正常。
 
-### P1-5 Prompt 管理（后端 + 前端）
+### P1-5 Prompt 管理 —— 全量迁移 DB（已确认）
 
-后端，扩展 `langgraph/api/agents.py` 或新建 `langgraph/api/prompts.py`（在 server.py 注册）：
+后端：
 
-1. `GET /api/prompts?agent_id=`：列出 DB 覆盖层 + 文件 Hub 的 prompt 清单（DB 优先，回退文件）。
-2. `GET /api/prompts/{agent_id}/{name}`：当前生效版本 + 历史版本列表。
-3. `PUT /api/prompts/{agent_id}/{name}`：保存新版本（version+1，写 agent_prompts）。
-4. 修改 `langgraph/prompts/loader.py`：新增 `load_prompt_with_override(agent_id, name, **kwargs)` —— 先查 DB is_active 版本，无则回退文件。**不破坏现有 lru_cache 路径**，现有调用点逐步切换。
+1. **迁移脚本**：新建 `langgraph/scripts/migrate_prompts_to_db.py` —— 扫描 `prompts/` 下全部 .md 文件，按目录层级生成 `agent_id`（chat/research/kb/investment/news/knowledge + 通用节点 planner/reason/reflect/writer/query_rewrite 归入 `common`）与 `name`，以 version=1 写入 `agent_prompts` 表。可重复执行（幂等：已存在则跳过）。
+2. **loader 改造**：`langgraph/prompts/loader.py` 改为**仅读 DB**（is_active 最高 version），`load_prompt(name)` 签名保持兼容；移除 lru_cache 文件路径，改用进程内 dict 缓存 + `invalidate_prompt_cache(agent_id, name)`。
+3. **调用点切换**：全局检索 `load_prompt(` 调用点（nodes/、agents/、skills/），确认参数与新命名映射一致，逐一回归。
+4. **文件清理**：迁移验证通过后删除 `prompts/*.md`（保留 loader.py），DB 成为唯一事实源。
+5. API：`GET /api/prompts?agent_id=`、`GET /api/prompts/{agent_id}/{name}`（当前版本+历史）、`PUT /api/prompts/{agent_id}/{name}`（保存新版本）、`POST /api/prompts/preview`（变量替换预览）、`POST /api/prompts/cache/invalidate`。
 
 前端，AgentDetailPage 的 Prompt Tab：
 
-1. 版本选择下拉 + Monaco/textarea 编辑器 + 变量高亮（`{{var}}` 或 `{var}`）。
-2. Preview 按钮：输入变量值 → 调后端 preview 接口（或前端本地替换）渲染结果。
-3. **验收标准**：在线修改 Research Agent system prompt 保存后，下一次 chat 请求（显式指定 agent=research）使用新 prompt；历史版本可切回。
+1. 版本选择下拉 + 编辑器（textarea/Monaco）+ 变量高亮（`{var}`）。
+2. Preview：输入变量值 → 调 preview 接口渲染结果。
+3. **验收标准**：迁移脚本执行后 DB 中 prompt 条数 = 原文件数；服务重启后全部 prompt 加载自 DB；在线修改保存后下一次请求生效；历史版本可切回；删除 md 文件后功能不受影响。
 
 ### P1-6 Configuration 配置管理（后端 + 前端）
 
@@ -224,19 +270,19 @@ CREATE TABLE IF NOT EXISTS agent_configs_history (
 3. 前端：AgentDetailPage Memory Tab —— 四类记忆卡片（Current Context Tokens / History 开关 / Compression 开关，开关先展示配置不强制生效）。
 4. **验收标准**：Memory Tab 四类数据均有真实来源；AGE/Qdrant 不可用时优雅降级为空态。
 
-## Phase 3：可视化（Workflow Graph / Metrics / Dashboard / Logs / Trace）
+## Phase 3：可视化（下批，Workflow Graph / Metrics / Dashboard / Logs / Trace）
 
-### P3-1 运行记录埋点（Metrics 的数据基础）
+### P3-1 运行记录埋点（✅ 提前至本批：agent_runs 建表已在 P1-1，埋点随 P2-2 一并落地）
 
-1. 新建 PG 表 `agent_runs`（14 迁移）：id / agent_id / task_kind（chat/research/pipeline）/ status / duration_ms / tokens_in / tokens_out / error / trace（JSONB 节点轨迹）/ created_at；索引 (agent_id, created_at)。
-2. 修改 `agents/base_agent.py`：run/stream_run 统一写 agent_runs（复用现有 start_episode/complete_episode 时机，不双写丢失一致性）；pipeline 类 Agent（news/knowledge/document）在 graph 调用入口同样埋点。
-3. Scheduler 增加每日归档 job（90 天前 agent_runs 清理），挂到 `runtime/scheduler.py`。
+1. ✅ 建表：已并入 P1-1（13-agent-center.sql §4）。
+2. 修改 `agents/base_agent.py`：run/stream_run 统一写 agent_runs（复用现有 start_episode/complete_episode 时机，不双写丢失一致性）；pipeline 类 Agent（news/knowledge/document）在 graph 调用入口同样埋点。**本批完成**。
+3. Scheduler 每日归档 job（90 天前 agent_runs 清理）挂到 `runtime/scheduler.py`。**本批完成**。
 4. **验收标准**：一次 chat + 一次 research + 一次 news pipeline 后 agent_runs 各有一条记录，trace 字段含节点序列。
 
-### P3-2 Workflow Graph 可视化
+### P3-2 Workflow Graph 可视化（已确认：LangGraph 原生导出 + ReactFlow）
 
-1. 后端 `api/workflows.py`（新建）：`GET /api/workflows` 从 workflows.yaml 生成列表；`GET /api/workflows/{name}/graph` 输出节点/边 JSON —— 优先用 LangGraph 原生 `graph.get_graph().to_json()`（LangGraph 支持导出 mermaid/JSON），失败时回退到各 graph 模块内手工声明的静态节点序列（规范 §10 的线性图即可先满足）。
-2. 前端 WorkflowPage 新增 "Workflow 图" Tab（与现有任务 Tab 并列，规范 §10 明确"在 workflow 页建立"）：用 ReactFlow（`npm i reactflow`）渲染；支持选择 workflow、查看节点描述、预览 Source（builder 所在模块）。
+1. 后端 `api/workflows.py`（新建）：`GET /api/workflows` 从 workflows.yaml 生成列表；`GET /api/workflows/{name}/graph` 输出节点/边 JSON —— 优先用 LangGraph 原生 `graph.get_graph().to_json()`（已确认），失败时回退到各 graph 模块内手工声明的静态节点序列（规范 §10 的线性图即可先满足）。
+2. 前端 WorkflowPage 新增 "Workflow 图" Tab（与现有任务 Tab 并列，规范 §10 明确"在 workflow 页建立"）：用 ReactFlow（`npm i reactflow`，已确认）渲染；支持选择 workflow、查看节点描述、预览 Source（builder 所在模块）。
 3. **验收标准**：6 个 workflow 全部可渲染；research 图呈现 Planner → Retrieve → Rerank → Reason → Reflect → Finish 链路。
 
 ### P3-3 Runtime Metrics
@@ -268,16 +314,20 @@ CREATE TABLE IF NOT EXISTS agent_configs_history (
 | P4-5 多 Agent 协同监控 | 基于 agent_runs.trace 关联跨 Agent 调用链（news → knowledge ingestion），Trace 页聚合展示 | 一次新闻入库可追踪到两个 Agent 的衔接 |
 | P4-6 Agent 权限管理 | agents 表加权限字段 + API 级校验中间件（先做开关粒度，后做角色） | 停用 Agent 后其 API 返回 403 |
 
-## 落地顺序与依赖总表
+## 落地顺序与依赖总表（本批 = Phase 1 + 2 + P3-1 埋点）
 
 ```
-P1-1 (DB迁移) ──→ P1-2 (Registry API) ──→ P1-3 (卡片) ──→ P1-4 (Detail页)
-                                                              │
-                    P1-5 (Prompt) ←──────────────────────────┤
-                    P1-6 (Config) ←──────────────────────────┘
+【本批】
+P1-1 (DB迁移，含agent_runs) ──→ P1-2 (Registry API) ──→ P1-3 (卡片) ──→ P1-4 (Detail页)
+                                                                            │
+              P1-5 (Prompt全量迁移DB，含迁移脚本) ←─────────────────────────┤
+              P1-6 (Config) ←───────────────────────────────────────────────┘
 P2-1~P2-4 可并行（均依赖 P1-4 的 Tabs 容器）
-P3-1 (agent_runs埋点) ──→ P3-3 (Metrics) / P3-5 (Logs)
-P3-2 (Workflow图) 独立，可与 P3-1 并行
+P3-1 (agent_runs埋点+归档job) 与 P2-2 同步落地（本批）
+
+【下批】
+P3-2 (Workflow图, ReactFlow) 独立可先行
+P3-1 数据就绪后 ──→ P3-3 (Metrics) / P3-5 (Logs)
 P3-4 (Dashboard) 依赖 P3-3
 Phase 4 各项依赖 Phase 1-3 对应基座
 ```
@@ -290,7 +340,7 @@ Phase 4 各项依赖 Phase 1-3 对应基座
 |---|---|---|---|
 | 1 | **存量 DB 迁移不生效**：postgres init 脚本仅首次初始化执行 | Phase 1 全部表结构缺失，API 500 | 迁移文件保持幂等；上线时对运行中容器手动 `psql -f` 一次；在 CI/部署文档中固化该步骤（沿用 12-task-logs.sql 先例） |
 | 2 | **数据双写不一致**：agent_runs 与 research_tasks、tasks 三套运行记录并存 | Metrics/Logs 口径混乱 | P3-1 埋点复用 BaseAgent 现有 episode 钩子；明确口径：research_tasks=研究语义记录、tasks=Pipeline 任务、agent_runs=Agent Center 指标源；禁止在节点层重复埋点 |
-| 3 | **Prompt DB 覆盖层破坏文件 Hub**：loader.py 的 lru_cache 与 DB 覆盖叠加可能导致旧 prompt 残留 | 线上 Prompt 更新不生效 | DB 覆盖路径不走 lru_cache；提供 `POST /api/prompts/cache/clear`；灰度时先在 chat agent 验证 |
+| 3 | **Prompt 全量迁移 DB 的切换风险**（已确认选全量迁移）：迁移脚本遗漏文件、调用点参数映射错误、删除 md 后无法回退 | 全部 Agent 提示词加载失败，线上功能受损 | 迁移脚本幂等可重复执行并输出对账清单（文件数 vs DB 行数）；切换前在容器内跑通 chat/research/kb/investment 各一次冒烟；删除 md 前 git 保留提交点以便整体回滚；loader 提供 DB 不可用时的明确报错而非静默降级 |
 | 4 | **前端路由冲突**：/agents/:id 与现有 /agents 共存 | 路由匹配歧义 | router.tsx 中 `/agents` 与 `/agents/:id` 分开声明（React Router v6 支持），AgentsPage 保持 index 语义 |
 | 5 | **内置 Agent 无持久化行**：AGENT_REGISTRY 的 4 个内置 Agent 在 agents 表无记录，配置编辑无落点 | P1-6 保存失败 | 服务启动 lifespan 中对内置 Agent 做 upsert（`INSERT ... ON CONFLICT(name) DO NOTHING`），保证表行存在 |
 | 6 | **MCP 探测阻塞健康接口**：/health 同步探测多个 MCP 延迟叠加 | MonitorPage 轮询超时 | 探测并发化（asyncio.gather，现状已如此）+ 独立超时 3s；MCP 状态走独立缓存键，避免与全局 `['health']` 键竞争刷新（遵守 React Query 缓存键隔离原则） |
@@ -304,18 +354,26 @@ Phase 4 各项依赖 Phase 1-3 对应基座
 # 附录：涉及文件清单（速查）
 
 **新建**
-- `postgres/init/13-agent-center.sql`（+ 视需要的 `14-agent-runs.sql`）
-- `langgraph/api/prompts.py`、`api/skills.py`、`api/tools.py`、`api/mcp.py`、`api/memory.py`、`api/workflows.py`、`api/metrics.py`、`api/logs.py`
+- `postgres/init/13-agent-center.sql`（含 agent_prompts / agent_configs_history / agent_runs，无需 14 迁移）
+- `langgraph/api/prompts.py`、`api/skills.py`、`api/tools.py`、`api/mcp.py`、`api/memory.py`
+- `langgraph/scripts/migrate_prompts_to_db.py`（Prompt 全量迁移脚本，已确认）
 - `langgraph/config/agent_meta.yaml`
 - `langgraph/services/tool_metrics.py`
 - `frontend/src/app/pages/AgentDetailPage.tsx`
 
+**删除（Prompt 全量迁移验证通过后）**
+- `langgraph/prompts/*.md` 全部模板文件（保留 `loader.py`，改为 DB 读取）
+
 **修改**
 - `langgraph/api/agents.py`、`api/server.py`、`api/health.py`
-- `langgraph/agents/base_agent.py`、`prompts/loader.py`、`skills/registry.py`
-- `langgraph/config/mcp_servers.yaml`、`runtime/scheduler.py`
-- `frontend/src/app/router.tsx`、`app/pages/AgentsPage.tsx`、`app/pages/WorkflowPage.tsx`
-- `frontend/src/services/agents.ts`（+ 新增 prompts/tools/mcp/memory/workflows/metrics/logs service 文件）
+- `langgraph/agents/base_agent.py`（agent_runs 埋点，本批）、`prompts/loader.py`（全量改 DB，本批）、`skills/registry.py`
+- `langgraph/config/mcp_servers.yaml`、`runtime/scheduler.py`（agent_runs 归档 job，本批）
+- `frontend/src/app/router.tsx`、`app/pages/AgentsPage.tsx`
+- `frontend/src/services/agents.ts`（+ 新增 prompts/tools/mcp/memory service 文件）
+
+**下批（Phase 3 时再动）**
+- `langgraph/api/workflows.py`、`api/metrics.py`、`api/logs.py`
+- `frontend/src/app/pages/WorkflowPage.tsx`（新增 Workflow 图 Tab，ReactFlow）
 
 **复用（不改或仅加 Tab）**
 - 任务系统：`api/tasks.py` + `tasks`/`task_logs` 表 + `services/tasks.ts`

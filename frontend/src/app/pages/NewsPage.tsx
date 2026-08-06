@@ -5,6 +5,7 @@ import { NewsListTab } from '@/components/news/NewsListTab'
 import { EventsTab } from '@/components/news/EventsTab'
 import { ImpactTab } from '@/components/news/ImpactTab'
 import { TimelineTab } from '@/components/news/TimelineTab'
+import { SourceHealthTab } from '@/components/news/SourceHealthTab'
 
 export default function NewsPage() {
   const [activeTab, setActiveTab] = useState('articles')
@@ -31,6 +32,7 @@ export default function NewsPage() {
           <TabsTrigger value="events">事件</TabsTrigger>
           <TabsTrigger value="impact">影响分析</TabsTrigger>
           <TabsTrigger value="timeline">时间线</TabsTrigger>
+          <TabsTrigger value="health">源健康</TabsTrigger>
         </TabsList>
 
         <TabsContent value="articles" className="mt-4">
@@ -44,6 +46,9 @@ export default function NewsPage() {
         </TabsContent>
         <TabsContent value="timeline" className="mt-4">
           <TimelineTab />
+        </TabsContent>
+        <TabsContent value="health" className="mt-4">
+          <SourceHealthTab />
         </TabsContent>
       </Tabs>
     </div>

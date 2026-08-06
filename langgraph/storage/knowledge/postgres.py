@@ -9,11 +9,30 @@
 import json
 import logging
 import uuid
+from datetime import date as date_type
+from datetime import datetime
 
 from tools.postgres import postgres_tool
 from config.policy_loader import get_policy
 
 logger = logging.getLogger(__name__)
+
+
+def _to_date(value) -> date_type | None:
+    """把事实的时间字段安全转为 date（asyncpg 的 date 列需要 date 对象）
+
+    兼容：date / datetime / ISO 字符串（'2025-12-31'）/ None；非法返回 None。
+    """
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date_type):
+        return value
+    try:
+        return date_type.fromisoformat(str(value)[:10])
+    except (ValueError, TypeError):
+        return None
 
 
 class KnowledgePostgresStorage:
@@ -33,29 +52,66 @@ class KnowledgePostgresStorage:
     async def bulk_upsert_entities(self, entities: list[dict]) -> list[str]:
         """批量 upsert 实体（单次网络往返）
 
-        ON CONFLICT 时合并 aliases / properties，source_count + 1。
+        增强（KOC-A3）：写库前先做**批内消歧**——同一批内 canonical_name/name
+        相同的实体复用同一 id 并合并 aliases / properties，避免同批同名实体产生
+        重复行；再经 ON CONFLICT (id) 与库中既有记录合并 aliases（跨批去重）。
 
         Args:
             entities: [{"name", "entity_type", "description", "aliases",
                         "properties", "canonical_name", "confidence", "embedding"}]
 
         Returns:
-            实体 ID 列表
+            实体 ID 列表（与输入顺序一一对应）
         """
         if not entities:
             return []
 
-        batch_size = get_policy("knowledge.storage.entity_batch_size", 50)
-        ids: list[str] = []
+        # 1. 批内消歧：按同一标识（name/canonical_name 小写）分组，复用统一 id 并合并属性
+        groups: dict[str, dict] = {}   # key -> {"record": dict, "indices": list[int]}
+        order: list[str] = []
+        ids: list[str] = [""] * len(entities)
 
-        for batch_start in range(0, len(entities), batch_size):
-            batch = entities[batch_start:batch_start + batch_size]
+        for idx, e in enumerate(entities):
+            key = (e.get("canonical_name") or e.get("name") or "").lower()
+            key = key or uuid.uuid4().hex
+            if key not in groups:
+                record = dict(e)
+                record.setdefault("id", str(uuid.uuid4()))
+                groups[key] = {"record": record, "indices": []}
+                order.append(key)
+            g = groups[key]
+            g["indices"].append(idx)
+            ids[idx] = g["record"]["id"]
+
+            if len(g["indices"]) > 1:
+                # 后续同名实体：合并 aliases（去重）/ properties 到唯一记录，置信度取最大
+                rec = g["record"]
+                aliases = list(rec.get("aliases", []) or [])
+                seen = set(aliases)
+                for a in (e.get("aliases", []) or []):
+                    if a not in seen:
+                        aliases.append(a)
+                        seen.add(a)
+                rec["aliases"] = aliases
+                rec["properties"] = {
+                    **(rec.get("properties") or {}),
+                    **(e.get("properties") or {}),
+                }
+                rec["confidence"] = max(
+                    float(rec.get("confidence") or 0.0),
+                    float(e.get("confidence") or 0.0),
+                )
+
+        # 2. 批量 upsert 唯一记录（ON CONFLICT 与库中既有记录合并 aliases）
+        unique_records = [groups[k]["record"] for k in order]
+        batch_size = get_policy("knowledge.storage.entity_batch_size", 50)
+
+        for batch_start in range(0, len(unique_records), batch_size):
+            batch = unique_records[batch_start:batch_start + batch_size]
             args_list = []
             for e in batch:
-                eid = e.get("id") or str(uuid.uuid4())
-                ids.append(eid)
                 args_list.append((
-                    eid,
+                    e["id"],
                     e["name"],
                     e["entity_type"],
                     e.get("description"),
@@ -82,7 +138,7 @@ class KnowledgePostgresStorage:
                 args_list,
             )
 
-        logger.info("Upserted %d entities", len(ids))
+        logger.info("Upserted %d entities (deduped from %d)", len(unique_records), len(entities))
         return ids
 
     async def bulk_insert_relations(self, relations: list[dict]) -> list[str]:
@@ -159,8 +215,8 @@ class KnowledgePostgresStorage:
                     f["predicate"],
                     json.dumps(f["object_value"], ensure_ascii=False),
                     f.get("unit"),
-                    f.get("time_start"),
-                    f.get("time_end"),
+                    _to_date(f.get("time_start")),
+                    _to_date(f.get("time_end")),
                     f.get("source_document"),
                     f.get("confidence"),
                 ))
@@ -557,6 +613,237 @@ class KnowledgePostgresStorage:
             """,
             limit,
         )
+
+    # ──────────────────────────────────────────────
+    # 版本审计（KOC-A3）
+    # ──────────────────────────────────────────────
+
+    async def record_knowledge_version(
+        self,
+        object_type: str,
+        object_id: str,
+        content: dict,
+        created_by: str = "system",
+    ) -> int:
+        """写入 audit.knowledge_versions（KOC-A3）
+
+        每次写入自动递增版本号（object_type, object_id, version 唯一）。
+
+        Args:
+            object_type: entity / relation / fact / event / document
+            object_id: 对象 UUID
+            content: 版本快照（JSON 可序列化）
+            created_by: 写入者
+
+        Returns:
+            本次写入的版本号
+        """
+        oid = object_id if isinstance(object_id, uuid.UUID) else uuid.UUID(str(object_id))
+        rows = await postgres_tool.query(
+            """
+            SELECT COALESCE(MAX(version), 0) + 1 AS next_version
+            FROM audit.knowledge_versions
+            WHERE object_type = $1 AND object_id = $2
+            """,
+            object_type, oid,
+        )
+        next_version = int(rows[0]["next_version"]) if rows else 1
+        await postgres_tool.execute(
+            """
+            INSERT INTO audit.knowledge_versions
+                (object_type, object_id, version, content, created_by)
+            VALUES ($1, $2, $3, $4::jsonb, $5)
+            """,
+            object_type, oid, next_version,
+            json.dumps(content, ensure_ascii=False), created_by,
+        )
+        logger.info(
+            "[audit.knowledge_versions] %s %s v%d",
+            object_type, str(oid)[:8], next_version,
+        )
+        return next_version
+
+    # ──────────────────────────────────────────────
+    # 审核日志（KOC-A4）
+    # ──────────────────────────────────────────────
+
+    async def record_review_log(
+        self,
+        inbox_id: str,
+        action: str,
+        reviewer: str = "human",
+        reason: str = "",
+    ) -> str:
+        """写入 audit.knowledge_review_log（KOC-A4）
+
+        记录 Inbox 审核动作（approve / reject / auto_approve）。
+
+        Args:
+            inbox_id: knowledge_inbox 记录 ID
+            action: approve / reject / auto_approve
+            reviewer: 审核人（human / system）
+            reason: 拒绝原因等备注
+
+        Returns:
+            review_log_id (UUID)
+        """
+        review_log_id = str(uuid.uuid4())
+        await postgres_tool.execute(
+            """
+            INSERT INTO audit.knowledge_review_log
+                (id, inbox_id, action, reviewer, reason)
+            VALUES ($1, $2, $3, $4, $5)
+            """,
+            review_log_id,
+            inbox_id,
+            action,
+            reviewer,
+            (reason or "")[:500],
+        )
+        logger.info(
+            "[audit.knowledge_review_log] inbox=%s action=%s reviewer=%s",
+            str(inbox_id)[:8], action, reviewer,
+        )
+        return review_log_id
+
+    # ──────────────────────────────────────────────
+    # Render Queue（KOC-F1）
+    # ──────────────────────────────────────────────
+
+    async def get_inbox(self, inbox_id: str) -> dict | None:
+        """读取单条 Inbox 记录（含 object_id / content）"""
+        rows = await postgres_tool.query(
+            """
+            SELECT id, object_type, object_id, status, confidence, source, content,
+                   reviewer, review_time, created_at, updated_at
+            FROM core.knowledge_inbox
+            WHERE id = $1
+            """,
+            inbox_id,
+        )
+        return rows[0] if rows else None
+
+    async def enqueue_render_job(
+        self,
+        entity_id: str,
+        entity_type: str,
+        section: str | None = None,
+        priority: int | None = None,
+    ) -> str:
+        """写入 core.knowledge_render_jobs（KOC-F1）
+
+        审核通过后自动入 Render Queue。优先级策略：Company/Event 优先，
+        priority 越小越优先（默认映射需显式传递，否则按业务类型推导）。
+
+        Args:
+            entity_id: core.entities.id
+            entity_type: 业务类型 Company/Industry/Event/Person/Security/Document
+            section: 增量更新用 Section（可选）
+            priority: 显式优先级；None 时按 entity_type 推导
+
+        Returns:
+            render_job_id (UUID)
+        """
+        if priority is None:
+            priority = RENDER_TYPE_PRIORITY.get(str(entity_type).lower(), 5)
+        job_id = str(uuid.uuid4())
+        await postgres_tool.execute(
+            """
+            INSERT INTO core.knowledge_render_jobs
+                (id, entity, type, section, status, priority)
+            VALUES ($1, $2, $3, $4, 'pending', $5)
+            """,
+            job_id,
+            entity_id,
+            entity_type,
+            section,
+            priority,
+        )
+        logger.info(
+            "[knowledge_render_jobs] enqueue entity=%s type=%s priority=%d job=%s",
+            str(entity_id)[:8], entity_type, priority, str(job_id)[:8],
+        )
+        return job_id
+
+    async def list_render_jobs(
+        self,
+        status: str | None = None,
+        limit: int = 50,
+    ) -> list[dict]:
+        """查询 Render Queue 任务（KOC-F2）
+
+        Args:
+            status: 状态过滤（pending/running/done/failed），None=全部
+            limit: 返回数量上限
+
+        Returns:
+            render_jobs 列表（含关联实体名，左侧优先展示高优先级）
+        """
+        if status:
+            return await postgres_tool.query(
+                """
+                SELECT j.id, j.entity, j.type, j.section, j.status, j.retry,
+                       j.priority, j.error_message, j.created_at, j.updated_at,
+                       e.name AS entity_name
+                FROM core.knowledge_render_jobs j
+                LEFT JOIN core.entities e ON e.id = j.entity
+                WHERE j.status = $1
+                ORDER BY j.priority ASC, j.created_at ASC
+                LIMIT $2
+                """,
+                status, limit,
+            )
+        return await postgres_tool.query(
+            """
+            SELECT j.id, j.entity, j.type, j.section, j.status, j.retry,
+                   j.priority, j.error_message, j.created_at, j.updated_at,
+                   e.name AS entity_name
+            FROM core.knowledge_render_jobs j
+            LEFT JOIN core.entities e ON e.id = j.entity
+            ORDER BY j.priority ASC, j.created_at ASC
+            LIMIT $1
+            """,
+            limit,
+        )
+
+    async def retry_render_job(self, job_id: str) -> bool:
+        """手动重试失败的渲染任务（KOC-F2）
+
+        failed → pending，清空 error_message，保留 priority/retry 计数。
+
+        Returns:
+            是否成功（job 存在且原状态为 failed，否则 False）
+        """
+        rows = await postgres_tool.query(
+            """
+            UPDATE core.knowledge_render_jobs
+            SET status = 'pending', error_message = NULL, updated_at = NOW()
+            WHERE id = $1 AND status = 'failed'
+            RETURNING id
+            """,
+            job_id,
+        )
+        if rows:
+            logger.info(
+                "[knowledge_render_jobs] retry job=%s", str(job_id)[:8],
+            )
+            return True
+        logger.warning(
+            "[knowledge_render_jobs] retry skipped (not failed) job=%s",
+            str(job_id)[:8],
+        )
+        return False
+
+
+# 渲染优先级映射：Company/Event 优先（priority 越小越优先）（KOC-F1）
+RENDER_TYPE_PRIORITY = {
+    "company": 1,
+    "event": 2,
+    "person": 3,
+    "security": 3,
+    "industry": 4,
+    "document": 5,
+}
 
 
 # 模块级单例

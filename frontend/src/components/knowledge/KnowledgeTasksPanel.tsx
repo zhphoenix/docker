@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ListChecks, RefreshCw, RotateCcw, AlertTriangle, Clock, Zap, RefreshCcw } from 'lucide-react'
+import { ListChecks, RefreshCw, RotateCcw, AlertTriangle, Clock, Zap, RefreshCcw, Layers } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { WindowedDialog } from '@/components/ui/windowed-dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Table,
   TableBody,
@@ -31,6 +32,7 @@ import {
   reembedDocument,
 } from '@/services/tasks'
 import type { TaskInfo } from '@/services/tasks'
+import { KnowledgeRenderQueuePanel } from '@/components/knowledge/KnowledgeRenderQueuePanel'
 import { cn } from '@/lib/utils'
 
 // ===== Constants =====
@@ -121,6 +123,7 @@ export function KnowledgeTasksPanel({ focusTaskId }: KnowledgeTasksPanelProps) {
   const [taskType, setTaskType] = useState<string>('')
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [section, setSection] = useState<'tasks' | 'render'>('tasks')
   const [docId, setDocId] = useState('')
   const [triggerMsg, setTriggerMsg] = useState<{
     type: 'success' | 'error'
@@ -233,6 +236,21 @@ export function KnowledgeTasksPanel({ focusTaskId }: KnowledgeTasksPanelProps) {
 
   return (
     <div className="space-y-4">
+      <Tabs value={section} onValueChange={(v) => setSection(v as 'tasks' | 'render')}>
+        <TabsList>
+          <TabsTrigger value="tasks" className="gap-1.5">
+            <ListChecks className="size-3.5" strokeWidth={1.8} />
+            处理任务
+          </TabsTrigger>
+          <TabsTrigger value="render" className="gap-1.5">
+            <Layers className="size-3.5" strokeWidth={1.8} />
+            Render Queue
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="render">
+          <KnowledgeRenderQueuePanel />
+        </TabsContent>
+        <TabsContent value="tasks">
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative">
@@ -625,6 +643,8 @@ export function KnowledgeTasksPanel({ focusTaskId }: KnowledgeTasksPanelProps) {
               </div>
             ) : null}
     </WindowedDialog>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

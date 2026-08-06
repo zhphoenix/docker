@@ -173,7 +173,10 @@ async def _run_collection(keyword: str, priority: str) -> None:
     from collectors.source_registry import source_registry
     from collectors.rss_collector import collect_rss
     from collectors.web_collector import collect_web
+    from collectors.health_metrics import record_collect_run
     from graphs.news_analysis_graph import get_news_graph
+    from monitoring.agent_center import invoke_tracked
+    import time
 
     logger.info("[Collect] Manual trigger | keyword=%r | priority=%s", keyword, priority)
     try:
@@ -189,6 +192,7 @@ async def _run_collection(keyword: str, priority: str) -> None:
         keyword_lower = keyword.strip().lower()
 
         for source in sources:
+            collect_start = time.monotonic()
             try:
                 if source.source_type == "rss":
                     articles = await collect_rss(source)
@@ -198,6 +202,12 @@ async def _run_collection(keyword: str, priority: str) -> None:
                     continue
 
                 if not articles:
+                    # 采集成功但无文章，仍记录指标
+                    await record_collect_run(
+                        source.id, source.name, True,
+                        latency_ms=int((time.monotonic() - collect_start) * 1000),
+                        articles_fetched=0, articles_stored=0,
+                    )
                     continue
 
                 # 关键词过滤（若提供）
@@ -210,27 +220,46 @@ async def _run_collection(keyword: str, priority: str) -> None:
                         logger.info("[Collect] No matching articles for keyword in source=%s", source.id)
                         continue
 
-                result = await graph.ainvoke({
-                    "source_id": source.id,
-                    "raw_articles": articles,
-                    "cleaned_articles": [],
-                    "unique_articles": [],
-                    "classified_articles": [],
-                    "entities": [],
-                    "events": [],
-                    "relations": [],
-                    "impact_assessments": [],
-                    "stored_article_ids": [],
-                    "stored_event_ids": [],
-                    "knowledge_agent_triggered": False,
-                    "errors": [],
-                })
+                result = await invoke_tracked(
+                    graph,
+                    {
+                        "source_id": source.id,
+                        "raw_articles": articles,
+                        "cleaned_articles": [],
+                        "unique_articles": [],
+                        "classified_articles": [],
+                        "entities": [],
+                        "events": [],
+                        "relations": [],
+                        "impact_assessments": [],
+                        "stored_article_ids": [],
+                        "stored_event_ids": [],
+                        "knowledge_agent_triggered": False,
+                        "errors": [],
+                    },
+                    agent_id="news_intelligence",
+                    question=f"manual collect source={source.id} keyword={keyword}",
+                )
 
                 stored = len(result.get("stored_article_ids", []))
+                # 采集健康指标（Latency/Articles/Duplicates）
+                await record_collect_run(
+                    source.id, source.name, True,
+                    latency_ms=int((time.monotonic() - collect_start) * 1000),
+                    articles_fetched=len(articles),
+                    articles_stored=stored,
+                )
                 logger.info("[Collect] Processed | source=%s | stored=%d", source.id, stored)
 
             except Exception as e:
                 logger.error("[Collect] Source failed | %s | %s", source.id, e)
+                # 采集失败指标（Errors）
+                await record_collect_run(
+                    source.id, source.name, False,
+                    latency_ms=int((time.monotonic() - collect_start) * 1000),
+                    articles_fetched=0, articles_stored=0,
+                    error=str(e)[:500],
+                )
 
         logger.info("[Collect] Manual collection complete | keyword=%r", keyword)
 
@@ -266,4 +295,41 @@ async def list_sources(
     return {
         "sources": [_serialize(s) for s in sources],
         "total": len(sources),
+    }
+
+
+@news_router.get("/sources/health")
+async def get_sources_health(
+    days: int = Query(30, ge=1, le=365, description="指标统计时间范围（天）"),
+):
+    """Source Health 面板数据
+
+    按源展示 Latency/Errors/Articles/Duplicates 四项指标 + 覆盖率；
+    异常源（最近失败或连续失败）红色标记。
+    """
+    result = await news_storage.get_source_health(days=days)
+    result["sources"] = [_serialize(s) for s in result["sources"]]
+    return result
+
+
+class SourceEnabledRequest(BaseModel):
+    enabled: bool = Field(..., description="是否启用该源")
+
+
+@news_router.post("/sources/{source_id}/enabled")
+async def set_source_enabled(source_id: str, req: SourceEnabledRequest):
+    """启停一个新闻源（NIC-C3）
+
+    UI 停用后下一采集周期不再采集该源（持久化到 news_sources.yaml）。
+    """
+    from collectors.source_registry import source_registry
+
+    ok = source_registry.set_enabled(source_id, req.enabled)
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"Source '{source_id}' not found")
+    return {
+        "source_id": source_id,
+        "enabled": req.enabled,
+        "status": "ok",
+        "message": "源已" + ("启用" if req.enabled else "停用"),
     }

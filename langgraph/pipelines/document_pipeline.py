@@ -12,6 +12,7 @@
 import json
 import logging
 import re
+import time
 import uuid
 from typing import Any
 
@@ -23,6 +24,27 @@ from tools.embedding import embedding_tool
 from tools.qdrant import qdrant_tool
 from runtime.queue import task_queue
 from config.policy_loader import get_policy
+from config.settings import settings
+from pipelines.acquire import (
+    AcquireOrigin,
+    AcquirePriority,
+    AcquireTrigger,
+    build_acquire_metadata,
+    merge_acquire_into_metadata,
+)
+from pipelines.routing import RoutingPlan, RoutingStrategy, resolve_routing
+from pipelines.stages import Stage, StageTracker, track_stage
+from schemas.knowledge_package import (
+    Entity,
+    Evidence,
+    Fact,
+    KnowledgePackage,
+    ProcessingMetadata,
+    Relation,
+    SourceMetadata,
+    SourceType,
+)
+from storage.knowledge.package import package_storage
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +65,10 @@ class DocumentPipeline:
     def __init__(self):
         self.batch_size = get_policy("pipeline.batch_size", 50)
         self.embed_batch_size = get_policy("pipeline.embed_batch_size", 16)
+        # DP-C2 双通道开关：pipeline.extraction.mode = package | direct
+        #   package：内嵌知识抽取图并把输出写 Package 草稿
+        #   direct：跳过内嵌图调用，由独立 knowledge_extraction 任务直写 core.*（回退路径）
+        self.extraction_mode = get_policy("pipeline.extraction.mode", "direct")
 
     async def process_pending_documents(self, limit: int = 50) -> dict[str, int]:
         """处理所有 pending 状态的文档
@@ -63,7 +89,7 @@ class DocumentPipeline:
                 LIMIT $1
             )
             RETURNING id, market, symbol, company, year, document_type,
-                      bucket, object_key, language
+                      bucket, object_key, language, metadata
             """,
             limit,
         )
@@ -156,6 +182,38 @@ class DocumentPipeline:
             )
             return "indexed"
 
+        # 2.5 路由决策（DP-B3）：依据采集元数据/文档类型决定解析路径
+        metadata = doc.get("metadata") or {}
+        if isinstance(metadata, str):
+            metadata = json.loads(metadata)
+        acquire = metadata.get("acquire") or {}
+        plan = resolve_routing(
+            document_type=doc.get("document_type"),
+            source_type=acquire.get("source_type"),
+            object_key=object_key,
+        )
+        if task_id:
+            await task_queue.log_task(
+                task_id, "info",
+                f"routing={plan.strategy.value} parser={plan.parser} ({plan.label})",
+                "routing",
+            )
+
+        # 2.6 阶段追踪（DP-B4）：初始化 StageTracker 并写入 processing 元字段
+        tracker = StageTracker(document_id=doc_id, task_id=task_id)
+        await tracker.load(postgres_tool)
+        tracker.set_metadata(
+            parser=plan.parser,
+            routing_strategy=plan.strategy.value,
+            embedding_model=settings.EMBEDDING_MODEL,
+            llm_model=settings.MODEL_NAME,
+            ocr_engine="paddleocr",
+            chunk_strategy=f"size={get_policy('pipeline.chunk_size', 1000)}",
+        )
+        _processing_started = time.monotonic()
+        await tracker.enter(postgres_tool, Stage.ROUTING, plan.label)
+        await tracker.complete(postgres_tool, Stage.ROUTING, plan.label)
+
         # 3. 下载 PDF from MinIO
         try:
             pdf_data = await minio_tool.download(bucket, object_key)
@@ -172,10 +230,15 @@ class DocumentPipeline:
             )
             return "skipped"
 
-        # 4. Docling 解析 → Markdown
+        # 4. 解析 → Markdown（依据 routing 策略选择解析器）
         try:
             filename = object_key.split("/")[-1] if "/" in object_key else object_key
-            md_content = await docling_tool.convert_file(pdf_data, filename)
+            async with track_stage(tracker, postgres_tool, Stage.PARSE, f"{symbol} 解析"):
+                if plan.parser == "direct":
+                    # general 策略：原始对象即文本（markdown），直接解码分片
+                    md_content = pdf_data.decode("utf-8")
+                else:
+                    md_content = await docling_tool.convert_file(pdf_data, filename)
             if task_id:
                 await task_queue.update_progress(
                     task_id, index, stage="parse",
@@ -210,7 +273,8 @@ class DocumentPipeline:
             pass  # 非关键路径，失败不阻塞
 
         # 6. 分片
-        chunks = chunk_markdown(md_content)
+        async with track_stage(tracker, postgres_tool, Stage.CHUNK, f"{symbol} 分块"):
+            chunks = chunk_markdown(md_content)
         if not chunks:
             logger.warning("No chunks generated | %s", doc_id[:8])
             if task_id:
@@ -232,7 +296,72 @@ class DocumentPipeline:
                 task_id, "info", f"分块完成 {symbol} | {len(chunks)} chunks", "chunk"
             )
 
-        # 7. Embedding（分批）
+        # 7. Extraction 编入 Stage 5（DP-C1/DP-C2）：
+        #    双通道开关 pipeline.extraction.mode = package | direct
+        #   - package：内嵌调用知识抽取图，输出写 Package 草稿
+        #   - direct：跳过内嵌图调用（保留现状，由独立 knowledge_extraction
+        #     任务直写 core.*，作为回退路径）
+        # 顺序遵循八阶段 Stage=5(extraction) 位于 Stage=6(embedding) 之前（见退出条件）
+        extraction_result: dict[str, Any] = {}
+        if self.extraction_mode == "package":
+            try:
+                from graphs.knowledge_graph import build_knowledge_ingestion_graph
+                from monitoring.agent_center import invoke_tracked
+
+                async with track_stage(tracker, postgres_tool, Stage.EXTRACTION, f"{symbol} 知识抽取"):
+                    graph = build_knowledge_ingestion_graph()
+                    initial_state = {
+                        "document_id": doc_id,
+                        "document_type": doc.get("document_type", ""),
+                        "raw_text": md_content,
+                        "source_metadata": {
+                            "source": acquire.get("source_type", ""),
+                            "document_type": doc.get("document_type", ""),
+                            "market": market,
+                            "symbol": symbol,
+                            "company": doc.get("company", ""),
+                            "year": doc.get("year"),
+                        },
+                        "chunks": [],
+                        "entities": [],
+                        "relations": [],
+                        "facts": [],
+                        "evidence": [],
+                        "conflicts": [],
+                        "confidence_score": 0.0,
+                        "stored_entity_ids": [],
+                        "stored_fact_ids": [],
+                        "errors": [],
+                    }
+                    extraction_result = await invoke_tracked(
+                        graph,
+                        initial_state,
+                        agent_id="knowledge_ingestion",
+                        question=f"doc_pipeline extraction doc={doc_id[:8]}",
+                    )
+                if task_id:
+                    await task_queue.log_task(
+                        task_id, "info",
+                        f"知识抽取 {symbol} | entities={len(extraction_result.get('entities', []))} "
+                        f"relations={len(extraction_result.get('relations', []))} "
+                        f"facts={len(extraction_result.get('facts', []))}",
+                        "extraction",
+                    )
+            except Exception as e:
+                # 异常时自动回退 direct 并告警（DP-C2）：extraction_result 保留空，
+                # 由独立任务直写 core.*，知识获取不因抽取失败而中断
+                logger.warning(
+                    "Extraction failed, auto-fallback to direct | %s/%s | %s",
+                    market, symbol, e,
+                )
+                extraction_result = {}
+        else:
+            # direct 模式：保留现直写 core.* 路径；extraction 阶段仍标记完成（内容由独立任务处理）
+            async with track_stage(tracker, postgres_tool, Stage.EXTRACTION, f"{symbol} 知识抽取(direct)"):
+                pass
+            logger.info("Extraction mode=direct (skip inline graph) | %s/%s", market, symbol)
+
+        # 8. Embedding（分批）
         collection = MARKET_COLLECTION.get(market, "documents_cn")
         all_vectors: list[list[float]] = []
 
@@ -245,11 +374,12 @@ class DocumentPipeline:
                 task_id, "info", f"开始嵌入 {symbol} | {len(chunks)} chunks", "embedding"
             )
 
-        for batch_start in range(0, len(chunks), self.embed_batch_size):
-            batch = chunks[batch_start:batch_start + self.embed_batch_size]
-            texts = [c["content"] for c in batch]
-            vectors = await embedding_tool.embed(texts)
-            all_vectors.extend(vectors)
+        async with track_stage(tracker, postgres_tool, Stage.EMBEDDING, f"{symbol} 嵌入"):
+            for batch_start in range(0, len(chunks), self.embed_batch_size):
+                batch = chunks[batch_start:batch_start + self.embed_batch_size]
+                texts = [c["content"] for c in batch]
+                vectors = await embedding_tool.embed(texts)
+                all_vectors.extend(vectors)
 
         # 8. 写入 Qdrant + PostgreSQL chunks
         points = []
@@ -312,11 +442,151 @@ class DocumentPipeline:
                 "embedding",
             )
 
+        # 10. 落 KnowledgePackage 草稿（DP-B4）：processing 元数据 + 阶段记录
+        tracker.set_metadata(
+            processing_time=round(time.monotonic() - _processing_started, 3)
+        )
+        await self._save_package_draft(doc, plan, tracker, extraction_result)
+
         logger.info(
             "Document indexed | %s/%s | chunks=%d | collection=%s",
             market, symbol, len(chunks), collection,
         )
         return "indexed"
+
+    async def _save_package_draft(
+        self, doc: dict, plan: RoutingPlan, tracker: StageTracker,
+        extraction: dict[str, Any] | None = None,
+    ) -> str | None:
+        """构造 KnowledgePackage 草稿并落库（DP-B4 + DP-C1）
+
+        processing_metadata 含 parser/ocr_engine/embedding_model/llm_model/
+        routing_strategy/processing_time/stages；失败不阻塞主流程。
+        extraction 为知识抽取图输出时，把 entities/relations/facts/evidence
+        映射为 Package 契约写入草稿（DP-C1 验收：草稿含非空四项）。
+        """
+        doc_id = str(doc["id"])
+        source_type = (
+            SourceType.ANNUAL_REPORT
+            if plan.strategy is RoutingStrategy.ANNUAL_REPORT
+            else SourceType.GENERAL
+        )
+        symbol = doc.get("symbol", "")
+        company = doc.get("company", "")
+        source = SourceMetadata(
+            source_type=source_type,
+            source_id=doc.get("source_id") or "documents",
+            document_id=doc_id,
+            title=company or symbol,
+            file_path=doc.get("object_key"),
+        )
+        entities: list[Entity] = []
+        relations: list[Relation] = []
+        facts: list[Fact] = []
+        evidence: list[Evidence] = []
+        if extraction:
+            entities, relations, facts, evidence = self._map_extraction_to_package(
+                extraction, doc_id
+            )
+        package = KnowledgePackage(
+            id=str(uuid.uuid4()),
+            source_type=source_type,
+            document_id=doc_id,
+            source=source,
+            entities=entities,
+            relations=relations,
+            facts=facts,
+            evidence=evidence,
+            processing_metadata=ProcessingMetadata(**tracker.processing),
+        )
+        return await package_storage.save_draft(package)
+
+    @staticmethod
+    def _clean_dt(value: Any) -> Any:
+        """把时间字段安全转为 datetime（ISO 字符串/Native；非法返回 None）"""
+        if not value:
+            return None
+        from datetime import datetime
+        try:
+            return datetime.fromisoformat(str(value))
+        except (ValueError, TypeError):
+            return None
+
+    def _map_extraction_to_package(
+        self, result: dict[str, Any], document_id: str
+    ) -> tuple[list[Entity], list[Relation], list[Fact], list[Evidence]]:
+        """把知识抽取图输出映射为 Package 契约模型列表（DP-C1）
+
+        - 实体：name→id 映射（已有 existing_id 复用，否则生成新 UUID）
+        - 关系：source/target 名称解析为实体 ID（无法解析则跳过）
+        - 事实：subject 解析为实体 ID；evidence 与 facts 同索引对齐
+        - 时间字段统一经 _clean_dt 安全转换
+        """
+        entities_raw = result.get("entities", []) or []
+        relations_raw = result.get("relations", []) or []
+        facts_raw = result.get("facts", []) or []
+        evidence_raw = result.get("evidence", []) or []
+
+        name_to_id: dict[str, str] = {}
+        entities: list[Entity] = []
+        for e in entities_raw:
+            eid = e.get("existing_id") or str(uuid.uuid4())
+            name = e.get("name", "")
+            if name:
+                name_to_id[name.lower()] = eid
+            entities.append(Entity(
+                id=eid,
+                name=name,
+                entity_type=e.get("entity_type", "unknown"),
+                aliases=e.get("aliases", []) or [],
+                properties=e.get("properties", {}) or {},
+                canonical_name=e.get("canonical_name"),
+                confidence=e.get("confidence"),
+            ))
+
+        relations: list[Relation] = []
+        for r in relations_raw:
+            source_id = name_to_id.get((r.get("source") or "").lower())
+            target_id = name_to_id.get((r.get("target") or "").lower())
+            if not source_id or not target_id:
+                continue
+            relations.append(Relation(
+                id=str(uuid.uuid4()),
+                source_entity=source_id,
+                target_entity=target_id,
+                relation_type=r.get("relation_type", ""),
+                properties=r.get("properties", {}) or {},
+                confidence=r.get("confidence"),
+            ))
+
+        facts: list[Fact] = []
+        evidence: list[Evidence] = []
+        for i, f in enumerate(facts_raw):
+            subject_id = name_to_id.get((f.get("subject") or "").lower()) or ""
+            fact_id = str(uuid.uuid4())
+            facts.append(Fact(
+                id=fact_id,
+                subject_entity=subject_id,
+                predicate=f.get("predicate", ""),
+                object_value=f.get("object_value", {}),
+                unit=f.get("unit"),
+                time_start=self._clean_dt(f.get("time_start")),
+                time_end=self._clean_dt(f.get("time_end")),
+                source_document=document_id,
+                confidence=f.get("confidence"),
+            ))
+            ev = evidence_raw[i] if i < len(evidence_raw) else None
+            if ev:
+                evidence.append(Evidence(
+                    id=str(uuid.uuid4()),
+                    fact_id=fact_id,
+                    document_id=document_id,
+                    location=ev.get("location"),
+                    quote=ev.get("quote"),
+                    confidence=ev.get("confidence"),
+                ))
+
+        return entities, relations, facts, evidence
 
     async def get_pipeline_status(self) -> dict[str, Any]:
         """获取 Pipeline 整体状态"""
@@ -432,6 +702,18 @@ class DocumentPipeline:
                 continue
 
             doc_id = str(uuid.uuid4())
+            # 统一 acquire metadata（DP-B2）：source_type/trigger/priority/checksum/origin
+            acquire_meta = merge_acquire_into_metadata(
+                {"source": "minio"},
+                build_acquire_metadata(
+                    source_type=doc_type,
+                    trigger=AcquireTrigger.MINIO_SCAN,
+                    priority=AcquirePriority.LOW,
+                    checksum=key,  # MinIO 对象以 object_key 作为内容判重依据
+                    origin=AcquireOrigin.MINIO,
+                    object_key=key,
+                ),
+            )
             await postgres_tool.execute(
                 """
                 INSERT INTO documents
@@ -441,7 +723,7 @@ class DocumentPipeline:
                         $6::jsonb, $7, $8)
                 """,
                 doc_id, mkt, symbol, year, doc_type,
-                json.dumps({"source": "minio", "object_key": key}),
+                json.dumps(acquire_meta),
                 bucket, key,
             )
             added += 1

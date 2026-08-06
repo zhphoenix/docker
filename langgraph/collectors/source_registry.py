@@ -12,8 +12,8 @@ import yaml
 
 logger = logging.getLogger(__name__)
 
-# 项目根目录
-_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
+# 项目根目录（.../langgraph/collectors/source_registry.py → 上溯 3 层到项目根）
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
 _REGISTRY_PATH = _PROJECT_ROOT / "registry" / "news_sources.yaml"
 
 
@@ -93,6 +93,56 @@ class SourceRegistry:
             if s.id == source_id:
                 return s
         return None
+
+    def set_enabled(self, source_id: str, enabled: bool) -> bool:
+        """启停一个新闻源（更新内存 + 持久化到 YAML）
+
+        返回 True 表示找到并更新成功；False 表示源不存在。
+        """
+        self._ensure_loaded()
+        target = None
+        for s in self._sources:
+            if s.id == source_id:
+                target = s
+                break
+        if target is None:
+            return False
+        target.enabled = enabled
+        return self._persist_enabled(source_id, enabled)
+
+    def _persist_enabled(self, source_id: str, enabled: bool) -> bool:
+        """逐行改写 YAML 中对应源的 enabled 字段，保留注释与格式"""
+        try:
+            lines = self._path.read_text(encoding="utf-8").splitlines(keepends=True)
+        except OSError:
+            logger.error("Cannot read registry: %s", self._path)
+            return False
+
+        in_block = False
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            if stripped.startswith("- id:"):
+                sid = stripped.split(":", 1)[1].strip().strip("'\"")
+                in_block = sid == source_id
+                continue
+            if in_block:
+                # 当前 source 块结束：遇到另一个列表项或顶层键
+                if stripped.startswith("- ") or (line and not line[0].isspace()):
+                    break
+                if stripped.startswith("enabled:"):
+                    indent = line[: len(line) - len(line.lstrip())]
+                    value = "true" if enabled else "false"
+                    lines[i] = f"{indent}enabled: {value}\n"
+                    try:
+                        self._path.write_text("".join(lines), encoding="utf-8")
+                    except OSError:
+                        logger.error("Cannot write registry: %s", self._path)
+                        return False
+                    logger.info("Source %r enabled=%s persisted", source_id, enabled)
+                    return True
+
+        logger.warning("enabled field not found for source %r", source_id)
+        return False
 
     @property
     def schedule(self) -> dict:

@@ -4,6 +4,8 @@
 生成 Markdown 报告并写入 watchlist.daily_watchlist_report（按 report_date 幂等 upsert）。
 """
 
+import asyncio
+import json
 import logging
 
 from tools.postgres import postgres_tool
@@ -101,6 +103,73 @@ def _build_markdown(events: list[dict], report_date: str) -> tuple[str, str]:
     return content, summary
 
 
+async def _generate_key_points(events: list[dict]) -> dict | None:
+    """调用 LLM 生成当日跨股票聚合摘要（JSON 结构）
+
+    Returns:
+        {"ai_overview": str, "key_points": list[str], "focus_stocks": list[str]}
+        失败或超时返回 None，由调用方降级。
+    """
+    if not events:
+        return None
+    try:
+        from tools.llm import llm_tool
+
+        ev_lines = "\n".join(
+            f"- [{ev['stock_name'] or ev['stock_code']}|来源:{ev.get('source_type') or '未知'}"
+            f"|情绪:{ev.get('sentiment') or '未知'}|重要度:{ev['importance']}] "
+            f"{(ev.get('summary') or '')[:120]}"
+            for ev in events[:40]
+        )
+        system = (
+            "你是一名资深投资分析师。请根据今日自选股监控事件，生成一份聚焦的聚合日报摘要。"
+            "只基于给定事件，不要编造。请严格返回 JSON（不要 Markdown 代码块），结构如下：\n"
+            "{\n"
+            '  "ai_overview": "200-300字中文综述，涵盖整体点评、关键事件及影响、风险提示与关注建议",\n'
+            '  "key_points": ["3-5句今日关注要点，每句一句话"],\n'
+            '  "focus_stocks": ["需要重点关注的股票代码数组，最多3个"]\n'
+            "}"
+        )
+        user = f"今日自选股监控事件：\n{ev_lines}\n\n请生成聚合日报摘要 JSON。"
+        resp = await asyncio.wait_for(
+            llm_tool.chat(
+                [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                temperature=0.3,
+                max_tokens=800,
+            ),
+            timeout=90.0,
+        )
+        content = (resp.get("choices") or [{}])[0].get("message", {}).get("content", "")
+        if not content or not content.strip():
+            return None
+        # 剥离可能出现的 markdown 代码围栏
+        text = content.strip()
+        if text.startswith("```"):
+            text = text.split("\n", 1)[-1]
+            if text.endswith("```"):
+                text = text[:-3]
+        data = json.loads(text)
+        if not isinstance(data, dict):
+            return None
+        return {
+            "ai_overview": str(data.get("ai_overview") or "").strip(),
+            "key_points": [
+                str(k).strip() for k in (data.get("key_points") or []) if str(k).strip()
+            ],
+            "focus_stocks": [
+                str(s).strip() for s in (data.get("focus_stocks") or []) if str(s).strip()
+            ],
+        }
+    except (asyncio.TimeoutError, json.JSONDecodeError):
+        logger.warning("[Report] AI key points unavailable, fallback")
+    except Exception as e:  # noqa: BLE001
+        logger.warning("[Report] AI key points failed | %s", e)
+    return None
+
+
 async def generate_daily_report() -> dict:
     """生成当日报告并落库（幂等 upsert by report_date）
 
@@ -116,7 +185,23 @@ async def generate_daily_report() -> dict:
     report_date_obj = date_rows[0]["d"] if date_rows else None
     report_date = str(report_date_obj) if report_date_obj else ""
 
-    content, summary = _build_markdown(events, report_date)
+    content, fallback_summary = _build_markdown(events, report_date)
+
+    # AI 聚合摘要：成功则插入综述到报告开头，summary 落库为 JSON（key_points + focus_stocks），
+    # 失败降级为模板摘要的 JSON 结构
+    ai = await _generate_key_points(events)
+    if ai and ai.get("ai_overview"):
+        content = f"## AI 日报综述\n\n{ai['ai_overview']}\n\n---\n\n{content}"
+        summary = json.dumps(
+            {"key_points": ai.get("key_points"), "focus_stocks": ai.get("focus_stocks")},
+            ensure_ascii=False,
+        )
+    else:
+        summary = json.dumps(
+            {"key_points": [fallback_summary], "focus_stocks": []},
+            ensure_ascii=False,
+        )
+
     title = f"Watchlist Daily Report {report_date}"
 
     await postgres_tool.execute(

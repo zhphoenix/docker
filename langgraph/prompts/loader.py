@@ -1,52 +1,95 @@
-"""Prompt Hub - 统一加载 prompts/ 目录下的 .md 模板文件
+"""Prompt Hub - 从 agent_prompts 表加载 Prompt 模板（DB 为唯一事实源）
 
-目录结构:
-  prompts/
-  ├── planner.md          # 通用 Planner
-  ├── reason.md           # 通用 Reason
-  ├── reflect.md          # 通用 Reflect
-  ├── writer.md           # 通用 Writer
-  ├── chat/system.md      # Chat Agent 专用
-  ├── research/system.md  # Research Agent 专用
-  └── investment/system.md# Investment Agent 专用
+设计:
+    - 启动时通过 load_all_from_db() 将全部生效 prompt 载入进程内 dict。
+    - load_prompt() 为纯同步读取（graph 节点在 async 上下文调用，避免嵌套事件循环）。
+    - DB 编辑后通过 refresh_prompt() / invalidate() 更新内存缓存。
+    - 未找到时抛 FileNotFoundError（reason.py 等依赖该异常做回退）。
 
-用法:
-  load_prompt("planner")                # 加载顶层 planner.md
-  load_prompt("chat/system")            # 加载子目录 chat/system.md
-  load_prompt("reason", context="...")  # 带变量替换
+键映射:
+    - DB 行 (agent_id=chat, name=system)  → 调用名 "chat/system"
+    - DB 行 (agent_id=common, name=reason) → 调用名 "reason"
 """
 
 import logging
-from pathlib import Path
-from functools import lru_cache
 
 logger = logging.getLogger(__name__)
 
-# prompts 目录路径（相对于 agent/ 目录）
-PROMPTS_DIR = Path(__file__).parent
+# 内存缓存：{调用名: 内容}
+_store: dict[str, str] = {}
+_loaded = False
 
 
-@lru_cache(maxsize=64)
-def _read_prompt_file(relative_path: str) -> str:
-    """读取并缓存 Prompt 文件原始内容"""
-    prompt_file = PROMPTS_DIR / f"{relative_path}.md"
-    if not prompt_file.exists():
-        raise FileNotFoundError(f"Prompt file not found: {prompt_file}")
-    return prompt_file.read_text(encoding="utf-8")
+def _make_key(agent_id: str, name: str) -> str:
+    """DB 行 → 调用名（与 scripts/migrate_prompts_to_db.py 的映射互逆）"""
+    return name if agent_id == "common" else f"{agent_id}/{name}"
+
+
+async def load_all_from_db() -> int:
+    """从 agent_prompts 表加载全部生效 Prompt 到内存，返回加载条数"""
+    global _store, _loaded
+    from tools.postgres import postgres_tool
+
+    rows = await postgres_tool.query(
+        "SELECT agent_id, name, content FROM agent_prompts WHERE is_active = true"
+    )
+    new_store: dict[str, str] = {}
+    for r in rows:
+        key = _make_key(r["agent_id"], r["name"])
+        new_store[key] = r["content"]
+    _store = new_store
+    _loaded = True
+    logger.info("Prompt Hub loaded %d prompts from DB", len(_store))
+    return len(_store)
+
+
+async def refresh_prompt(agent_id: str, name: str, content: str | None = None) -> None:
+    """刷新单个 Prompt 到内存（content 为 None 时从 DB 读取）"""
+    global _store
+    key = _make_key(agent_id, name)
+    if content is not None:
+        _store[key] = content
+        return
+    from tools.postgres import postgres_tool
+
+    rows = await postgres_tool.query(
+        "SELECT content FROM agent_prompts "
+        "WHERE agent_id=$1 AND name=$2 AND is_active=true "
+        "ORDER BY version DESC LIMIT 1",
+        agent_id, name,
+    )
+    if rows:
+        _store[key] = rows[0]["content"]
+    else:
+        _store.pop(key, None)
+
+
+def invalidate(agent_id: str, name: str) -> None:
+    """从内存缓存移除该 Prompt（下次 load 需重新加载）"""
+    _store.pop(_make_key(agent_id, name), None)
+
+
+def get_prompt(name: str) -> str | None:
+    """获取原始 Prompt 内容（不做变量替换），未找到返回 None"""
+    return _store.get(name)
 
 
 def load_prompt(name: str, **kwargs) -> str:
     """加载 Prompt 模板
 
     Args:
-        name: Prompt 路径（不含 .md 后缀）
-              支持子目录: "planner", "chat/system", "research/system"
+        name: Prompt 调用名，如 "planner"、"chat/system"、"knowledge/entity_extraction"
         **kwargs: 模板变量替换，如 question="...", context="..."
 
     Returns:
         替换变量后的 Prompt 文本
+
+    Raises:
+        FileNotFoundError: 该 Prompt 在 DB 中不存在
     """
-    content = _read_prompt_file(name)
+    content = _store.get(name)
+    if content is None:
+        raise FileNotFoundError(f"Prompt not found in DB: {name}")
 
     # 变量替换（使用安全替换，忽略缺失变量）
     if kwargs:
@@ -58,15 +101,9 @@ def load_prompt(name: str, **kwargs) -> str:
 
 
 def list_prompts(subdir: str = "") -> list[str]:
-    """列出可用的 Prompt 模板
-
-    Args:
-        subdir: 子目录名（如 "chat"），空字符串列出顶层
-
-    Returns:
-        Prompt 名称列表（不含 .md 后缀）
-    """
-    target = PROMPTS_DIR / subdir if subdir else PROMPTS_DIR
-    if not target.exists():
-        return []
-    return [f.stem for f in target.glob("*.md")]
+    """列出所有 Prompt 调用名（可选按目录前缀过滤）"""
+    names = list(_store.keys())
+    if subdir:
+        prefix = f"{subdir}/"
+        names = [n for n in names if n.startswith(prefix)]
+    return sorted(names)

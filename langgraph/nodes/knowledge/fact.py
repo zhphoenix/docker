@@ -38,7 +38,7 @@ async def fact_extractor(state: dict) -> dict:
         ensure_ascii=False,
     )
 
-    prompt_template = load_prompt("knowledge/fact_extraction")
+    prompt_template = load_prompt("kb/fact_extraction")
     prompt_base = prompt_template.replace("{entities}", entity_names)
 
     # 实体名称集合（校验用）

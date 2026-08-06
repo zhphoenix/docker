@@ -13,22 +13,219 @@ from storage.knowledge.qdrant import knowledge_qdrant
 from storage.knowledge.age import knowledge_age
 from config.policy_loader import get_policy
 from services.approval import create_approval
+from schemas.knowledge_package import (
+    Entity,
+    Evidence,
+    Fact,
+    KnowledgePackage,
+    Relation,
+)
 
 logger = logging.getLogger(__name__)
+
+
+class MergerStorage:
+    """Merger 写入目标抽象（DP-C3）
+
+    抽象 knowledge_merger 依赖的存储接口，使写入目标可注入：
+      - CoreMergerStorage：默认，直写 core.*（direct 现状路径）
+      - PackageDraftMergerStorage：写 KnowledgePackage 草稿（package 通道）
+    消歧查询与 knowledge_inbox HITL 触发逻辑保持不变。
+    """
+
+    async def find_entities_by_names(self, names):
+        raise NotImplementedError
+
+    async def search_entity_by_embedding(self, vec, threshold, limit):
+        raise NotImplementedError
+
+    async def bulk_upsert_entities(self, records):
+        raise NotImplementedError
+
+    async def bulk_insert_relations(self, records):
+        raise NotImplementedError
+
+    async def bulk_insert_facts(self, records):
+        raise NotImplementedError
+
+    async def bulk_insert_evidence(self, records):
+        raise NotImplementedError
+
+    async def insert_inbox(self, object_type, object_id, confidence, content, source="agent"):
+        raise NotImplementedError
+
+    async def update_inbox_status(self, inbox_id, status, reviewer=None):
+        raise NotImplementedError
+
+    async def record_knowledge_version(self, object_type, object_id, content, created_by="system"):
+        raise NotImplementedError
+
+    async def record_review_log(self, inbox_id, action, reviewer="human", reason=""):
+        raise NotImplementedError
+
+    async def enqueue_render_job(self, entity_id, entity_type, section=None, priority=None):
+        raise NotImplementedError
+
+
+class CoreMergerStorage(MergerStorage):
+    """默认后端：直写 core.*（现状，direct 通道）"""
+
+    def __init__(self, storage=None):
+        self._storage = storage or knowledge_storage
+
+    async def find_entities_by_names(self, names):
+        return await self._storage.find_entities_by_names(names)
+
+    async def search_entity_by_embedding(self, vec, threshold, limit):
+        return await self._storage.search_entity_by_embedding(vec, threshold=threshold, limit=limit)
+
+    async def bulk_upsert_entities(self, records):
+        return await self._storage.bulk_upsert_entities(records)
+
+    async def bulk_insert_relations(self, records):
+        return await self._storage.bulk_insert_relations(records)
+
+    async def bulk_insert_facts(self, records):
+        return await self._storage.bulk_insert_facts(records)
+
+    async def bulk_insert_evidence(self, records):
+        return await self._storage.bulk_insert_evidence(records)
+
+    async def insert_inbox(self, object_type, object_id, confidence, content, source="agent"):
+        return await self._storage.insert_inbox(object_type, object_id, confidence, content, source=source)
+
+    async def update_inbox_status(self, inbox_id, status, reviewer=None):
+        return await self._storage.update_inbox_status(inbox_id, status, reviewer=reviewer)
+
+    async def record_knowledge_version(self, object_type, object_id, content, created_by="system"):
+        return await self._storage.record_knowledge_version(object_type, object_id, content, created_by=created_by)
+
+    async def record_review_log(self, inbox_id, action, reviewer="human", reason=""):
+        return await self._storage.record_review_log(inbox_id, action, reviewer=reviewer, reason=reason)
+
+    async def enqueue_render_job(self, entity_id, entity_type, section=None, priority=None):
+        return await self._storage.enqueue_render_job(entity_id, entity_type, section=section, priority=priority)
+
+
+class PackageDraftMergerStorage(MergerStorage):
+    """Package 草稿后端：写入 KnowledgePackage 草稿（package 通道）
+
+    消歧查询（find_entities_by_names / search_entity_by_embedding）仍走 core.*，
+    因草稿尚未落库、数据量小；写入目标改为 Package 草稿对象。
+    低置信实体仍写入 knowledge_inbox（HITL 触发逻辑不变）。
+    """
+
+    def __init__(self, package: KnowledgePackage, core_storage=None):
+        self.package = package
+        self._core = core_storage or knowledge_storage
+
+    async def find_entities_by_names(self, names):
+        return await self._core.find_entities_by_names(names)
+
+    async def search_entity_by_embedding(self, vec, threshold, limit):
+        return await self._core.search_entity_by_embedding(vec, threshold=threshold, limit=limit)
+
+    async def bulk_upsert_entities(self, records):
+        ids: list[str] = []
+        for r in records:
+            eid = r.get("id") or str(uuid.uuid4())
+            ids.append(eid)
+            self.package.entities.append(Entity(
+                id=eid,
+                name=r["name"],
+                entity_type=r["entity_type"],
+                aliases=r.get("aliases", []),
+                properties=r.get("properties", {}),
+                canonical_name=r.get("canonical_name", r["name"]),
+                confidence=r.get("confidence"),
+            ))
+        return ids
+
+    async def bulk_insert_relations(self, records):
+        ids: list[str] = []
+        for r in records:
+            rid = str(uuid.uuid4())
+            ids.append(rid)
+            props = dict(r.get("properties", {}))
+            if r.get("valid_from"):
+                props["valid_from"] = r["valid_from"]
+            if r.get("valid_to"):
+                props["valid_to"] = r["valid_to"]
+            self.package.relations.append(Relation(
+                id=rid,
+                source_entity=r["source_entity"],
+                target_entity=r["target_entity"],
+                relation_type=r["relation_type"],
+                properties=props,
+                confidence=r.get("confidence"),
+            ))
+        return ids
+
+    async def bulk_insert_facts(self, records):
+        ids: list[str] = []
+        for r in records:
+            fid = str(uuid.uuid4())
+            ids.append(fid)
+            self.package.facts.append(Fact(
+                id=fid,
+                subject_entity=r["subject_entity"],
+                predicate=r["predicate"],
+                object_value=r.get("object_value", {}),
+                unit=r.get("unit"),
+                time_start=r.get("time_start"),
+                time_end=r.get("time_end"),
+                source_document=r.get("source_document"),
+                confidence=r.get("confidence"),
+            ))
+        return ids
+
+    async def bulk_insert_evidence(self, records):
+        for r in records:
+            self.package.evidence.append(Evidence(
+                id=str(uuid.uuid4()),
+                fact_id=r.get("fact_id"),
+                document_id=r.get("document_id"),
+                location=r.get("location"),
+                quote=r.get("quote"),
+                confidence=r.get("confidence"),
+            ))
+
+    async def insert_inbox(self, object_type, object_id, confidence, content, source="agent"):
+        return await self._core.insert_inbox(object_type, object_id, confidence, content, source=source)
+
+    async def update_inbox_status(self, inbox_id, status, reviewer=None):
+        return await self._core.update_inbox_status(inbox_id, status, reviewer=reviewer)
+
+    async def record_knowledge_version(self, object_type, object_id, content, created_by="system"):
+        # 草稿通道未落库，版本审计暂不写入（KOC-A3 仅对落库对象记录）
+        return 1
+
+    async def record_review_log(self, inbox_id, action, reviewer="human", reason=""):
+        # 草稿通道未落库，Inbox 审核日志仍走 core.*（KOC-A4）
+        return await self._core.record_review_log(inbox_id, action, reviewer=reviewer, reason=reason)
+
+    async def enqueue_render_job(self, entity_id, entity_type, section=None, priority=None):
+        # 草稿通道实体尚未落库（core.entities 无对应行），渲染由消费后触发（KOC-F4），此处不入队
+        return None
+
 
 # Inbox 自动审批置信度阈值（高置信度+可信来源 → 直接 APPROVED，否则人工审核）
 INBOX_AUTO_APPROVE_CONFIDENCE = 0.85
 INBOX_AUTO_APPROVE_SOURCES = {"annual_report", "earnings_call", "document"}
 
 
-async def knowledge_merger(state: dict) -> dict:
+async def knowledge_merger(state: dict, storage: MergerStorage | None = None) -> dict:
     """知识合并与存储节点
 
     1. 合并重复实体（已有 existing_id 的实体 → 更新而非新建）
     2. 解析关系中的实体名称 → 映射到实体 ID
     3. 批量写入 PostgreSQL
     4. 批量索引到 Qdrant
+
+    写入目标通过 storage 注入（DP-C3）：默认 CoreMergerStorage 直写 core.*；
+    注入 PackageDraftMergerStorage 时写入 Package 草稿。
     """
+    storage = storage or CoreMergerStorage()
     entities = state.get("entities", [])
     relations = state.get("relations", [])
     facts = state.get("facts", [])
@@ -98,7 +295,7 @@ async def knowledge_merger(state: dict) -> dict:
     if candidates:
         name_to_id: dict[str, str] = {}
         try:
-            found = await knowledge_storage.find_entities_by_names(list(candidate_names))
+            found = await storage.find_entities_by_names(list(candidate_names))
             for row in found:
                 nm = (row.get("name") or "").lower()
                 canonical = (row.get("canonical_name") or "").lower()
@@ -128,7 +325,7 @@ async def knowledge_merger(state: dict) -> dict:
             if vec:
                 vec = [float(x) for x in vec] if not all(isinstance(x, float) for x in vec) else vec
                 try:
-                    sim_rows = await knowledge_storage.search_entity_by_embedding(
+                    sim_rows = await storage.search_entity_by_embedding(
                         vec, threshold=0.85, limit=1
                     )
                     if sim_rows:
@@ -155,9 +352,30 @@ async def knowledge_merger(state: dict) -> dict:
 
     merge_report["checked"] = len(candidates)
 
-    # 批量 upsert（新 + 合并一起处理，ON CONFLICT 自动合并）
+    # 批量 upsert（新 + 合并一起处理，批内同名消歧 + ON CONFLICT 自动合并）
     all_entity_records = new_entities + merge_entities
-    stored_entity_ids = await knowledge_storage.bulk_upsert_entities(all_entity_records)
+    stored_entity_ids = await storage.bulk_upsert_entities(all_entity_records)
+
+    # ── 1.5 写 audit.knowledge_versions（KOC-A3）──
+    # 复用 storage 抽象，为每个落库实体写版本快照；失败不阻塞主流程
+    try:
+        for _idx, _rec in enumerate(all_entity_records):
+            if _idx >= len(stored_entity_ids):
+                break
+            await storage.record_knowledge_version(
+                "entity",
+                stored_entity_ids[_idx],
+                {
+                    "name": _rec.get("name"),
+                    "entity_type": _rec.get("entity_type"),
+                    "aliases": _rec.get("aliases", []),
+                    "canonical_name": _rec.get("canonical_name", _rec.get("name")),
+                },
+                created_by="knowledge_merger",
+            )
+    except Exception as e:  # noqa: BLE001
+        logger.warning("Merger: audit.knowledge_versions write failed (non-fatal): %s", e)
+        new_errors.append(f"Merger: audit.knowledge_versions write failed: {e}")
 
     # 构建 name → id 映射（供关系和事实使用）
     name_to_id: dict[str, str] = {}
@@ -194,7 +412,7 @@ async def knowledge_merger(state: dict) -> dict:
             })
 
     if relation_records:
-        await knowledge_storage.bulk_insert_relations(relation_records)
+        await storage.bulk_insert_relations(relation_records)
 
     # ── 3. 处理事实 ──
     # 记录每条保留事实对应对应证据（与 fact_records 对齐，避免被测序号错位）
@@ -218,7 +436,7 @@ async def knowledge_merger(state: dict) -> dict:
 
     stored_fact_ids: list[str] = []
     if fact_records:
-        stored_fact_ids = await knowledge_storage.bulk_insert_facts(fact_records)
+        stored_fact_ids = await storage.bulk_insert_facts(fact_records)
 
     # ── 4. 处理证据 ──
     # 按 fact_records 顺序与 stored_fact_ids 对齐，跳过无证据的 fact
@@ -235,7 +453,7 @@ async def knowledge_merger(state: dict) -> dict:
                 "confidence": ev.get("confidence"),
             })
         if evidence_records:
-            await knowledge_storage.bulk_insert_evidence(evidence_records)
+            await storage.bulk_insert_evidence(evidence_records)
 
     # ── 5. Qdrant 向量索引 ──
     try:
@@ -298,17 +516,30 @@ async def knowledge_merger(state: dict) -> dict:
                 "action": "merge" if rec.get("id") in merge_entity_ids else "create",
                 "source_document": document_id,
             }
-            inbox_id = await knowledge_storage.insert_inbox(
+            inbox_id = await storage.insert_inbox(
                 "entity", eid, conf, content, source=document_id or "agent"
             )
             inbox_records.append({"inbox_id": inbox_id, "entity_id": eid, "name": rec.get("name"), "confidence": conf})
 
-            # 自动审批：高置信度 且 来源可信 → 无需人工
+            # 自动审批：高置信度 且 来源可信 → 无需人工，写 auto_approve 审核日志（KOC-A4）并入 Render Queue（KOC-F1）
             if conf >= auto_confidence and trusted_source:
-                await knowledge_storage.update_inbox_status(inbox_id, "APPROVED", reviewer="system")
+                await storage.update_inbox_status(inbox_id, "APPROVED", reviewer="system")
+                try:
+                    await storage.record_review_log(
+                        inbox_id, "auto_approve", reviewer="system", reason=""
+                    )
+                except Exception as e:  # noqa: BLE001
+                    logger.warning("Failed to write auto_approve review_log: %s", e)
+                # KOC-F1: 审核通过 → 自动入 Render Queue（direct 通道实体已落库）
+                try:
+                    await storage.enqueue_render_job(
+                        eid, rec.get("entity_type") or "Document"
+                    )
+                except Exception as e:  # noqa: BLE001
+                    logger.warning("Failed to enqueue render job for %s: %s", rec.get("name"), e)
             else:
                 # 低置信度 → READY_REVIEW + 创建人工审批任务（复用 approval.py）
-                await knowledge_storage.update_inbox_status(inbox_id, "READY_REVIEW", reviewer=None)
+                await storage.update_inbox_status(inbox_id, "READY_REVIEW", reviewer=None)
                 try:
                     await create_approval(
                         title=f"审核知识实体: {rec.get('name')}",

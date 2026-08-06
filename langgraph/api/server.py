@@ -16,6 +16,11 @@ from api.providers import router as providers_router
 from api.tasks import router as tasks_router
 from api.approvals import router as approvals_router
 from api.agents import router as agents_router
+from api.prompts import router as prompts_router
+from api.skills import router as skills_router
+from api.tools import router as tools_router
+from api.mcp import router as mcp_router
+from api.memory import router as memory_router
 from api.documents import router as documents_router
 from api.research import router as research_router
 from api.reports import router as reports_router
@@ -48,6 +53,24 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.info("AGE storage init skipped: %s", e)
 
+    # 内置 Agent upsert：保证 agents 表有配置落点（Agent Center 配置编辑依赖）
+    try:
+        from services.router import AGENT_REGISTRY
+        from config.agent_meta import get_agent_meta
+        for name, cls in AGENT_REGISTRY.items():
+            m = get_agent_meta(name)
+            await postgres_tool.query(
+                "INSERT INTO agents (name, description, model, status, is_active) "
+                "VALUES ($1, $2, $3, 'active', true) "
+                "ON CONFLICT (name) DO NOTHING",
+                name,
+                m.get("description") or (cls.__doc__ or "").strip().split("\n")[0],
+                m.get("default_model"),
+            )
+        logger.info("Builtin agents upserted")
+    except Exception as e:
+        logger.warning("Builtin agent upsert skipped: %s", e)
+
     # 注册 Skills
     from skills.registry import register_skill
     from skills.rag_search import RAGSearchSkill
@@ -57,6 +80,27 @@ async def lifespan(app: FastAPI):
     register_skill(MasterAnalysisSkill())
     register_skill(WebArticleSummarySkill())
     logger.info("Skills registered")
+
+    # 从 DB 同步 Skill 启用状态（持久化）
+    try:
+        from skills.registry import get_registry
+        await get_registry().sync_from_db()
+    except Exception as e:
+        logger.warning("Skill state sync skipped: %s", e)
+
+    # 预载入 Prompt Hub（DB 为唯一事实源）
+    try:
+        from prompts.loader import load_all_from_db
+        await load_all_from_db()
+    except Exception as e:
+        logger.warning("Prompt Hub load skipped: %s", e)
+
+    # 纳管平台 MCP 服务
+    try:
+        from monitoring.mcp_manager import seed_mcp
+        await seed_mcp()
+    except Exception as e:
+        logger.warning("MCP seed skipped: %s", e)
 
     # 启动 Scheduler
     from runtime.scheduler import start_scheduler
@@ -150,6 +194,11 @@ app.include_router(providers_router)
 app.include_router(tasks_router)
 app.include_router(approvals_router)
 app.include_router(agents_router)
+app.include_router(prompts_router)
+app.include_router(skills_router)
+app.include_router(tools_router)
+app.include_router(mcp_router)
+app.include_router(memory_router)
 app.include_router(documents_router)
 app.include_router(research_router)
 app.include_router(reports_router)

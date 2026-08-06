@@ -53,6 +53,18 @@ class QdrantTool:
             for p in response.points
         ]
 
+    async def list_collections(self) -> list[dict]:
+        """列出所有向量集合（名称 + 点数量）"""
+        try:
+            response = await asyncio.to_thread(self.client.get_collections)
+            cols = []
+            for c in response.collections:
+                cols.append({"name": c.name})
+            return cols
+        except Exception as e:
+            logger.warning("Qdrant list_collections failed: %s", e)
+            return []
+
     async def delete_points(self, collection: str, point_ids: list[str]) -> int:
         """按 point id 批量删除向量；collection 不存在视为成功
 

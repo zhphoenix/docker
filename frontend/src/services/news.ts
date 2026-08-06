@@ -54,6 +54,38 @@ export interface NewsSource {
   created_at: string | null
 }
 
+export interface SourceHealth {
+  source_id: string
+  name: string
+  source_type: string
+  category: string[] | null
+  market: string[] | null
+  priority: string | null
+  enabled: boolean
+  last_latency_ms: number | null
+  last_success: boolean | null
+  last_error: string | null
+  error_count: number | null
+  last_collected_at: string | null
+  total_runs: number
+  success_count: number
+  failed_count: number
+  avg_latency_ms: number
+  total_articles: number
+  total_stored: number
+  total_duplicates: number
+  status: 'disabled' | 'no_data' | 'healthy' | 'degraded' | 'error'
+}
+
+export interface SourceHealthResponse {
+  sources: SourceHealth[]
+  coverage: number
+  total_sources: number
+  enabled_sources: number
+  healthy_sources: number
+  days: number
+}
+
 export interface NewsListResponse {
   articles: NewsArticle[]
   total: number
@@ -191,6 +223,25 @@ export function fetchNewsSources(enabledOnly?: boolean): Promise<{
   return apiFetch<{ sources: NewsSource[]; total: number }>(
     `/api/news/sources${qs ? `?${qs}` : ''}`
   )
+}
+
+export function fetchSourceHealth(days?: number): Promise<SourceHealthResponse> {
+  const searchParams = new URLSearchParams()
+  if (days) searchParams.set('days', String(days))
+  const qs = searchParams.toString()
+  return apiFetch<SourceHealthResponse>(
+    `/api/news/sources/health${qs ? `?${qs}` : ''}`
+  )
+}
+
+export function setNewsSourceEnabled(
+  sourceId: string,
+  enabled: boolean
+): Promise<{ source_id: string; enabled: boolean; status: string; message: string }> {
+  return apiFetch(`/api/news/sources/${encodeURIComponent(sourceId)}/enabled`, {
+    method: 'POST',
+    body: JSON.stringify({ enabled }),
+  })
 }
 
 export interface CollectResponse {

@@ -1,12 +1,14 @@
 """Chat 路由 - /v1/chat/completions"""
 
 import logging
+import time
 
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse, JSONResponse
 
 from schemas.chat import ChatRequest
 from services.router import dispatch_agent
+from monitoring.agent_center import record_agent_run, finish_agent_run
 
 logger = logging.getLogger(__name__)
 
@@ -26,14 +28,37 @@ async def chat_completions(request: ChatRequest):
         len(request.messages),
     )
 
+    question = request.messages[-1].content if request.messages else ""
+    start = time.monotonic()
+
     try:
         # 路由到对应 Agent
         agent = dispatch_agent(request)
+        agent_id = getattr(agent, "agent_name", "base")
 
         if request.stream:
             # 流式响应
+            generator = agent.stream_run(request)
+
+            async def traced_stream():
+                run_id = await record_agent_run(
+                    agent_id, "chat", "running", question=question
+                )
+                try:
+                    async for chunk in generator:
+                        yield chunk
+                    await finish_agent_run(
+                        run_id, "success", duration_ms=int((time.monotonic() - start) * 1000)
+                    )
+                except Exception as e:
+                    await finish_agent_run(
+                        run_id, "failed", duration_ms=int((time.monotonic() - start) * 1000),
+                        error=str(e), error_category="chat_error",
+                    )
+                    raise
+
             return StreamingResponse(
-                agent.stream_run(request),
+                traced_stream(),
                 media_type="text/event-stream",
                 headers={
                     "Cache-Control": "no-cache",
@@ -43,8 +68,19 @@ async def chat_completions(request: ChatRequest):
             )
         else:
             # 非流式响应
-            response = await agent.run(request)
-            return response
+            run_id = await record_agent_run(agent_id, "chat", "running", question=question)
+            try:
+                response = await agent.run(request)
+                await finish_agent_run(
+                    run_id, "success", duration_ms=int((time.monotonic() - start) * 1000)
+                )
+                return response
+            except Exception as e:
+                await finish_agent_run(
+                    run_id, "failed", duration_ms=int((time.monotonic() - start) * 1000),
+                    error=str(e), error_category="chat_error",
+                )
+                raise
 
     except Exception as e:
         logger.error("Chat error: %s", e, exc_info=True)

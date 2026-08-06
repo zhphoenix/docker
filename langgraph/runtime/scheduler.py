@@ -13,6 +13,7 @@ Jobs:
 
 import logging
 from datetime import datetime, timezone
+import time
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -164,7 +165,9 @@ async def _job_news_collect(priority: str = "high"):
     from collectors.source_registry import source_registry
     from collectors.rss_collector import collect_rss
     from collectors.web_collector import collect_web
+    from collectors.health_metrics import record_collect_run
     from graphs.news_analysis_graph import get_news_graph
+    from monitoring.agent_center import invoke_tracked
 
     logger.info("[Scheduler] News collection triggered | priority=%s", priority)
     try:
@@ -177,6 +180,7 @@ async def _job_news_collect(priority: str = "high"):
         total_articles = 0
 
         for source in sources:
+            collect_start = time.monotonic()
             try:
                 # 采集
                 if source.source_type == "rss":
@@ -187,27 +191,45 @@ async def _job_news_collect(priority: str = "high"):
                     continue
 
                 if not articles:
+                    # 采集成功但无文章，仍记录指标
+                    await record_collect_run(
+                        source.id, source.name, True,
+                        latency_ms=int((time.monotonic() - collect_start) * 1000),
+                        articles_fetched=0, articles_stored=0,
+                    )
                     continue
 
-                # 触发处理管线
-                result = await graph.ainvoke({
-                    "source_id": source.id,
-                    "raw_articles": articles,
-                    "cleaned_articles": [],
-                    "unique_articles": [],
-                    "classified_articles": [],
-                    "entities": [],
-                    "events": [],
-                    "relations": [],
-                    "impact_assessments": [],
-                    "stored_article_ids": [],
-                    "stored_event_ids": [],
-                    "knowledge_agent_triggered": False,
-                    "errors": [],
-                })
+                # 触发处理管线（统一埋点包装器，写 agent_runs task_kind=pipeline）
+                result = await invoke_tracked(
+                    graph,
+                    {
+                        "source_id": source.id,
+                        "raw_articles": articles,
+                        "cleaned_articles": [],
+                        "unique_articles": [],
+                        "classified_articles": [],
+                        "entities": [],
+                        "events": [],
+                        "relations": [],
+                        "impact_assessments": [],
+                        "stored_article_ids": [],
+                        "stored_event_ids": [],
+                        "knowledge_agent_triggered": False,
+                        "errors": [],
+                    },
+                    agent_id="news_intelligence",
+                    question=f"scheduled collect source={source.id} priority={priority}",
+                )
 
                 stored = len(result.get("stored_article_ids", []))
                 total_articles += stored
+                # 采集健康指标（Latency/Articles/Duplicates）
+                await record_collect_run(
+                    source.id, source.name, True,
+                    latency_ms=int((time.monotonic() - collect_start) * 1000),
+                    articles_fetched=len(articles),
+                    articles_stored=stored,
+                )
                 logger.info(
                     "[Scheduler] News processed | source=%s | stored=%d",
                     source.id, stored,
@@ -215,6 +237,13 @@ async def _job_news_collect(priority: str = "high"):
 
             except Exception as e:
                 logger.error("[Scheduler] News source failed | %s | %s", source.id, e)
+                # 采集失败指标（Errors）
+                await record_collect_run(
+                    source.id, source.name, False,
+                    latency_ms=int((time.monotonic() - collect_start) * 1000),
+                    articles_fetched=0, articles_stored=0,
+                    error=str(e)[:500],
+                )
 
         logger.info("[Scheduler] News collection done | priority=%s | total=%d", priority, total_articles)
 
@@ -223,46 +252,61 @@ async def _job_news_collect(priority: str = "high"):
 
 
 async def _job_watchlist_daily():
-    """每日 Watchlist 自选股监控任务
+    """Watchlist 自选股监控任务（按 update_frequency 区分全量/增量）
 
-    读取 watchlist_settings 的 schedule_time 与 auto_enabled 决定时间与开关。
+    读取 watchlist_settings 的 schedule_time / auto_enabled / update_frequency 决定时间、开关与模式：
+    - daily    → 全量监控 run_watchlist_monitoring()（触发采集 + 报告 + 告警）
+    - hourly   → 增量监控 run_incremental_watchlist_monitoring(hours_back=1.0)
+    - realtime → 增量监控 run_incremental_watchlist_monitoring(hours_back=0.25)
     任务内以 asyncio.create_task 异步执行监控主流程，避免阻塞调度循环。
     注：job 是否注册由 start_scheduler/resync_watchlist_job 控制，
     此处仅当 auto_enabled 开启时才会被调度器触发。
     """
     from tools.postgres import postgres_tool
 
-    logger.info("[Scheduler] Watchlist daily triggered")
+    logger.info("[Scheduler] Watchlist monitoring triggered")
     try:
         rows = await postgres_tool.query(
-            "SELECT auto_enabled FROM watchlist.watchlist_settings WHERE id = 1"
+            "SELECT auto_enabled, update_frequency FROM watchlist.watchlist_settings WHERE id = 1"
         )
         if rows and not rows[0].get("auto_enabled", True):
             logger.info("[Scheduler] Watchlist auto disabled, skip")
             return
+        frequency = str((rows[0].get("update_frequency") if rows else "") or "daily")
     except Exception as e:  # noqa: BLE001
         logger.error("[Scheduler] Watchlist settings check failed | %s", e)
         return
 
-    # 异步执行监控主流程（采集/入库/报告/告警）
+    # 异步执行监控主流程（采集/增量/入库/报告/告警）
     async def _wrapped():
         try:
-            from monitoring.watchlist_monitor import run_watchlist_monitoring
-            result = await run_watchlist_monitoring()
-            logger.info("[Scheduler] Watchlist monitoring done | %s", result)
+            from monitoring.watchlist_monitor import (
+                run_watchlist_monitoring,
+                run_incremental_watchlist_monitoring,
+            )
+            if frequency == "daily":
+                result = await run_watchlist_monitoring()
+            elif frequency == "hourly":
+                result = await run_incremental_watchlist_monitoring(hours_back=1.0)
+            else:  # realtime
+                result = await run_incremental_watchlist_monitoring(hours_back=0.25)
+            logger.info("[Scheduler] Watchlist monitoring done | freq=%s | %s", frequency, result)
         except Exception as e:  # noqa: BLE001
-            logger.error("[Scheduler] Watchlist monitoring failed | %s", e)
+            logger.error("[Scheduler] Watchlist monitoring failed | freq=%s | %s", frequency, e)
 
     import asyncio
     asyncio.create_task(_wrapped())
 
 
 async def resync_watchlist_job() -> None:
-    """按 watchlist_settings 重新注册 watchlist_daily job
+    """按 watchlist_settings 重新注册 watchlist 监控 job
 
-    在 PUT /api/watchlist/config 修改 schedule_time / auto_enabled 后调用：
+    在 PUT /api/watchlist/config 修改 schedule_time / auto_enabled / update_frequency 后调用：
     - auto_enabled=false 时移除 job；
-    - 否则按 schedule_time 重设 cron 触发（replace_existing）。
+    - 否则按 update_frequency 选择触发方式：
+        daily    → 每日 schedule_time
+        hourly   → 每小时（分钟 = schedule_time 的分钟）
+        realtime → 每 15 分钟（IntervalTrigger）
     """
     global _scheduler
     if _scheduler is None:
@@ -273,7 +317,8 @@ async def resync_watchlist_job() -> None:
         from tools.postgres import postgres_tool
 
         rows = await postgres_tool.query(
-            "SELECT schedule_time, auto_enabled FROM watchlist.watchlist_settings WHERE id = 1"
+            "SELECT schedule_time, auto_enabled, update_frequency "
+            "FROM watchlist.watchlist_settings WHERE id = 1"
         )
         if not rows:
             logger.warning("[Scheduler] Watchlist settings row missing")
@@ -283,22 +328,77 @@ async def resync_watchlist_job() -> None:
         auto_enabled = bool(cfg.get("auto_enabled", True))
         schedule_time = str(cfg.get("schedule_time") or "07:00")
         hour, minute = schedule_time.split(":")[:2]
+        frequency = str(cfg.get("update_frequency") or "daily")
 
+        job_id = "watchlist_daily"
         if auto_enabled:
+            if frequency == "hourly":
+                # 每小时：保留分钟对齐，便于观察
+                trigger = CronTrigger(minute=int(minute))
+                job_name = "Watchlist Hourly Monitoring"
+            elif frequency == "realtime":
+                # 实时：每 15 分钟增量采集
+                trigger = IntervalTrigger(minutes=15)
+                job_name = "Watchlist Realtime Monitoring"
+            else:
+                trigger = CronTrigger(hour=int(hour), minute=int(minute))
+                job_name = "Watchlist Daily Monitoring"
             _scheduler.add_job(
                 _job_watchlist_daily,
-                trigger=CronTrigger(hour=int(hour), minute=int(minute)),
-                id="watchlist_daily",
-                name="Watchlist Daily Monitoring",
+                trigger=trigger,
+                id=job_id,
+                name=job_name,
                 replace_existing=True,
             )
-            logger.info("[Scheduler] Watchlist job resynced | daily %s", schedule_time)
+            logger.info(
+                "[Scheduler] Watchlist job resynced | freq=%s | schedule=%s | name=%s",
+                frequency, schedule_time, job_name,
+            )
         else:
-            if _scheduler.get_job("watchlist_daily"):
-                _scheduler.remove_job("watchlist_daily")
+            if _scheduler.get_job(job_id):
+                _scheduler.remove_job(job_id)
             logger.info("[Scheduler] Watchlist job removed (auto disabled)")
     except Exception as e:  # noqa: BLE001
         logger.error("[Scheduler] Watchlist resync failed | %s", e)
+
+
+async def _job_agent_center_archive():
+    """Agent Center 埋点数据归档（每日）
+
+    - 删除 90 天前的终态 agent_runs（避免无线增长）
+    - 删除 180 天前的 agent_tool_stats
+    """
+    from tools.postgres import postgres_tool
+
+    logger.info("[Scheduler] Agent Center archive triggered")
+    try:
+        r1 = await postgres_tool.execute(
+            "DELETE FROM agent_runs WHERE status IN ('success','failed') "
+            "AND created_at < NOW() - INTERVAL '90 days'"
+        )
+        r2 = await postgres_tool.execute(
+            "DELETE FROM agent_tool_stats WHERE created_at < NOW() - INTERVAL '180 days'"
+        )
+        logger.info("[Scheduler] Agent Center archived | runs=%s | stats=%s", r1, r2)
+    except Exception as e:
+        logger.error("[Scheduler] Agent Center archive failed | %s", e)
+
+
+async def _job_package_consume():
+    """KOC-A1 Package 消费器：轮询 published Package → consumed/failed
+
+    消费 knowledge_packages 中 status='published' 的包，校验 schema_version 后
+    置 consumed（成功）或 failed（失败，可经 retry 重投）。
+    每 5 分钟执行一次。
+    """
+    from services.package_consumer import consume_published
+
+    logger.info("[Scheduler] Package consume triggered")
+    try:
+        stats = await consume_published()
+        logger.info("[Scheduler] Package consume done | %s", stats)
+    except Exception as e:
+        logger.error("[Scheduler] Package consume failed | %s", e)
 
 
 async def _job_news_lifecycle():
@@ -398,6 +498,24 @@ def start_scheduler() -> None:
         trigger=CronTrigger(hour=3, minute=30),
         id="news_lifecycle",
         name="News Lifecycle Maintenance",
+        replace_existing=True,
+    )
+
+    # Agent Center 埋点归档（每日 4:30）
+    _scheduler.add_job(
+        _job_agent_center_archive,
+        trigger=CronTrigger(hour=4, minute=30),
+        id="agent_center_archive",
+        name="Agent Center Archive",
+        replace_existing=True,
+    )
+
+    # ── KOC-A1 Package 消费（每 5 分钟轮询 published → consumed/failed） ──
+    _scheduler.add_job(
+        _job_package_consume,
+        trigger=IntervalTrigger(minutes=5),
+        id="package_consume",
+        name="Knowledge Package Consumer",
         replace_existing=True,
     )
 

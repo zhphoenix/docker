@@ -11,6 +11,7 @@ import httpx
 
 from config.settings import settings
 from config.policy_loader import get_policy
+from monitoring.agent_center import track_tool
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,11 @@ class LLMTool:
         Returns:
             完整响应 dict（含 choices 和 usage）
         """
+        async with track_tool("llm.chat"):
+            return await self._chat_with_retry(messages, **kwargs)
+
+    async def _chat_with_retry(self, messages: list[dict], **kwargs) -> dict:
+        """非流式聊天补全（带指数退避重试）的内部实现"""
         max_retries = get_policy("retry.max_retries", 3)
         initial_delay = get_policy("retry.initial_delay_seconds", 1)
         max_delay = get_policy("retry.max_delay_seconds", 30)
@@ -84,6 +90,10 @@ class LLMTool:
             "model": self.model,
             "messages": messages,
             "stream": False,
+            # 默认给足 token 预算：reasoning 模型会先输出长思考过程（实测约 2k tokens），
+            # 若 max_tokens 过小会被 reasoning 占满导致 content 为空或被截断。
+            # 实测 max_tokens=4096 时 content 能完整输出 JSON（reasoning~1937 + content~668）。
+            "max_tokens": kwargs.pop("max_tokens", 4096),
             **kwargs,
         }
 

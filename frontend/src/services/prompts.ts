@@ -1,0 +1,55 @@
+import { apiFetch } from './api-client'
+
+export interface PromptInfo {
+  agent_id: string
+  name: string
+  version: number
+  is_active: boolean
+  created_at: string
+}
+
+export interface PromptDetail {
+  agent_id: string
+  name: string
+  content: string
+  version: number
+  is_active: boolean
+  created_at: string
+}
+
+export interface PromptListResponse {
+  prompts: PromptInfo[]
+  total: number
+}
+
+export interface PromptDetailResponse {
+  current: PromptDetail | null
+  history: PromptInfo[]
+}
+
+export function fetchPrompts(agentId?: string): Promise<PromptListResponse> {
+  const q = agentId ? `?agent_id=${encodeURIComponent(agentId)}` : ''
+  return apiFetch<PromptListResponse>(`/api/prompts${q}`)
+}
+
+export function fetchPromptDetail(agentId: string, name: string): Promise<PromptDetailResponse> {
+  return apiFetch<PromptDetailResponse>(`/api/prompts/${agentId}/${name}`)
+}
+
+export function savePrompt(
+  agentId: string,
+  name: string,
+  content: string
+): Promise<{ agent_id: string; name: string; version: number }> {
+  return apiFetch(`/api/prompts/${agentId}/${name}`, {
+    method: 'PUT',
+    body: JSON.stringify({ content }),
+  })
+}
+
+export function previewPrompt(content: string, variables: Record<string, string>): Promise<{ rendered: string }> {
+  return apiFetch('/api/prompts/preview', {
+    method: 'POST',
+    body: JSON.stringify({ content, variables }),
+  })
+}

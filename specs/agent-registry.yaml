@@ -7,35 +7,36 @@
 
 | 规范名称 | 代码目录 | 入口文件 | 类型 | 职责 |
 |---|---|---|---|---|
-| **Chat Agent** | `langgraph/agent/agents/` | `chat_agent.py` | Chat Agent | 通用对话交互 |
-| **Investment Agent** | `langgraph/agent/agents/` | `investment_agent.py` | Chat Agent | 投资研究推理 |
-| **KB Agent** | `langgraph/agent/agents/` | `kb_agent.py` | Chat Agent | 知识库管理（RAG 检索） |
-| **Research Agent** | `langgraph/agent/agents/` | `research_agent.py` | Chat Agent | 投资研究报告生成 |
-| **Knowledge Ingestion Agent** | `langgraph/agent/knowledge_agent/` | `graph.py` | Pipeline Agent | 文档 → 结构化知识提取（6 节点 fan-out/fan-in） |
-| **News Intelligence Agent** | `langgraph/agent/news_agent/` | `graph.py` | Pipeline Agent | 新闻采集 → 清洗 → 去重 → 分类 → 实体/事件提取 → 影响分析（7 节点 fan-out/fan-in） |
+| **Chat Agent** | `langgraph/agents/` | `chat_agent.py` | Chat Agent | 通用对话交互 |
+| **Investment Agent** | `langgraph/agents/` | `investment_agent.py` | Chat Agent | 投资研究推理 |
+| **KB Agent** | `langgraph/agents/` | `kb_agent.py` | Chat Agent | 知识库管理（RAG 检索） |
+| **Research Agent** | `langgraph/agents/` | `research_agent.py` | Chat Agent | 投资研究报告生成 |
+| **Knowledge Ingestion Agent** | `langgraph/graphs/` | `knowledge_graph.py` | Pipeline Agent | 文档 → 结构化知识提取（6 节点 fan-out/fan-in） |
+| **News Intelligence Agent** | `langgraph/graphs/` | `news_analysis_graph.py` | Pipeline Agent | 新闻采集 → 清洗 → 去重 → 分类 → 实体/事件提取 → 影响分析（7 节点 fan-out/fan-in） |
 
 ### Knowledge Ingestion Agent 内部节点
 
 | 节点名 | 文件 | 职责 |
 |---|---|---|
-| `parser` | `knowledge_agent/nodes/parser.py` | 文档清洗、分段 |
-| `entity_extractor` | `knowledge_agent/nodes/entity.py` | 实体识别 |
-| `relation_extractor` | `knowledge_agent/nodes/relation.py` | 关系抽取 |
-| `fact_extractor` | `knowledge_agent/nodes/fact.py` | 事实抽取 |
-| `validator` | `knowledge_agent/nodes/validator.py` | 知识验证 |
-| `merger` | `knowledge_agent/nodes/merger.py` | 知识合并写入 |
+| `parser` | `langgraph/nodes/knowledge/parser.py` | 文档清洗、分段 |
+| `entity_extractor` | `langgraph/nodes/knowledge/entity.py` | 实体识别 |
+| `relation_extractor` | `langgraph/nodes/knowledge/relation.py` | 关系抽取 |
+| `fact_extractor` | `langgraph/nodes/knowledge/fact.py` | 事实抽取 |
+| `validator` | `langgraph/nodes/knowledge/validator.py` | 知识验证 |
+| `merger` | `langgraph/nodes/knowledge/merger.py` | 知识合并写入 |
 
 ### News Intelligence Agent 内部节点
 
 | 节点名 | 文件 | 职责 |
 |---|---|---|
-| `cleaner` | `news_agent/nodes/cleaner.py` | 语言检测 + 清洗 + 标准化 |
-| `deduplicator` | `news_agent/nodes/deduplicator.py` | 标题相似 + Hash 去重 |
-| `classifier` | `news_agent/nodes/classifier.py` | 分类 + 重要性评分 |
-| `entity_extractor` | `news_agent/nodes/entity.py` | 新闻实体识别 |
-| `event_extractor` | `news_agent/nodes/event.py` | 事件抽取 |
-| `impact_analyzer` | `news_agent/nodes/impact.py` | 投资影响分析 |
-| `publisher` | `news_agent/nodes/publisher.py` | 存储 + 触发 Knowledge Ingestion Agent |
+| `cleaner` | `langgraph/nodes/news/cleaner.py` | 语言检测 + 清洗 + 标准化 |
+| `deduplicator` | `langgraph/nodes/news/deduplicator.py` | 标题相似 + Hash 去重 |
+| `embedding_dedup` | `langgraph/nodes/news/embedding_dedup.py` | 向量去重（新版本图流程） |
+| `classifier` | `langgraph/nodes/news/classifier.py` | 分类 + 重要性评分 |
+| `entity_extractor` | `langgraph/nodes/news/entity.py` | 新闻实体识别 |
+| `event_extractor` | `langgraph/nodes/news/event.py` | 事件抽取 |
+| `impact_analyzer` | `langgraph/nodes/news/impact.py` | 投资影响分析 |
+| `publisher` | `langgraph/nodes/news/publisher.py` | 存储 + 触发 Knowledge Ingestion Agent |
 
 ## 2. 已实现服务
 
@@ -43,7 +44,7 @@
 |---|---|---|---|---|
 | **Knowledge MCP Server** | `mcp-knowledge/` | `server/main.py` | MCP Server | 知识访问层（15 Tools × 5 模块） |
 | **News MCP Server** | `mcp-news/` | `server/main.py` | MCP Server | 新闻查询层（7 Tools × 4 模块，:8201） |
-| **Scheduler** | `langgraph/agent/scheduler/` | `scheduler.py` | Service | 定时任务调度 |
+| **Scheduler** | `langgraph/runtime/` | `scheduler.py` | Service | 定时任务调度 |
 
 ### Knowledge MCP Server 工具模块
 
@@ -118,3 +119,18 @@
 1. 更新 `specs/ontology.yaml`
 2. 同步 `prompts/knowledge/*.md` 中的类型列表
 3. 同步 `mcp-knowledge/server/tools/write.py` 的 docstring
+
+## 8. 运行口径说明（三表）
+
+Metrics / Logs 消费方必须区分以下三张表的语义，避免双写不一致：
+
+| 表 | 语义 | 写入方 | 消费方 | 关键字段 |
+|---|---|---|---|---|
+| `research_tasks` | 研究语义记录（一次问答/研究报告的输入输出与质量） | Research Workflow | 研究历史页 | `question/answer/plan/quality/confidence/symbol` |
+| `tasks` | Pipeline 任务（后台任务队列，进度可追踪、支持重试） | Worker（doc_pipeline/knowledge_extraction/...） | 任务中心 | `task_type/status/params/progress/retry_count` |
+| `agent_runs` | Agent Center 指标源（一次 Agent 运行的生命周期，Metrics/Logs 唯一真相源） | base_agent + `monitoring.agent_center::invoke_tracked` | Agent Center Metrics/Logs | `agent_id/task_kind/status/duration_ms/trace` |
+
+**口径约束（禁止重复埋点）**：
+- `agent_runs` 是 Metrics/Logs 的唯一真相源，Pipeline Agent 的运行埋点统一走 `monitoring/agent_center.py::invoke_tracked(graph, input, agent_id)`（AC-B3），禁止在节点层重复写 `agent_runs`。
+- `tasks` 记录后台任务的调度与进度，与 `agent_runs` 不互相替代：一次 `tasks` 任务可能触发多次 `agent_runs`（如 knowledge_extraction 对多个 doc 各写一条）。
+- `research_tasks` 仅记录研究语义结果，不参与 Agent Center 指标统计。
