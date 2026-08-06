@@ -63,11 +63,34 @@ pipeline:
   # DP-C2 双通道开关：package=内嵌图调抽取并写 Package 草稿；direct=独立任务直写 core.* 作为回退
   extraction:
     mode: direct
+  # DP-D1 Publish 策略：草稿校验通过 → published，通知 KOC Inbox（DB 置位拉模式）
+  publish:
+    auto_publish: false          # 草稿保存后是否自动发布（验收/生产可按需开启）
+    max_failed_retries: 3        # 发布校验失败重试上限，达上限置 failed（人工 Re-Publish）
+    destination: "koc_inbox"     # 发布目标：KOC Inbox 经 status='published' 拉取消费
 
 # Scheduler 定时任务
 scheduler:
   daily_pipeline_limit: 100
   enabled: true
+
+# SiYuan 渲染触发策略（KOC-F4）
+# 总开关可整体停用渲染（关闭后审核通过不再产生 render_jobs，展示层故障不影响 PG SoT）；
+# 策略区分新增/已有实体的渲染方式：新增实体全量 sync_entity，已有实体增量 sync_section。
+rendering:
+  enabled: true
+  strategy:
+    new_entity: full              # 新增实体 → 全量渲染（sync_entity，section 为空）
+    existing_entity: incremental  # 已有实体 → 增量渲染（sync_section，section=变更块）
+    existing_section: "facts"     # 已有实体增量渲染默认 section（本次合并带来的变更块）
+
+# 知识治理检测（KOC-B1）
+# 原则：先只写 core.knowledge_conflicts 不自动动作，由 Governance 面板人工处理
+# （KOC 计划书风险 #3：阈值先保守，误报入面板不自动执行）
+governance:
+  enabled: true
+  duplicate_threshold: 0.85        # 实体名 trgm 相似度阈值（≥ 视为重复候选）
+  low_confidence_threshold: 0.6    # 关系/事实置信度阈值（< 视为低置信）
 
 # Task Worker
 worker:

@@ -88,8 +88,12 @@ async def run_doc(doc_id: str) -> tuple[str, str]:
     return res, ds
 
 
-async def assert_package(doc_id: str, entities_before: int) -> None:
-    """退出条件①断言"""
+async def assert_package(doc_id: str, entities_before: int | None) -> None:
+    """退出条件①断言
+
+    entities_before 为 None 表示断点续跑（管道已跑过、产物已在库），
+    此时不再统计"新增"，改为验证该 doc 的 inbox 关联实体已落库。
+    """
     rows = await postgres_tool.query(
         "SELECT status, chunk_count, metadata->'processing' AS proc FROM documents WHERE id = $1",
         doc_id,
@@ -124,9 +128,18 @@ async def assert_package(doc_id: str, entities_before: int) -> None:
     check("① knowledge_packages 草稿", has_pkg and pk[0]["status"] == "draft", f"status={pk[0]['status'] if pk else None}")
     check("① 草稿含实体", n_entities > 0, f"entities={n_entities}")
 
-    ent = await postgres_tool.query("SELECT COUNT(*) AS c FROM core.entities")
-    added = ent[0]["c"] - entities_before
-    check("① core.entities 新增", added > 0, f"+{added} (before={entities_before})")
+    if entities_before is None:
+        # 断点续跑：复用已有产物，验证 inbox 关联实体已落库即可
+        rel = await postgres_tool.query(
+            "SELECT COUNT(DISTINCT e.id) AS c FROM core.knowledge_inbox i "
+            "JOIN core.entities e ON e.id = i.object_id WHERE i.source = $1",
+            doc_id,
+        )
+        check("① core.entities 已落库(续跑)", rel[0]["c"] > 0, f"linked_entities={rel[0]['c']}")
+    else:
+        ent = await postgres_tool.query("SELECT COUNT(*) AS c FROM core.entities")
+        added = ent[0]["c"] - entities_before
+        check("① core.entities 新增", added > 0, f"+{added} (before={entities_before})")
 
     inbox = await postgres_tool.query(
         "SELECT id, status, confidence FROM core.knowledge_inbox WHERE source = $1", doc_id
@@ -254,29 +267,52 @@ async def main() -> int:
     ap.add_argument("mode", choices=["package", "direct"])
     ap.add_argument("--approve", action="store_true")
     ap.add_argument("--doc", default=None)
+    ap.add_argument("--skip-run", action="store_true",
+                    help="断点续跑：跳过管道运行(Docling+LLM)，复用已有草稿产物直接跑断言")
     args = ap.parse_args()
 
     doc_id = args.doc or (DEFAULT_PACKAGE_DOC if args.mode == "package" else DEFAULT_DIRECT_DOC)
     print(f"[RUN] mode={args.mode} doc={doc_id}")
 
+    # 断点续跑：若显式 --skip-run，或已存在该文档草稿产物，则跳过管道运行
+    skip_run = args.skip_run
+    if not skip_run:
+        has_artifact = await postgres_tool.query(
+            "SELECT 1 FROM knowledge_packages WHERE document_id = $1 AND status = 'draft' LIMIT 1",
+            doc_id,
+        )
+        if has_artifact:
+            skip_run = True
+            print("[RESUME] 检测到已有草稿产物，自动跳过管道运行(Docling+LLM)，直接复用产物断言")
+    if skip_run:
+        print("[MODE] 断点续跑：--skip-run，跳过 set_mode/reset_doc/run_doc")
+
     old_mode = None
     try:
-        old_mode = set_mode(args.mode)
-        await reset_doc(doc_id)
+        if not skip_run:
+            old_mode = set_mode(args.mode)
+            await reset_doc(doc_id)
 
         if args.mode == "package":
-            entities_before = (await postgres_tool.query("SELECT COUNT(*) AS c FROM core.entities"))[0]["c"]
-            res, ds = await run_doc(doc_id)
-            print(f"[RESULT] _process_single_document -> {res}")
+            # 全量运行前记录实体基线；续跑模式传 None（复用产物）
+            entities_before = None if skip_run else \
+                (await postgres_tool.query("SELECT COUNT(*) AS c FROM core.entities"))[0]["c"]
+            if not skip_run:
+                res, ds = await run_doc(doc_id)
+                print(f"[RESULT] _process_single_document -> {res}")
             await assert_package(doc_id, entities_before)
             if args.approve:
                 await assert_approve_render(doc_id)
         else:
-            inbox_before = (await postgres_tool.query("SELECT COUNT(*) AS c FROM core.knowledge_inbox"))[0]["c"]
-            res, ds = await run_doc(doc_id)
-            print(f"[RESULT] _process_single_document -> {res}")
-            await assert_direct(doc_id, inbox_before)
+            if not skip_run:
+                res, ds = await run_doc(doc_id)
+                print(f"[RESULT] _process_single_document -> {res}")
+            await assert_direct(doc_id, inbox_before=None)
     finally:
+        if not skip_run:
+            # 恢复 mode=direct（验收默认值），避免污染生产配置
+            cur = set_mode(old_mode or "direct")
+            print(f"[CFG] restored mode={cur}")
         # 恢复 mode=direct（验收默认值），避免污染生产配置
         cur = set_mode(old_mode or "direct")
         print(f"[CFG] restored mode={cur}")

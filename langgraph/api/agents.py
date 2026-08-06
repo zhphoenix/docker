@@ -2,6 +2,7 @@
 
 import json
 import logging
+import math
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -12,6 +13,15 @@ from config.agent_meta import get_agent_meta
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/agents", tags=["agents"])
+
+
+def _to_float(value) -> float:
+    """asyncpg numeric → float（NaN/Inf 视为 0）"""
+    try:
+        f = float(value) if value is not None else 0.0
+        return f if math.isfinite(f) else 0.0
+    except (TypeError, ValueError):
+        return 0.0
 
 
 class ConfigUpdate(BaseModel):
@@ -139,6 +149,73 @@ async def list_agents():
         })
 
     return {"agents": merged, "total": len(merged)}
+
+
+@router.get("/summary")
+async def agent_summary():
+    """全局汇总：全部 Agent 的今日运行/成功/失败/成功率（Dashboard 三栏第 2 栏数据源）
+
+    - 基于 agent_runs 按 agent_id 聚合当日数据（created_at >= CURRENT_DATE）
+    - 与 list_agents 合并，运行数为 0 的 Agent 也返回（runs_today=0）
+    - 注：本端点必须声明在 /{agent_id} 之前，避免被单段路径捕获
+    """
+    try:
+        rows = await postgres_tool.query(
+            "SELECT agent_id, "
+            "COUNT(*) AS runs_today, "
+            "COUNT(*) FILTER (WHERE status='completed') AS success_today, "
+            "COUNT(*) FILTER (WHERE status='failed') AS failed_today, "
+            "COALESCE(AVG(duration_ms) FILTER (WHERE status IN ('completed','failed')), 0) AS avg_latency_ms, "
+            "MAX(created_at) AS last_run_at "
+            "FROM agent_runs WHERE created_at >= CURRENT_DATE "
+            "GROUP BY agent_id ORDER BY runs_today DESC"
+        )
+    except Exception:
+        logger.warning("Failed to query agent_runs daily summary", exc_info=True)
+        rows = []
+
+    stats: dict[str, dict] = {}
+    for r in rows:
+        stats[r["agent_id"]] = {
+            "runs_today": int(r.get("runs_today") or 0),
+            "success_today": int(r.get("success_today") or 0),
+            "failed_today": int(r.get("failed_today") or 0),
+            "avg_latency_ms": _to_float(r.get("avg_latency_ms")),
+            "last_run_at": r.get("last_run_at"),
+        }
+
+    agents = (await list_agents())["agents"]
+    result = []
+    for a in agents:
+        s = stats.get(a["name"], {})
+        runs = s.get("runs_today", 0)
+        success = s.get("success_today", 0)
+        failed = s.get("failed_today", 0)
+        result.append({
+            "agent_id": a["name"],
+            "display_name": a.get("display_name") or a["name"],
+            "status": a.get("status", "active"),
+            "runs_today": runs,
+            "success_today": success,
+            "failed_today": failed,
+            "success_rate": round(success / runs * 100, 1) if runs else 0.0,
+            "avg_latency_ms": s.get("avg_latency_ms", 0.0),
+            "last_run_at": s.get("last_run_at"),
+        })
+
+    total_runs = sum(x["runs_today"] for x in result)
+    total_success = sum(x["success_today"] for x in result)
+    total_failed = sum(x["failed_today"] for x in result)
+    return {
+        "agents": result,
+        "total": {
+            "agents": len(result),
+            "runs_today": total_runs,
+            "success_today": total_success,
+            "failed_today": total_failed,
+            "success_rate": round(total_success / total_runs * 100, 1) if total_runs else 0.0,
+        },
+    }
 
 
 @router.get("/{agent_id}")

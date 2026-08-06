@@ -81,6 +81,11 @@ async def health_check():
     )
     services = dict(results)
 
+    # KOC-F5: Sync adapter 可用性（SiYuan 渲染链路）
+    # Sync adapter（server/adapters/siyuan/sync.py）部署于 mcp-knowledge，
+    # 其可用性 = mcp-knowledge 服务存活；siyuan 容器可用性由 HTTP_CHECKS 探测。
+    services["siyuan_adapter"] = services.get("mcp-knowledge", "down")
+
     # PostgreSQL
     try:
         from tools.postgres import postgres_tool

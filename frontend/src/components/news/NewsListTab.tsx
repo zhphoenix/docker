@@ -1,6 +1,20 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, RefreshCw, ExternalLink, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Radar, CheckCircle2, XCircle } from 'lucide-react'
+import {
+  Search,
+  RefreshCw,
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Radar,
+  CheckCircle2,
+  XCircle,
+  Zap,
+  Flame,
+  TrendingUp,
+} from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,7 +27,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { fetchNewsArticles, triggerNewsCollect, type NewsArticle } from '@/services/news'
+import {
+  fetchNewsArticles,
+  fetchNewsFeed,
+  triggerNewsCollect,
+  type NewsArticle,
+} from '@/services/news'
 import { ArticleDetailDialog } from './ArticleDetailDialog'
 import { cn } from '@/lib/utils'
 
@@ -151,6 +170,9 @@ export function NewsListTab() {
           </span>
         )}
       </div>
+
+      {/* Live Feed 分层视图 */}
+      <LiveFeedSection onOpenArticle={setSelectedArticle} />
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
@@ -374,5 +396,171 @@ function ArticleCard({
         </div>
       </CardContent>
     </Card>
+  )
+}
+
+function formatFeedTime(iso: string | null | undefined): string {
+  if (!iso) return ''
+  return new Date(iso).toLocaleDateString('zh-CN', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+/** NIC-A1 Live Feed 分层视图：Breaking / 高影响 / 热点 三区 */
+function LiveFeedSection({
+  onOpenArticle,
+}: {
+  onOpenArticle: (id: string) => void
+}) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['news-feed'],
+    queryFn: () => fetchNewsFeed({ hours: 24, limit: 5 }),
+    staleTime: 60_000,
+  })
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-3 lg:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-44 rounded-xl" />
+        ))}
+      </div>
+    )
+  }
+
+  if (!data) return null
+
+  const maxMentions = Math.max(1, ...data.hot_topics.map((t) => t.mentions))
+
+  return (
+    <div className="grid gap-3 lg:grid-cols-3">
+      {/* 突发新闻 */}
+      <Card className="border-red-500/40">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Zap className="size-4 text-red-500" />
+              <h4 className="text-sm font-semibold">突发新闻</h4>
+            </div>
+            <Badge variant="outline" className="text-[10px] text-red-500">
+              近 24h · {data.summary.breaking} 条
+            </Badge>
+          </div>
+          <div className="mt-3 space-y-2.5">
+            {data.breaking.length === 0 ? (
+              <p className="py-4 text-center text-xs text-muted-foreground">
+                暂无突发新闻
+              </p>
+            ) : (
+              data.breaking.map((a) => (
+                <button
+                  key={a.id}
+                  onClick={() => onOpenArticle(a.id)}
+                  className="group block w-full text-left"
+                >
+                  <p className="truncate text-xs font-medium group-hover:text-primary">
+                    {a.title}
+                  </p>
+                  <p className="mt-0.5 flex items-center gap-2 text-[10px] text-muted-foreground">
+                    <span className="font-semibold text-red-500">
+                      {a.importance_score?.toFixed(2) ?? '-'}
+                    </span>
+                    <span className="truncate">{a.source_name}</span>
+                    <span className="ml-auto shrink-0">
+                      {formatFeedTime(a.published_at)}
+                    </span>
+                  </p>
+                </button>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 高影响 */}
+      <Card className="border-amber-500/40">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Flame className="size-4 text-amber-500" />
+              <h4 className="text-sm font-semibold">高影响</h4>
+            </div>
+            <Badge variant="outline" className="text-[10px] text-amber-600">
+              {data.summary.high_impact} 条
+            </Badge>
+          </div>
+          <div className="mt-3 space-y-2.5">
+            {data.high_impact.length === 0 ? (
+              <p className="py-4 text-center text-xs text-muted-foreground">
+                暂无高影响新闻
+              </p>
+            ) : (
+              data.high_impact.map((a) => (
+                <button
+                  key={a.id}
+                  onClick={() => onOpenArticle(a.id)}
+                  className="group block w-full text-left"
+                >
+                  <p className="truncate text-xs font-medium group-hover:text-primary">
+                    {a.title}
+                  </p>
+                  <p className="mt-0.5 flex items-center gap-2 text-[10px] text-muted-foreground">
+                    <span className="font-semibold text-amber-600">
+                      {a.importance_score?.toFixed(2) ?? '-'}
+                    </span>
+                    <span className="truncate">{a.source_name}</span>
+                    <span className="ml-auto shrink-0">
+                      {formatFeedTime(a.published_at)}
+                    </span>
+                  </p>
+                </button>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 热点实体 */}
+      <Card className="border-cyan-500/40">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <TrendingUp className="size-4 text-cyan-500" />
+              <h4 className="text-sm font-semibold">热点实体</h4>
+            </div>
+            <Badge variant="outline" className="text-[10px] text-cyan-600">
+              近 24h · {data.summary.hot_topics} 个
+            </Badge>
+          </div>
+          <div className="mt-3 space-y-2">
+            {data.hot_topics.length === 0 ? (
+              <p className="py-4 text-center text-xs text-muted-foreground">
+                暂无热点实体
+              </p>
+            ) : (
+              data.hot_topics.map((t) => (
+                <div key={t.name} className="flex items-center gap-2">
+                  <span className="w-0 flex-1 truncate text-xs">{t.name}</span>
+                  <div className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-cyan-500"
+                      style={{
+                        width: `${(t.mentions / maxMentions) * 100}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="w-6 shrink-0 text-right text-[10px] text-muted-foreground">
+                    {t.mentions}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

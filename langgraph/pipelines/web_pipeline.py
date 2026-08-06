@@ -35,6 +35,7 @@ from urllib.parse import urlparse
 import httpx
 import yaml
 
+from config.policy_loader import get_policy
 from pipelines.web.chunker import WebChunker
 from pipelines.web.diff_detector import ChangeStatus, DiffDetector
 
@@ -212,6 +213,18 @@ class WebPipeline:
             )
 
             logger.info(f"Pipeline 成功: {url} -> {minio_path}")
+
+            # 3b. DP-D3：Web 产物封装为 source_type=GENERAL 的 Package 走统一 Publish 出口
+            # 实时抓取链路本身不改动：封装失败仅告警，不阻塞页面入库。
+            try:
+                pkg_id = await self._publish_web_package(
+                    url, result.title, domain, result.content_hash, minio_path,
+                )
+                if pkg_id:
+                    logger.info("WebPackage saved | id=%s url=%s", pkg_id[:8], url)
+            except Exception as e:
+                logger.warning("WebPackage publish failed (non-blocking): %s", e)
+
             return {"url": url, "status": "success", "minio_path": minio_path}
 
         else:
@@ -468,6 +481,17 @@ class WebPipeline:
             )
 
             logger.info(f"增量处理: {url} -> {change.status.value} (v{change.new_version})")
+
+            # DP-D3：增量命中 NEW/CHANGED 同样产出 GENERAL Package（走统一 Publish 出口）
+            try:
+                pkg_id = await self._publish_web_package(
+                    url, result.title, domain, result.content_hash, minio_path,
+                )
+                if pkg_id:
+                    logger.info("WebPackage saved (incremental) | id=%s url=%s", pkg_id[:8], url)
+            except Exception as e:
+                logger.warning("WebPackage incremental publish failed (non-blocking): %s", e)
+
             return {
                 "url": url,
                 "status": change.status.value,
@@ -772,6 +796,56 @@ class WebPipeline:
 
         logger.info(f"批量同步完成: total={len(rows)}, synced={synced}, failed={failed}")
         return {"total": len(rows), "synced": synced, "failed": failed}
+
+    async def _publish_web_package(
+        self,
+        url: str,
+        title: str | None,
+        domain: str,
+        content_hash: str | None,
+        minio_path: str,
+    ) -> str | None:
+        """DP-D3：Web 抓取产物封装为 source_type=GENERAL 的 Package 走统一 Publish 出口
+
+        与 Document Pipeline / News Publisher 同一出口（package_storage.save_draft + publish）：
+        - source metadata 携带 url/domain/hash/minio_path
+        - 草稿保存后按 policy pipeline.publish.auto_publish 决定是否发布
+          （发布即置 published，KOC Inbox 拉模式消费，Web 与年报/新闻同等待遇）
+
+        fire-and-forget：失败不阻塞网页实时抓取链路，由调用方告警。
+
+        Returns:
+            Package 记录 id（失败返回 None）
+        """
+        from schemas.knowledge_package import (
+            KnowledgePackage,
+            ProcessingMetadata,
+            SourceMetadata,
+            SourceType,
+        )
+        from storage.knowledge.package import package_storage
+
+        source = SourceMetadata(
+            source_type=SourceType.GENERAL,
+            source_id=domain or "web",
+            title=title,
+            url=url,
+            file_path=minio_path,
+            hash=content_hash,
+        )
+        package = KnowledgePackage(
+            id=str(uuid.uuid4()),
+            source_type=SourceType.GENERAL,
+            source=source,
+            entities=[],
+            processing_metadata=ProcessingMetadata(
+                parser="web_pipeline", routing_strategy="general",
+            ),
+        )
+        package_id = await package_storage.save_draft(package)
+        if package_id and get_policy("pipeline.publish.auto_publish", False):
+            await package_storage.publish(package_id)
+        return package_id
 
     async def _embed_texts(self, texts: list[str]) -> list[list[float]] | None:
         """调用 Embedding 服务"""

@@ -410,16 +410,17 @@ class KnowledgePostgresStorage:
             depth: 最大遍历深度（硬限 ≤ 2）
 
         Returns:
-            [{"source_entity", "target_entity", "relation_type", "depth"}]
+            [{"source_entity", "target_entity", "source_name", "target_name",
+              "relation_type", "depth"}]
         """
         depth = min(depth, get_policy("knowledge.retrieval.graph_max_depth", 2))
 
         return await postgres_tool.query(
             """
             WITH RECURSIVE graph AS (
-                SELECT source_entity, target_entity, relation_type, 1 AS depth
-                FROM core.relations
-                WHERE source_entity = $1 AND status = 'active'
+                SELECT r.source_entity, r.target_entity, r.relation_type, 1 AS depth
+                FROM core.relations r
+                WHERE r.source_entity = $1 AND r.status = 'active'
 
                 UNION ALL
 
@@ -428,9 +429,12 @@ class KnowledgePostgresStorage:
                 JOIN graph g ON r.source_entity = g.target_entity
                 WHERE g.depth < $2 AND r.status = 'active'
             )
-            SELECT DISTINCT source_entity, target_entity, relation_type, depth
-            FROM graph
-            ORDER BY depth
+            SELECT DISTINCT g.source_entity, g.target_entity, g.relation_type, g.depth,
+                   s.name AS source_name, t.name AS target_name
+            FROM graph g
+            LEFT JOIN core.entities s ON s.id = g.source_entity
+            LEFT JOIN core.entities t ON t.id = g.target_entity
+            ORDER BY g.depth
             """,
             entity_id, depth,
         )
@@ -486,8 +490,15 @@ class KnowledgePostgresStorage:
             entity_type, limit,
         )
 
-    async def search_entities(self, name: str = "", entity_type: str = "", limit: int = 20) -> list[dict]:
-        """综合搜索实体（名称 + 类型过滤）"""
+    async def search_entities(
+        self,
+        name: str = "",
+        entity_type: str = "",
+        limit: int = 20,
+        min_confidence: float | None = None,
+        min_source_count: int | None = None,
+    ) -> list[dict]:
+        """综合搜索实体（名称 + 类型 + 置信度 + 来源数过滤，KOC-C1）"""
         conditions = ["status = 'active'"]
         params: list = []
         idx = 1
@@ -500,6 +511,16 @@ class KnowledgePostgresStorage:
         if entity_type:
             conditions.append(f"entity_type = ${idx}")
             params.append(entity_type)
+            idx += 1
+
+        if min_confidence is not None:
+            conditions.append(f"confidence >= ${idx}")
+            params.append(float(min_confidence))
+            idx += 1
+
+        if min_source_count is not None:
+            conditions.append(f"source_count >= ${idx}")
+            params.append(int(min_source_count))
             idx += 1
 
         where_clause = " AND ".join(conditions)
@@ -515,6 +536,22 @@ class KnowledgePostgresStorage:
             LIMIT ${idx}
             """,
             *params,
+        )
+
+    async def count_entities_by_type(self) -> list[dict]:
+        """按实体类型统计（knowledge explorer 类型统计卡）
+
+        Returns:
+            [{"entity_type", "count"}] 按 count 降序
+        """
+        return await postgres_tool.query(
+            """
+            SELECT entity_type, COUNT(*) AS count
+            FROM core.entities
+            WHERE status = 'active'
+            GROUP BY entity_type
+            ORDER BY count DESC, entity_type
+            """
         )
 
     # ──────────────────────────────────────────────

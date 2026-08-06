@@ -98,11 +98,20 @@ class DocumentPipeline:
             logger.info("No pending documents to process")
             return {"processed": 0, "failed": 0, "skipped": 0}
 
+        # DP-D4: 按批内文档类型设置优先级——纯年报批量处理为 LOW，
+        # 含实时/普通文档（新闻、上传等）为 NORMAL，避免大扫量挤占实时任务
+        batch_priority = (
+            AcquirePriority.LOW
+            if docs and all(d.get("document_type") == "annual_report" for d in docs)
+            else AcquirePriority.NORMAL
+        )
+
         # 创建 Pipeline 任务
         task_id = await task_queue.create_task(
             task_type="doc_pipeline",
             title=f"文档处理 Pipeline ({len(docs)} docs)",
             total_items=len(docs),
+            priority=batch_priority.value,
         )
         await task_queue.start_task(task_id)
 
@@ -464,6 +473,9 @@ class DocumentPipeline:
         routing_strategy/processing_time/stages；失败不阻塞主流程。
         extraction 为知识抽取图输出时，把 entities/relations/facts/evidence
         映射为 Package 契约写入草稿（DP-C1 验收：草稿含非空四项）。
+
+        DP-D1：草稿保存后按 policy pipeline.publish.auto_publish 决定是否自动发布
+        （默认 false 保持 draft，由人工/API 发布；开启后校验通过即 published 通知 KOC）。
         """
         doc_id = str(doc["id"])
         source_type = (
@@ -499,7 +511,15 @@ class DocumentPipeline:
             evidence=evidence,
             processing_metadata=ProcessingMetadata(**tracker.processing),
         )
-        return await package_storage.save_draft(package)
+        package_id = await package_storage.save_draft(package)
+        if package_id and get_policy("pipeline.publish.auto_publish", False):
+            # DP-D1 自动发布：校验通过 → published（KOC Inbox 拉模式消费）
+            ok = await package_storage.publish(package_id)
+            logger.info(
+                "Package auto-publish | id=%s | ok=%s | entities=%d",
+                package_id[:8], ok, len(entities),
+            )
+        return package_id
 
     @staticmethod
     def _clean_dt(value: Any) -> Any:

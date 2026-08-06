@@ -5,12 +5,15 @@
 """
 
 import asyncio
+import json
 import logging
+import uuid
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from services.news_storage import news_storage
+from tools.postgres import postgres_tool
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +26,7 @@ def _serialize(row: dict) -> dict:
     for k, v in row.items():
         if hasattr(v, "isoformat"):
             result[k] = v.isoformat()
-        elif hasattr(v, "hex"):  # UUID
+        elif isinstance(v, uuid.UUID):  # UUID
             result[k] = str(v)
         else:
             result[k] = v
@@ -71,6 +74,204 @@ async def get_article(article_id: str):
     return serialized
 
 
+@news_router.get("/feed")
+async def live_feed(
+    hours: int = Query(24, ge=1, le=168, description="Breaking 时间窗口（小时）"),
+    limit: int = Query(10, ge=1, le=50, description="每区条数"),
+):
+    """NIC-A1 Live Feed 分层视图
+
+    - breaking：importance_score >= 0.8 且近 hours 小时发布（高影响 + 新鲜）
+    - high_impact：importance_score >= 0.8 或 tier=1（分类器高重要度 / 永久价值）
+    - hot_topics：近 hours 小时被提及文章数 Top N（热点实体）
+    各查询独立 try/except，单故障不影响整体返回（对应区降级为空）。
+    """
+    result: dict = {"hours": hours, "breaking": [], "high_impact": [], "hot_topics": []}
+
+    _ARTICLE_SELECT = (
+        "SELECT a.id, a.title, a.summary, a.url, a.category, a.language, "
+        "a.importance_score, a.tier, a.published_at, a.collected_at, a.status, "
+        "s.name AS source_name "
+        "FROM news.articles a LEFT JOIN news.sources s ON s.id = a.source_id "
+    )
+
+    # ── Breaking：高影响且新鲜（近 hours 小时） ──
+    try:
+        rows = await postgres_tool.query(
+            _ARTICLE_SELECT
+            + "WHERE a.importance_score >= 0.8 "
+            "AND a.published_at >= NOW() - INTERVAL '1 hour' * $1 "
+            "ORDER BY a.importance_score DESC, a.published_at DESC LIMIT $2",
+            hours,
+            limit,
+        )
+        result["breaking"] = [_serialize(r) for r in rows]
+    except Exception:
+        logger.warning("feed: breaking query failed, degraded")
+
+    # ── 高影响：classifier importance 高 或 tier=1（永久价值） ──
+    try:
+        rows = await postgres_tool.query(
+            _ARTICLE_SELECT
+            + "WHERE a.importance_score >= 0.8 OR a.tier = 1 "
+            "ORDER BY a.importance_score DESC, a.published_at DESC LIMIT $1",
+            limit,
+        )
+        result["high_impact"] = [_serialize(r) for r in rows]
+    except Exception:
+        logger.exception("feed: high_impact query failed, degraded")
+        result["high_impact"] = []
+
+    # ── 热点实体：近 hours 小时实体提及文章数 Top N ──
+    try:
+        rows = await postgres_tool.query(
+            "SELECT e.name, COUNT(DISTINCT e.article_id) AS mentions "
+            "FROM news.entities e "
+            "JOIN news.articles a ON a.id = e.article_id "
+            "WHERE a.published_at >= NOW() - INTERVAL '1 hour' * $1 "
+            "GROUP BY e.name ORDER BY mentions DESC LIMIT $2",
+            hours,
+            limit,
+        )
+        result["hot_topics"] = [
+            {"name": r["name"], "mentions": int(r["mentions"] or 0)} for r in rows
+        ]
+    except Exception:
+        logger.warning("feed: hot_topics query failed, degraded")
+
+    result["summary"] = {
+        "breaking": len(result["breaking"]),
+        "high_impact": len(result["high_impact"]),
+        "hot_topics": len(result["hot_topics"]),
+    }
+    return result
+
+
+# ──────────────────────────────────────────────
+# Intelligence Queue（NIC-A2）
+# ──────────────────────────────────────────────
+
+_IQ_JOIN = (
+    "FROM news.articles a "
+    "LEFT JOIN news.sources s ON s.id = a.source_id "
+    "LEFT JOIN knowledge_packages kp "
+    "  ON kp.source_type = 'news' "
+    "  AND (kp.document_id = a.id OR kp.payload->'source'->>'url' = a.url) "
+)
+
+
+def _iq_state(package_status: str | None) -> str:
+    """Package 状态 → 四态"""
+    if package_status is None:
+        return "waiting"
+    if package_status == "draft":
+        return "processing"
+    if package_status in ("published", "consumed"):
+        return "published"
+    return "failed"
+
+
+def _iq_error(processing_metadata) -> str | None:
+    """从 processing_metadata 提取 Package 失败原因（jsonb 可能是 str）"""
+    if not processing_metadata:
+        return None
+    meta = processing_metadata
+    if isinstance(meta, str):
+        try:
+            meta = json.loads(meta)
+        except (ValueError, TypeError):
+            return str(processing_metadata)[:300]
+    publish = meta.get("publish") or {}
+    if isinstance(publish, dict):
+        return publish.get("last_error")
+    return None
+
+
+@news_router.get("/intelligence-queue")
+async def intelligence_queue(
+    days: int = Query(7, ge=1, le=90, description="统计时间范围（天）"),
+    limit: int = Query(20, ge=1, le=100, description="明细条数"),
+    state: str = Query("", description="按四态过滤: waiting/processing/published/failed"),
+):
+    """NIC-A2 Intelligence Queue 四态联查
+
+    联查 news.articles → knowledge_packages（source_type='NEWS'）：
+      - waiting：已采集但无对应 Package（未进入发布链路）
+      - processing：Package 已生成但 status=draft（处理/待发布中）
+      - published：Package 已发布或已消费（published/consumed）
+      - failed：Package 发布/消费失败（含失败原因，可经 retry 重投）
+
+    关联键：kp.document_id = a.id（DP-D2 升级后），
+    兼容存量 Package（document_id 为 NULL）按 payload.source.url 匹配。
+    各查询独立 try/except，单故障不影响整体返回（对应字段降级）。
+    """
+    # 防御：直接调用（非 FastAPI 注入）时 Query 默认值是对象而非字符串
+    state = state if isinstance(state, str) else ""
+
+    result: dict = {
+        "days": days,
+        "summary": {"waiting": 0, "processing": 0, "published": 0, "failed": 0},
+        "items": [],
+        "total": 0,
+    }
+
+    # ── 四态计数（单查询聚合，避免 JOIN 重复行膨胀） ──
+    try:
+        rows = await postgres_tool.query(
+            "SELECT "
+            "COUNT(*) FILTER (WHERE kp.id IS NULL) AS waiting, "
+            "COUNT(*) FILTER (WHERE kp.status = 'draft') AS processing, "
+            "COUNT(*) FILTER (WHERE kp.status IN ('published', 'consumed')) AS published, "
+            "COUNT(*) FILTER (WHERE kp.status = 'failed') AS failed "
+            + _IQ_JOIN
+            + "WHERE a.published_at >= NOW() - INTERVAL '1 day' * $1",
+            days,
+        )
+        if rows:
+            for k in ("waiting", "processing", "published", "failed"):
+                result["summary"][k] = int(rows[0].get(k) or 0)
+    except Exception:
+        logger.warning("intelligence-queue: summary query failed, degraded")
+
+    # ── 明细（含四态派生与失败原因） ──
+    try:
+        rows = await postgres_tool.query(
+            "SELECT a.id AS article_id, a.title, a.published_at, a.importance_score, "
+            "s.name AS source_name, "
+            "kp.id AS package_id, kp.status AS package_status, kp.retry_count, "
+            "kp.processing_metadata "
+            + _IQ_JOIN
+            + "WHERE a.published_at >= NOW() - INTERVAL '1 day' * $1 "
+            "ORDER BY a.published_at DESC LIMIT $2",
+            days,
+            limit,
+        )
+        items = []
+        for r in rows:
+            st = _iq_state(r.get("package_status"))
+            if state and st != state:
+                continue
+            pub = r.get("published_at")
+            items.append({
+                "article_id": str(r["article_id"]),
+                "title": r.get("title"),
+                "source_name": r.get("source_name"),
+                "published_at": pub.isoformat() if hasattr(pub, "isoformat") else pub,
+                "importance_score": r.get("importance_score"),
+                "package_id": str(r["package_id"]) if r.get("package_id") else None,
+                "package_status": r.get("package_status"),
+                "retry_count": r.get("retry_count") or 0,
+                "state": st,
+                "error": _iq_error(r.get("processing_metadata")) if st == "failed" else None,
+            })
+        result["items"] = items
+        result["total"] = len(items)
+    except Exception:
+        logger.exception("intelligence-queue: items query failed, degraded")
+
+    return result
+
+
 # ──────────────────────────────────────────────
 # Events
 # ──────────────────────────────────────────────
@@ -110,7 +311,12 @@ async def analyze_impact(
     entity_name: str = Query(..., min_length=1, description="实体名称"),
     days: int = Query(30, ge=1, le=365, description="分析时间范围（天）"),
 ):
-    """聚合分析实体近期新闻影响"""
+    """聚合分析实体近期新闻影响
+
+    DEPRECATED（NIC-B2）：Impact Monitor 已改为消费 KOC 分析结果
+    （/api/knowledge/events/top-impact | core.events），不再触发实时重算。
+    本端点保留供过渡期兼容。
+    """
     results = await news_storage.get_entity_news_impact(entity_name, days=days)
 
     if not results:

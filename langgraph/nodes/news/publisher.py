@@ -11,6 +11,7 @@
 
 import json
 import logging
+import uuid
 from datetime import datetime, timezone
 
 from storage.news.postgres import news_storage
@@ -176,6 +177,20 @@ async def news_publisher(state: dict) -> dict:
         except Exception as e:
             logger.warning("Publisher: status update failed: %s", e)
 
+    # ── 5b. DP-D2：News Package 封装，走统一 Publish 出口（fire-and-forget） ──
+    # 实时链路本身不改动：封装动作异步落表，失败仅告警不阻塞新闻入库。
+    if stored_article_ids:
+        try:
+            pkg_id = await _publish_news_package(
+                articles, entities, events, relations,
+                stored_article_ids, stored_entity_ids, stored_event_ids,
+                source_id,
+            )
+            if pkg_id:
+                logger.info("Publisher: NEWS Package saved | id=%s", pkg_id[:8])
+        except Exception as e:
+            logger.warning("Publisher: NEWS Package publish failed (non-blocking): %s", e)
+
     # ── 6. 触发 Knowledge Agent（高置信度实体合并到 core schema + AGE 同步） ──
     knowledge_triggered = False
     enable_merge = get_policy("news.publisher.enable_knowledge_merge", True)
@@ -261,6 +276,127 @@ async def _trigger_knowledge_agent(entities: list[dict], relations: list[dict]) 
                 await knowledge_storage.bulk_insert_relations(core_relations)
             except Exception as e:
                 logger.warning("Publisher: relation merge to core failed: %s", e)
+
+
+async def _publish_news_package(
+    articles: list[dict],
+    entities: list[dict],
+    events: list[dict],
+    relations: list[dict],
+    stored_article_ids: list[str],
+    stored_entity_ids: list[str],
+    stored_event_ids: list[str],
+    source_id: str,
+) -> str | None:
+    """DP-D2：把新闻抽取结果封装为 source_type=NEWS 的 Package 并走统一 Publish 出口
+
+    与 Document Pipeline 同一出口（package_storage.save_draft + publish）：
+    - 实体/事件/关系映射为 Package 契约（id 复用 news schema 落库 ID）
+    - 草稿保存后按 policy pipeline.publish.auto_publish 决定是否发布
+      （发布即置 published，KOC Inbox 拉模式消费，News Package 与文档同等待遇）
+
+    fire-and-forget：失败不阻塞新闻实时链路，由调用方告警。
+
+    Returns:
+        Package 记录 id（失败返回 None）
+    """
+    from schemas.knowledge_package import (
+        Entity,
+        Event,
+        KnowledgePackage,
+        ProcessingMetadata,
+        Relation,
+        SourceMetadata,
+        SourceType,
+    )
+    from storage.knowledge.package import package_storage
+
+    if not stored_article_ids:
+        return None
+
+    first = articles[0]
+
+    # 实体：id 复用 news 落库 ID；名称→ID 映射供关系解析
+    name_to_id: dict[str, str] = {}
+    pkg_entities = []
+    for i, ent in enumerate(entities):
+        eid = stored_entity_ids[i] if i < len(stored_entity_ids) else str(uuid.uuid4())
+        name = ent.get("name", "")
+        if name:
+            name_to_id[name.lower()] = eid
+        pkg_entities.append(Entity(
+            id=eid,
+            name=name,
+            entity_type=ent.get("entity_type", "Concept"),
+            aliases=ent.get("aliases", []) or [],
+            properties={"source": "news_agent"},
+            confidence=ent.get("confidence", 0.8),
+        ))
+
+    # 关系：source/target 名称解析为实体 ID
+    pkg_relations = []
+    for rel in relations:
+        src_id = name_to_id.get((rel.get("source_name") or "").lower())
+        tgt_id = name_to_id.get((rel.get("target_name") or "").lower())
+        if src_id and tgt_id:
+            pkg_relations.append(Relation(
+                id=str(uuid.uuid4()),
+                source_entity=src_id,
+                target_entity=tgt_id,
+                relation_type=rel.get("relation_type", "depends_on"),
+                properties={"source": "news_agent"},
+                confidence=rel.get("confidence", 0.7),
+            ))
+
+    # 事件：id 复用 news 落库 ID
+    pkg_events = []
+    for i, evt in enumerate(events):
+        eid = stored_event_ids[i] if i < len(stored_event_ids) else str(uuid.uuid4())
+        pkg_events.append(Event(
+            id=eid,
+            name=evt.get("title", ""),
+            event_type=evt.get("event_type"),
+            start_time=_safe_dt(evt.get("event_time")),
+            properties={"source": "news_agent"},
+            confidence=evt.get("confidence", 0.8),
+        ))
+
+    source = SourceMetadata(
+        source_type=SourceType.NEWS,
+        source_id=source_id or "news",
+        title=first.get("title"),
+        url=first.get("url"),
+        publish_time=_safe_dt(first.get("published_at")),
+    )
+    package = KnowledgePackage(
+        id=str(uuid.uuid4()),
+        source_type=SourceType.NEWS,
+        source=source,
+        entities=pkg_entities,
+        relations=pkg_relations,
+        events=pkg_events,
+        processing_metadata=ProcessingMetadata(
+            parser="news_pipeline", routing_strategy="news",
+            llm_model=get_policy("news.classification.llm_model", None),
+        ),
+    )
+    package_id = await package_storage.save_draft(package)
+    if package_id and get_policy("pipeline.publish.auto_publish", False):
+        await package_storage.publish(package_id)
+    return package_id
+
+
+def _safe_dt(value) -> datetime | None:
+    """时间字段安全转 datetime（ISO 字符串/Native；非法返回 None）"""
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        return value
+    try:
+        # Python 3.10 的 fromisoformat 不识别 'Z' 后缀，统一替换为 +00:00
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (ValueError, TypeError):
+        return None
 
 
 async def _upload_raw_to_minio(articles: list[dict], stored_ids: list[str]) -> None:

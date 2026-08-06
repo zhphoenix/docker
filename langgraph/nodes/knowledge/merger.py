@@ -530,13 +530,27 @@ async def knowledge_merger(state: dict, storage: MergerStorage | None = None) ->
                     )
                 except Exception as e:  # noqa: BLE001
                     logger.warning("Failed to write auto_approve review_log: %s", e)
-                # KOC-F1: 审核通过 → 自动入 Render Queue（direct 通道实体已落库）
-                try:
-                    await storage.enqueue_render_job(
-                        eid, rec.get("entity_type") or "Document"
+                # KOC-F4: 渲染触发策略（policy 总开关可整体停用；新增实体全量 sync_entity，已有实体增量 sync_section）
+                if not get_policy("rendering.enabled", True):
+                    logger.info(
+                        "Merger: rendering disabled by policy, no render job | entity=%s name=%s",
+                        str(eid)[:8], rec.get("name"),
                     )
-                except Exception as e:  # noqa: BLE001
-                    logger.warning("Failed to enqueue render job for %s: %s", rec.get("name"), e)
+                else:
+                    # 新增实体（未合并）→ 全量渲染（section=None → sync_entity）；
+                    # 已有实体（merge）→ 增量渲染（section=变更块 → sync_section）
+                    job_section = None
+                    if rec.get("id") in merge_entity_ids:
+                        job_section = get_policy(
+                            "rendering.strategy.existing_section", "facts"
+                        )
+                    try:
+                        await storage.enqueue_render_job(
+                            eid, rec.get("entity_type") or "Document",
+                            section=job_section,
+                        )
+                    except Exception as e:  # noqa: BLE001
+                        logger.warning("Failed to enqueue render job for %s: %s", rec.get("name"), e)
             else:
                 # 低置信度 → READY_REVIEW + 创建人工审批任务（复用 approval.py）
                 await storage.update_inbox_status(inbox_id, "READY_REVIEW", reviewer=None)

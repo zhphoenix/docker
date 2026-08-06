@@ -1,0 +1,28 @@
+# LLM 计价配置（AC-P3-3 Metrics 成本估算）
+# ------------------------------------------------
+# 单位：美元 / 百万 tokens（per_mtok）
+# agent_runs 表无 model 字段（规范 §12 约定）→ 按 agent_id 计价。
+# 未配置单价的 agent 使用 default（0 → 成本置 0，不产生费用估算）。
+# 单价为占位参考值（近似国内主流大模型公开价），可按实际账单调整。
+
+pricing:
+  default:
+    input_per_mtok: 0.0
+    output_per_mtok: 0.0
+
+  agents:
+    chat:
+      input_per_mtok: 0.15
+      output_per_mtok: 0.60
+    research:
+      input_per_mtok: 0.15
+      output_per_mtok: 0.60
+    investment:
+      input_per_mtok: 0.15
+      output_per_mtok: 0.60
+    knowledge_ingestion:
+      input_per_mtok: 0.15
+      output_per_mtok: 0.60
+    news_intelligence:
+      input_per_mtok: 0.15
+      output_per_mtok: 0.60

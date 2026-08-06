@@ -53,11 +53,17 @@ async def test_publish_transitions_draft_to_published():
 
 @pytest.mark.asyncio
 async def test_publish_preserves_original_publish_time():
-    """publish 幂等：不覆盖已设置的 publish_time（COALESCE）"""
+    """publish 幂等：校验通过后不覆盖已设置的 publish_time（COALESCE）"""
     from storage.knowledge.package import PackageStorage
 
     storage = PackageStorage()
     with patch("storage.knowledge.package.postgres_tool") as mock_pg:
+        mock_pg.query = AsyncMock(return_value=[{
+            "id": "abc-123",
+            "status": "draft",
+            "payload": '{"id":"abc-123","source_type":"news","status":"draft",'
+                       '"source":{"source_type":"news","source_id":"reuters"}}',
+        }])
         mock_pg.execute = AsyncMock(return_value="UPDATE 1")
         ok = await storage.publish("abc-123")
         assert ok is True

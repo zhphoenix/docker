@@ -16,6 +16,8 @@ from api.providers import router as providers_router
 from api.tasks import router as tasks_router
 from api.approvals import router as approvals_router
 from api.agents import router as agents_router
+from api.metrics import router as metrics_router
+from api.logs import router as logs_router
 from api.prompts import router as prompts_router
 from api.skills import router as skills_router
 from api.tools import router as tools_router
@@ -194,6 +196,8 @@ app.include_router(providers_router)
 app.include_router(tasks_router)
 app.include_router(approvals_router)
 app.include_router(agents_router)
+app.include_router(metrics_router)
+app.include_router(logs_router)
 app.include_router(prompts_router)
 app.include_router(skills_router)
 app.include_router(tools_router)

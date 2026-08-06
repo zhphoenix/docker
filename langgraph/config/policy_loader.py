@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 POLICIES_FILE = Path(__file__).parent / "policies.yaml"
 AGENTS_FILE = Path(__file__).parent / "agents.yaml"
 WORKFLOWS_FILE = Path(__file__).parent / "workflows.yaml"
+PRICING_FILE = Path(__file__).parent / "pricing.yaml"
 
 _policies: dict[str, Any] = {}
 _last_mtime: float = 0
@@ -100,3 +101,22 @@ def get_workflows_registry() -> dict[str, dict]:
         {workflow_name: {"module": str, "builder": str, "description": str}, ...}
     """
     return _load_yaml_file(WORKFLOWS_FILE).get("workflows", {})
+
+
+def get_agent_price(agent_id: str) -> dict:
+    """获取 Agent 的 LLM 计价配置（来自 pricing.yaml，AC-P3-3）
+
+    未配置的 agent 回退到 default（单价 0 → 成本估算置 0）。
+
+    Returns:
+        {"input_per_mtok": float, "output_per_mtok": float}
+    """
+    pricing = _load_yaml_file(PRICING_FILE).get("pricing", {})
+    agents = pricing.get("agents", {})
+    price = agents.get(agent_id) if isinstance(agents, dict) else None
+    if not isinstance(price, dict):
+        price = pricing.get("default", {})
+    return {
+        "input_per_mtok": float(price.get("input_per_mtok", 0.0) or 0.0),
+        "output_per_mtok": float(price.get("output_per_mtok", 0.0) or 0.0),
+    }

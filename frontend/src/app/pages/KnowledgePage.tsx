@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { LayoutDashboard, ListChecks } from 'lucide-react'
+import { LayoutDashboard, ListChecks, ShieldCheck } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { KnowledgeDashboard } from '@/components/knowledge/KnowledgeDashboard'
 import { SemanticSearchPanel } from '@/components/knowledge/SemanticSearchPanel'
 import { EntityBrowser } from '@/components/knowledge/EntityBrowser'
 import { KnowledgeTasksPanel } from '@/components/knowledge/KnowledgeTasksPanel'
+import { KnowledgeGovernancePanel } from '@/components/knowledge/KnowledgeGovernancePanel'
 import { GraphWorkspace } from '@/components/knowledge/GraphWorkspace'
 
 export default function KnowledgePage() {
@@ -35,6 +36,10 @@ export default function KnowledgePage() {
           </TabsTrigger>
           <TabsTrigger value="search">语义搜索</TabsTrigger>
           <TabsTrigger value="entities">实体浏览</TabsTrigger>
+          <TabsTrigger value="governance" className="gap-1.5">
+            <ShieldCheck className="size-3.5" strokeWidth={1.8} />
+            治理
+          </TabsTrigger>
           <TabsTrigger value="tasks" className="gap-1.5">
             <ListChecks className="size-3.5" strokeWidth={1.8} />
             处理详情
@@ -52,6 +57,10 @@ export default function KnowledgePage() {
 
         <TabsContent value="entities">
           <EntityBrowser />
+        </TabsContent>
+
+        <TabsContent value="governance">
+          <KnowledgeGovernancePanel />
         </TabsContent>
 
         <TabsContent value="tasks">

@@ -18,8 +18,11 @@ import json
 import logging
 import uuid
 
-from tools.postgres import postgres_tool
+from pydantic import ValidationError
+
+from config.policy_loader import get_policy
 from schemas.knowledge_package import KnowledgePackage, PackageStatus
+from tools.postgres import postgres_tool
 
 logger = logging.getLogger(__name__)
 
@@ -87,29 +90,114 @@ class PackageStorage:
 
     # ─────────────── 状态流转 ───────────────
 
-    async def publish(self, package_id: str) -> bool:
-        """发布 Package：draft → published
+    async def validate_for_publish(self, package_id: str) -> tuple[bool, list[str]]:
+        """发布前校验 Package 草稿（DP-D1）
 
-        幂等：已 published 的包重复调用不报错、不覆盖 publish_time。
+        加载 payload 后用 KnowledgePackage 契约模型整体校验
+        （结构合法性：source/entities/relations/facts 字段类型与必填项）。
 
         Returns:
-            是否成功
+            (是否通过, 错误信息列表)
         """
+        row = await self.get(package_id)
+        if not row:
+            return False, ["package not found"]
+        if row.get("status") != "draft":
+            return False, [f"status={row.get('status')} not publishable (expect draft)"]
+        payload = row.get("payload") or {}
+        try:
+            KnowledgePackage.model_validate(payload)
+            return True, []
+        except ValidationError as e:
+            errors = []
+            for err in e.errors():
+                loc = ".".join(str(p) for p in err.get("loc", []))
+                errors.append(f"{loc}: {err.get('msg', 'invalid')}")
+            logger.warning(
+                "Package validate failed | id=%s | errors=%d", package_id[:8], len(errors)
+            )
+            return False, errors
+
+    async def publish(
+        self, package_id: str, destination: str | None = None,
+    ) -> bool:
+        """发布 Package：draft → published（DP-D1）
+
+        发布前先做契约校验（validate_for_publish）：
+        - 校验通过 → 置 published，写 publish metadata
+          （publish_time / destination 写 processing_metadata.publish），retry_count 重置 0
+        - 校验失败 → retry_count + 1；达上限（policy pipeline.publish.max_failed_retries）
+          置 failed（人工 Re-Publish 经 retry 重投）
+
+        Args:
+            package_id: Package 记录 id
+            destination: 发布目标（默认取 policy pipeline.publish.destination）
+
+        Returns:
+            是否发布成功
+        """
+        ok, errors = await self.validate_for_publish(package_id)
+        if not ok:
+            await self._mark_publish_failed(package_id, "; ".join(errors))
+            logger.warning(
+                "Package publish rejected | id=%s | errors=%s", package_id[:8], errors[:3]
+            )
+            return False
+
+        if destination is None:
+            destination = get_policy("pipeline.publish.destination", "koc_inbox")
         try:
             await postgres_tool.execute(
                 """
                 UPDATE knowledge_packages
                 SET status = 'published',
                     publish_time = COALESCE(publish_time, NOW()),
+                    retry_count = 0,
+                    processing_metadata = COALESCE(processing_metadata, '{}'::jsonb)
+                        || jsonb_build_object('publish', jsonb_build_object(
+                               'destination', $2::text,
+                               'publish_time', NOW()::text
+                           )),
                     updated_at = NOW()
                 WHERE id = $1 AND status = 'draft'
                 """,
                 package_id,
+                destination,
             )
+            logger.info("Package published | id=%s | destination=%s", package_id[:8], destination)
             return True
         except Exception as e:
             logger.warning("Package publish failed: %s", e)
+            await self._mark_publish_failed(package_id, f"db error: {e}")
             return False
+
+    async def _mark_publish_failed(self, package_id: str, reason: str) -> None:
+        """发布失败：retry_count + 1，达上限置 failed（DP-D1 重试契约）
+
+        上限 policy pipeline.publish.max_failed_retries（默认 3），
+        达上限后 status='failed'，需人工 retry 重投。
+        """
+        max_retries = int(get_policy("pipeline.publish.max_failed_retries", 3))
+        try:
+            await postgres_tool.execute(
+                """
+                UPDATE knowledge_packages
+                SET retry_count = retry_count + 1,
+                    status = CASE WHEN retry_count + 1 >= $2 THEN 'failed' ELSE status END,
+                    processing_metadata = COALESCE(processing_metadata, '{}'::jsonb)
+                        || jsonb_build_object('publish', jsonb_build_object(
+                               'last_error', $3::text,
+                               'last_error_at', NOW()::text
+                           )),
+                    updated_at = NOW()
+                WHERE id = $1 AND status = 'draft'
+                """,
+                package_id,
+                max_retries,
+                reason,
+            )
+        except Exception as e:
+            logger.warning("Package mark publish failed: %s", e)
 
     async def mark_consumed(self, package_id: str) -> bool:
         """标记 Package 已消费：published → consumed（KOC-A1）

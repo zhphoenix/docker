@@ -1,6 +1,19 @@
 -- ============================================================
--- Knowledge Schema - 知识图谱核心表
+-- Knowledge Schema - 知识图谱核心表（DEPRECATED）
 -- 基于 30_Knowledge_Schema设计规范.md
+--
+-- !! 已废弃，禁止新增读写 !!
+-- 本文件创建的 knowledge.* 基表已被 07-knowledge-database.sql 的
+-- 多 Schema 架构（core / document / taxonomy / audit）取代：
+--   knowledge.entities     → core.entities
+--   knowledge.relations    → core.relations
+--   knowledge.facts        → core.facts
+--   knowledge.evidence     → core.evidence
+--   knowledge.documents    → document.documents
+--   knowledge.entity_types → taxonomy.entity_types
+--   knowledge.relation_types → taxonomy.relation_types
+-- 当前 knowledge.* 仅为只读兼容视图（见 07 文件 §12），
+-- 迁移核对请运行 scripts/migrate_knowledge_schema.py。
 -- ============================================================
 
 -- 启用 pg_trgm 扩展（实体名模糊匹配）

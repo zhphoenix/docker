@@ -15,6 +15,7 @@ import {
   Settings,
   Sparkles,
   Brain,
+  ScrollText,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -29,6 +30,8 @@ import { SkillsTab } from '@/components/agent/SkillsTab'
 import { ToolsTab } from '@/components/agent/ToolsTab'
 import { McpTab } from '@/components/agent/McpTab'
 import { MemoryTab } from '@/components/agent/MemoryTab'
+import { MetricsPanel } from '@/components/agent/MetricsPanel'
+import { LogsPanel } from '@/components/agent/LogsPanel'
 import { cn } from '@/lib/utils'
 
 const STATUS_META: Record<string, { label: string; dot: string }> = {
@@ -262,16 +265,14 @@ export default function AgentDetailPage() {
               <TabsTrigger value="memory" className="gap-1.5">
                 <Brain className="size-3.5" /> 记忆
               </TabsTrigger>
+              <TabsTrigger value="logs" className="gap-1.5">
+                <ScrollText className="size-3.5" /> 日志
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="pt-3">
-              <Card>
-                <CardContent className="p-5">
-                  <p className="text-sm text-muted-foreground">
-                    该 Agent 的详细运行数据（指标、日志、Trace）将在后续阶段开放。
-                  </p>
-                </CardContent>
-              </Card>
+              {/* AC-P3-3: Runtime Metrics（六项指标 + 趋势） */}
+              <MetricsPanel agentId={agent.id} />
             </TabsContent>
 
             <TabsContent value="prompt" className="pt-3">
@@ -296,6 +297,11 @@ export default function AgentDetailPage() {
 
             <TabsContent value="memory" className="pt-3">
               <MemoryTab />
+            </TabsContent>
+
+            <TabsContent value="logs" className="pt-3">
+              {/* AC-P3-5: Logs 与 Trace（联合视图 + CSV） */}
+              <LogsPanel agentId={agent.id} />
             </TabsContent>
           </Tabs>
         </>

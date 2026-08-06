@@ -416,6 +416,26 @@ async def _job_news_lifecycle():
         logger.error("[Scheduler] News lifecycle failed | %s", e)
 
 
+async def _job_governance_detection():
+    """知识治理检测（KOC-B1）
+
+    每日 2:30 执行：重复实体/冲突事实/低置信/过期知识检测，
+    结果写 core.knowledge_conflicts 供 Governance 面板处理。
+    开关与阈值走 policy（governance.*），先只写不自动动作。
+    """
+    from services.knowledge_governance import governance
+
+    if not get_policy("governance.enabled", True):
+        logger.info("[Scheduler] Governance detection disabled by policy")
+        return
+    logger.info("[Scheduler] Governance detection triggered")
+    try:
+        stats = await governance.run_governance_detection()
+        logger.info("[Scheduler] Governance detection done | %s", stats)
+    except Exception as e:
+        logger.error("[Scheduler] Governance detection failed | %s", e)
+
+
 def start_scheduler() -> None:
     """启动调度器（在 FastAPI lifespan 中调用）"""
     global _scheduler
@@ -498,6 +518,15 @@ def start_scheduler() -> None:
         trigger=CronTrigger(hour=3, minute=30),
         id="news_lifecycle",
         name="News Lifecycle Maintenance",
+        replace_existing=True,
+    )
+
+    # ── 知识治理检测（每日 2:30，KOC-B1） ──
+    _scheduler.add_job(
+        _job_governance_detection,
+        trigger=CronTrigger(hour=2, minute=30),
+        id="governance_detection",
+        name="Knowledge Governance Detection",
         replace_existing=True,
     )
 

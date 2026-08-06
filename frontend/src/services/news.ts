@@ -93,6 +93,60 @@ export interface NewsListResponse {
   offset: number
 }
 
+export interface NewsFeedArticle {
+  id: string
+  title: string
+  summary: string | null
+  url: string | null
+  category: string | null
+  language: string | null
+  importance_score: number | null
+  tier: number | null
+  published_at: string | null
+  collected_at: string | null
+  status: string | null
+  source_name: string | null
+}
+
+export interface NewsFeedHotTopic {
+  name: string
+  mentions: number
+}
+
+export interface NewsFeed {
+  hours: number
+  breaking: NewsFeedArticle[]
+  high_impact: NewsFeedArticle[]
+  hot_topics: NewsFeedHotTopic[]
+  summary: {
+    breaking: number
+    high_impact: number
+    hot_topics: number
+  }
+}
+
+export type QueueState = 'waiting' | 'processing' | 'published' | 'failed'
+
+export interface NewsQueueItem {
+  article_id: string
+  title: string | null
+  source_name: string | null
+  published_at: string | null
+  importance_score: number | null
+  package_id: string | null
+  package_status: string | null
+  retry_count: number
+  state: QueueState
+  error: string | null
+}
+
+export interface NewsIntelligenceQueue {
+  days: number
+  summary: Record<QueueState, number>
+  items: NewsQueueItem[]
+  total: number
+}
+
 export interface EventListResponse {
   events: NewsEvent[]
   total: number
@@ -111,6 +165,61 @@ export interface EventImpact {
   confidence: number | null
   article_title: string | null
   article_category: string | null
+}
+
+export interface CoreEvent {
+  id: string
+  event_type: string
+  title: string
+  description: string | null
+  event_date: string | null
+  entities: string[]
+  company_count: number
+  impact: { score?: number; direction?: string; duration?: string } | null
+  confidence: number | null
+  created_at: string | null
+}
+
+export interface EventMonitorResponse {
+  source: string
+  days: number
+  today_new: number
+  window_total: number
+  avg_score: number | null
+  direction: { positive: number; negative: number; neutral: number }
+  affected_companies: string[]
+  company_mentions: Array<{ company: string; event_count: number }>
+  events: CoreEvent[]
+  total: number
+}
+
+export interface TopImpactEvent {
+  id: string
+  event_type: string
+  title: string
+  description: string | null
+  event_date: string | null
+  companies: string[]
+  company_count: number
+  impact: { score?: number; direction?: string; duration?: string } | null
+  score: number | null
+  stars: number
+  confidence: number | null
+}
+
+export interface TopImpactResponse {
+  source: string
+  days: number
+  items: TopImpactEvent[]
+  total: number
+}
+
+export interface EventTimelineResponse {
+  source: string
+  entity_name: string
+  days: number
+  items: TopImpactEvent[]
+  total: number
 }
 
 export interface ImpactAnalysis {
@@ -169,6 +278,41 @@ export function fetchNewsArticles(params?: {
   return apiFetch<NewsListResponse>(`/api/news/articles${qs ? `?${qs}` : ''}`)
 }
 
+export function fetchNewsFeed(params?: {
+  hours?: number
+  limit?: number
+}): Promise<NewsFeed> {
+  const searchParams = new URLSearchParams()
+  if (params?.hours) searchParams.set('hours', String(params.hours))
+  if (params?.limit) searchParams.set('limit', String(params.limit))
+  const qs = searchParams.toString()
+  return apiFetch<NewsFeed>(`/api/news/feed${qs ? `?${qs}` : ''}`)
+}
+
+export function fetchIntelligenceQueue(params?: {
+  days?: number
+  limit?: number
+  state?: QueueState | ''
+}): Promise<NewsIntelligenceQueue> {
+  const searchParams = new URLSearchParams()
+  if (params?.days) searchParams.set('days', String(params.days))
+  if (params?.limit) searchParams.set('limit', String(params.limit))
+  if (params?.state) searchParams.set('state', params.state)
+  const qs = searchParams.toString()
+  return apiFetch<NewsIntelligenceQueue>(
+    `/api/news/intelligence-queue${qs ? `?${qs}` : ''}`
+  )
+}
+
+/** 重投失败 Package（failed → draft，复用 DP-D1 Re-Publish 端点） */
+export function retryAgentPackage(
+  packageId: string
+): Promise<{ status: string; message: string; package_id: string }> {
+  return apiFetch(`/api/knowledge/packages/${packageId}/retry`, {
+    method: 'POST',
+  })
+}
+
 export function fetchNewsArticle(id: string): Promise<NewsArticle> {
   return apiFetch<NewsArticle>(`/api/news/articles/${id}`)
 }
@@ -190,6 +334,56 @@ export function fetchNewsEvents(params?: {
 
 export function fetchEventImpact(id: string): Promise<EventImpact> {
   return apiFetch<EventImpact>(`/api/news/events/${id}/impact`)
+}
+
+/** NIC-B1 Event Monitor：读 core.events（KOC 侧聚合端点） */
+export function fetchEventMonitor(params?: {
+  event_type?: string
+  company?: string
+  days?: number
+  limit?: number
+}): Promise<EventMonitorResponse> {
+  const searchParams = new URLSearchParams()
+  if (params?.event_type) searchParams.set('event_type', params.event_type)
+  if (params?.company) searchParams.set('company', params.company)
+  if (params?.days) searchParams.set('days', String(params.days))
+  if (params?.limit) searchParams.set('limit', String(params.limit))
+  const qs = searchParams.toString()
+  return apiFetch<EventMonitorResponse>(
+    `/api/knowledge/events/monitor${qs ? `?${qs}` : ''}`
+  )
+}
+
+/** NIC-B2 Top Impact Events：KOC 分析结果（core.events），星级=影响评分 */
+export function fetchTopImpactEvents(params?: {
+  company?: string
+  days?: number
+  limit?: number
+}): Promise<TopImpactResponse> {
+  const searchParams = new URLSearchParams()
+  if (params?.company) searchParams.set('company', params.company)
+  if (params?.days) searchParams.set('days', String(params.days))
+  if (params?.limit) searchParams.set('limit', String(params.limit))
+  const qs = searchParams.toString()
+  return apiFetch<TopImpactResponse>(
+    `/api/knowledge/events/top-impact${qs ? `?${qs}` : ''}`
+  )
+}
+
+/** NIC-B3 事件时间线：读 core.events（Timeline 与 Event Monitor 同源） */
+export function fetchKnowledgeEventsTimeline(params?: {
+  entity_name?: string
+  days?: number
+  limit?: number
+}): Promise<EventTimelineResponse> {
+  const searchParams = new URLSearchParams()
+  if (params?.entity_name) searchParams.set('entity_name', params.entity_name)
+  if (params?.days) searchParams.set('days', String(params.days))
+  if (params?.limit) searchParams.set('limit', String(params.limit))
+  const qs = searchParams.toString()
+  return apiFetch<EventTimelineResponse>(
+    `/api/knowledge/events/timeline${qs ? `?${qs}` : ''}`
+  )
 }
 
 export function fetchNewsImpact(

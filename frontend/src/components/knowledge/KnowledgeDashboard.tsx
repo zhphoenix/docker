@@ -1,9 +1,8 @@
+import { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import {
-  FileText,
   Boxes,
-  ScanLine,
   Network,
   Lightbulb,
   RefreshCw,
@@ -18,14 +17,43 @@ import {
   ChevronRight,
   Cpu,
   PencilLine,
+  Share2,
+  CalendarClock,
+  Users,
+  Percent,
+  TrendingUp,
+  Sparkles,
+  Scale,
+  Clock3,
+  Flame,
+  Building2,
+  Zap,
+  BarChart3,
+  MessageSquareQuote,
 } from 'lucide-react'
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Progress } from '@/components/ui/progress'
 import { EmptyState } from '@/components/common/EmptyState'
-import { fetchKnowledgeStats } from '@/services/knowledge'
+import {
+  fetchKnowledgeAnalytics,
+  fetchKnowledgeInsights,
+  fetchKnowledgeStats,
+  type KnowledgeAnalytics,
+  type KnowledgeInsights,
+} from '@/services/knowledge'
 import { fetchHealth } from '@/services/health'
 import { cn } from '@/lib/utils'
 
@@ -81,10 +109,25 @@ interface KnowledgeDashboardProps {
 
 export function KnowledgeDashboard({ onNavigateToTasks }: KnowledgeDashboardProps) {
   const queryClient = useQueryClient()
+  const [analyticsRange, setAnalyticsRange] = useState(7)
 
   const statsQuery = useQuery({
     queryKey: ['knowledge-stats'],
     queryFn: fetchKnowledgeStats,
+    retry: 1,
+  })
+
+  // KOC-D1: Analytics 五维 + 趋势（7/30/90 天切换）
+  const analyticsQuery = useQuery({
+    queryKey: ['knowledge-analytics', analyticsRange],
+    queryFn: () => fetchKnowledgeAnalytics(analyticsRange),
+    retry: 1,
+  })
+
+  // KOC-D2: Insights 运营洞察（Hot Topics / Trending / Emerging Concepts）
+  const insightsQuery = useQuery({
+    queryKey: ['knowledge-insights'],
+    queryFn: () => fetchKnowledgeInsights(7, 10),
     retry: 1,
   })
 
@@ -100,20 +143,33 @@ export function KnowledgeDashboard({ onNavigateToTasks }: KnowledgeDashboardProp
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['knowledge-stats'] })
+    queryClient.invalidateQueries({ queryKey: ['knowledge-analytics'] })
+    queryClient.invalidateQueries({ queryKey: ['knowledge-insights'] })
     healthQuery.refetch()
   }
 
   const stats = statsQuery.data
+  const analytics = analyticsQuery.data
   const services = healthQuery.data?.services ?? {}
   const coreUp =
     services['qdrant'] === 'up' && services['postgres'] === 'up'
+  // KOC-F5: SiYuan 渲染链路（容器 + Sync adapter 均可用 → 正常）
+  const renderLinkUp =
+    services['siyuan'] === 'up' && (services['siyuan_adapter'] ?? 'up') === 'up'
 
+  // 设计 §15 首页统计：Entities / Relationships / Facts / Events / Communities / Coverage
   const statCards = [
-    { label: 'Documents', value: stats?.documents ?? 0, icon: FileText, color: 'text-primary' },
-    { label: 'Chunks', value: stats?.chunks ?? 0, icon: Boxes, color: 'text-sky-500' },
-    { label: 'Embedded', value: stats?.embedded ?? 0, icon: ScanLine, color: 'text-emerald-500' },
-    { label: 'Entities', value: stats?.entities ?? 0, icon: Network, color: 'text-violet-500' },
-    { label: 'Facts', value: stats?.facts ?? 0, icon: Lightbulb, color: 'text-amber-500' },
+    { label: 'Entities', value: analytics?.growth.entities ?? 0, icon: Network, color: 'text-violet-500' },
+    { label: 'Relationships', value: analytics?.growth.relations ?? 0, icon: Share2, color: 'text-sky-500' },
+    { label: 'Facts', value: analytics?.growth.facts ?? 0, icon: Lightbulb, color: 'text-amber-500' },
+    { label: 'Events', value: analytics?.growth.events ?? 0, icon: CalendarClock, color: 'text-rose-500' },
+    { label: 'Communities', value: analytics?.growth.communities ?? 0, icon: Users, color: 'text-pink-500' },
+    {
+      label: 'Coverage',
+      value: analytics ? `${analytics.coverage.knowledge_coverage}%` : '—',
+      icon: Percent,
+      color: 'text-emerald-500',
+    },
   ]
 
   const queue = stats?.task_queue ?? { pending: 0, running: 0, done: 0, failed: 0 }
@@ -135,10 +191,10 @@ export function KnowledgeDashboard({ onNavigateToTasks }: KnowledgeDashboardProp
         </Button>
       </div>
 
-      {statsQuery.isLoading ? (
+      {statsQuery.isLoading || analyticsQuery.isLoading ? (
         <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-            {[1, 2, 3, 4, 5].map((i) => (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
               <Card key={i}>
                 <CardContent className="p-5">
                   <Skeleton className="h-4 w-16" />
@@ -169,10 +225,10 @@ export function KnowledgeDashboard({ onNavigateToTasks }: KnowledgeDashboardProp
           animate="show"
           className="space-y-6"
         >
-          {/* 顶部统计卡 */}
+          {/* 顶部统计卡（设计 §15） */}
           <motion.div
             variants={item}
-            className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5"
+            className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6"
           >
             {statCards.map((s) => (
               <Card key={s.label}>
@@ -182,12 +238,30 @@ export function KnowledgeDashboard({ onNavigateToTasks }: KnowledgeDashboardProp
                     <s.icon className={cn('size-4', s.color)} strokeWidth={1.8} />
                   </div>
                   <div className="mt-2 text-2xl font-bold tabular-nums text-foreground">
-                    {formatNumber(s.value)}
+                    {typeof s.value === 'number' ? formatNumber(s.value) : s.value}
                   </div>
                 </CardContent>
               </Card>
             ))}
           </motion.div>
+
+          {/* KOC-D1 Analytics：知识增长趋势 + 五维指标 */}
+          {analytics && (
+            <motion.div variants={item}>
+              <AnalyticsSection
+                analytics={analytics}
+                range={analyticsRange}
+                onRangeChange={setAnalyticsRange}
+              />
+            </motion.div>
+          )}
+
+          {/* KOC-D2 Insights：运营洞察（设计 §7） */}
+          {insightsQuery.data && (
+            <motion.div variants={item}>
+              <InsightsSection insights={insightsQuery.data} />
+            </motion.div>
+          )}
 
           {/* 处理队列 + 服务状态 + 知识质量 */}
           <motion.div
@@ -255,21 +329,68 @@ export function KnowledgeDashboard({ onNavigateToTasks }: KnowledgeDashboardProp
                 ) : Object.keys(services).length === 0 ? (
                   <p className="text-xs text-muted-foreground">暂无服务信息</p>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2">
-                    {Object.entries(services).map(([name, state]) => (
-                      <div
-                        key={name}
-                        className="flex items-center gap-2 rounded-md bg-muted/50 px-2 py-1.5"
-                      >
-                        <span
-                          className={cn(
-                            'size-2 shrink-0 rounded-full',
-                            state === 'up' ? 'bg-emerald-500' : 'bg-destructive'
-                          )}
-                        />
-                        <span className="truncate text-xs text-foreground">{name}</span>
+                  <div className="space-y-3">
+                    {/* KOC-F5: SiYuan 渲染链路（容器 + Sync adapter） */}
+                    <div className="rounded-lg border px-3 py-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-foreground">
+                          SiYuan 渲染链路
+                        </span>
+                        <Badge
+                          variant={renderLinkUp ? 'default' : 'destructive'}
+                          className="px-1.5 py-0 text-[9px]"
+                        >
+                          {renderLinkUp ? '正常' : '异常'}
+                        </Badge>
                       </div>
-                    ))}
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <div className="flex items-center gap-2 rounded-md bg-muted/50 px-2 py-1.5">
+                          <span
+                            className={cn(
+                              'size-2 shrink-0 rounded-full',
+                              services['siyuan'] === 'up' ? 'bg-emerald-500' : 'bg-destructive'
+                            )}
+                          />
+                          <span className="truncate text-xs text-foreground">容器</span>
+                          <span className="ml-auto text-[10px] text-muted-foreground">
+                            {services['siyuan'] ?? '?'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 rounded-md bg-muted/50 px-2 py-1.5">
+                          <span
+                            className={cn(
+                              'size-2 shrink-0 rounded-full',
+                              services['siyuan_adapter'] === 'up'
+                                ? 'bg-emerald-500'
+                                : 'bg-destructive'
+                            )}
+                          />
+                          <span className="truncate text-xs text-foreground">Sync Adapter</span>
+                          <span className="ml-auto text-[10px] text-muted-foreground">
+                            {services['siyuan_adapter'] ?? '?'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* 其他服务 */}
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.entries(services)
+                        .filter(([name]) => name !== 'siyuan' && name !== 'siyuan_adapter')
+                        .map(([name, state]) => (
+                          <div
+                            key={name}
+                            className="flex items-center gap-2 rounded-md bg-muted/50 px-2 py-1.5"
+                          >
+                            <span
+                              className={cn(
+                                'size-2 shrink-0 rounded-full',
+                                state === 'up' ? 'bg-emerald-500' : 'bg-destructive'
+                              )}
+                            />
+                            <span className="truncate text-xs text-foreground">{name}</span>
+                          </div>
+                        ))}
+                    </div>
                   </div>
                 )}
                 {!coreUp && Object.keys(services).length > 0 && (
@@ -539,6 +660,410 @@ function QualityMetric({
         <span className="font-medium tabular-nums text-foreground">{value}</span>
       </div>
       {progress != null && <Progress value={progress} className="mt-1.5 h-1.5" />}
+    </div>
+  )
+}
+
+/* ---------- KOC-D1 Analytics 区块 ---------- */
+
+const ANALYTICS_RANGES = [
+  { value: 7, label: '7 天' },
+  { value: 30, label: '30 天' },
+  { value: 90, label: '90 天' },
+]
+
+function TrendLineChart({ analytics }: { analytics: KnowledgeAnalytics }) {
+  const data = useMemo(() => {
+    const dates = new Set<string>()
+    for (const key of ['entities', 'facts', 'events'] as const) {
+      for (const p of analytics.trends[key]) dates.add(p.date)
+    }
+    return [...dates]
+      .sort()
+      .map((date) => {
+        const find = (arr: Array<{ date: string; count: number }>) =>
+          arr.find((p) => p.date === date)?.count ?? 0
+        return {
+          date: date.slice(5), // MM-DD
+          entities: find(analytics.trends.entities),
+          facts: find(analytics.trends.facts),
+          events: find(analytics.trends.events),
+        }
+      })
+  }, [analytics])
+
+  if (data.length === 0) {
+    return (
+      <p className="py-10 text-center text-xs text-muted-foreground">
+        所选区间内暂无新增知识
+      </p>
+    )
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={220}>
+      <LineChart data={data} margin={{ top: 8, right: 12, left: -18, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+        <XAxis dataKey="date" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+        <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} />
+        <Tooltip
+          contentStyle={{ fontSize: 12, borderRadius: 8 }}
+          labelStyle={{ fontWeight: 600 }}
+        />
+        <Legend wrapperStyle={{ fontSize: 11 }} />
+        <Line type="monotone" dataKey="entities" name="实体" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+        <Line type="monotone" dataKey="facts" name="事实" stroke="#f59e0b" strokeWidth={2} dot={false} />
+        <Line type="monotone" dataKey="events" name="事件" stroke="#f43f5e" strokeWidth={2} dot={false} />
+      </LineChart>
+    </ResponsiveContainer>
+  )
+}
+
+function AnalyticsSection({
+  analytics,
+  range,
+  onRangeChange,
+}: {
+  analytics: KnowledgeAnalytics
+  range: number
+  onRangeChange: (r: number) => void
+}) {
+  const { growth, coverage, usage, quality, freshness } = analytics
+  const totalAssets =
+    growth.entities + growth.relations + growth.facts + growth.events
+
+  const dimensions = [
+    {
+      label: 'Knowledge Growth',
+      value: formatNumber(totalAssets),
+      unit: '资产',
+      icon: TrendingUp,
+      color: 'text-violet-500',
+      detail: `${formatNumber(growth.entities)} 实体 · ${formatNumber(growth.relations)} 关系 · ${formatNumber(growth.facts)} 事实`,
+    },
+    {
+      label: 'Knowledge Coverage',
+      value: `${coverage.knowledge_coverage}%`,
+      unit: '实体-事实覆盖',
+      icon: Percent,
+      color: 'text-emerald-500',
+      detail: `${coverage.entity_types} 实体类型 · 向量化 ${coverage.embedding_coverage ?? '—'}%`,
+    },
+    {
+      label: 'Knowledge Usage',
+      value: formatNumber(usage.runs),
+      unit: `次 / ${range} 天`,
+      icon: Sparkles,
+      color: 'text-sky-500',
+      detail: `今日 ${usage.runs_today} · 榜首 ${usage.top_agents[0]?.agent_id ?? '—'}`,
+    },
+    {
+      label: 'Knowledge Quality',
+      value: quality.entity_confidence != null ? `${quality.entity_confidence}%` : '—',
+      unit: '实体置信度',
+      icon: Scale,
+      color: 'text-amber-500',
+      detail: `冲突 ${quality.conflicts_open} · 已核验 ${quality.facts_verified}/${quality.facts_total}`,
+    },
+    {
+      label: 'Knowledge Freshness',
+      value: freshness.last_entity_at ? formatTime(freshness.last_entity_at) : '—',
+      unit: '最后入库',
+      icon: Clock3,
+      color: 'text-rose-500',
+      detail: `过期事实 ${freshness.facts_expired} · 区间新增 ${formatNumber(freshness.new_entities + freshness.new_facts + freshness.new_events)}`,
+    },
+  ]
+
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      {/* 增长趋势图 */}
+      <Card className="lg:col-span-2">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex flex-wrap items-center gap-2">
+            <TrendingUp className="size-4 text-primary" strokeWidth={1.8} />
+            知识增长趋势
+            <div className="ml-auto flex items-center gap-1">
+              {ANALYTICS_RANGES.map((r) => (
+                <Button
+                  key={r.value}
+                  variant={range === r.value ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-6 px-2 text-[11px]"
+                  onClick={() => onRangeChange(r.value)}
+                >
+                  {r.label}
+                </Button>
+              ))}
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TrendLineChart analytics={analytics} />
+        </CardContent>
+      </Card>
+
+      {/* 五维指标 */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2">
+            <Gauge className="size-4 text-primary" strokeWidth={1.8} />
+            五维运营指标
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {dimensions.map((d) => (
+            <div key={d.label} className="rounded-lg border p-2.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-1.5 text-muted-foreground">
+                  <d.icon className={cn('size-3.5', d.color)} strokeWidth={1.8} />
+                  {d.label}
+                </span>
+                <span className="font-semibold tabular-nums text-foreground">
+                  {d.value}
+                  <span className="ml-1 text-[10px] font-normal text-muted-foreground">
+                    {d.unit}
+                  </span>
+                </span>
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">{d.detail}</p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+/* ---------- KOC-D2 Insights 区块 ---------- */
+
+function InsightRankRow({
+  rank,
+  name,
+  meta,
+  count,
+}: {
+  rank?: number
+  name: string
+  meta?: string
+  count: number
+}) {
+  return (
+    <div className="flex items-center gap-2.5 rounded-lg border px-2.5 py-1.5">
+      {rank != null && (
+        <span className="w-5 shrink-0 text-center text-[11px] font-bold tabular-nums text-muted-foreground">
+          {rank}
+        </span>
+      )}
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-xs font-medium text-foreground" title={name}>
+          {name}
+        </div>
+        {meta && <div className="truncate text-[10px] text-muted-foreground">{meta}</div>}
+      </div>
+      <span className="shrink-0 text-[11px] font-semibold tabular-nums text-foreground">
+        {count}
+      </span>
+    </div>
+  )
+}
+
+function InsightsSection({ insights }: { insights: KnowledgeInsights }) {
+  const { hot_topics, trending_companies, emerging_concepts, top_growing, top_mentioned, heatmap } =
+    insights
+
+  // 热点关键词标签：count 分级控制字号与颜色强度
+  const maxHot = Math.max(1, ...hot_topics.map((t) => t.count))
+  const growingMax = Math.max(1, ...top_growing.map((g) => g.count))
+  const heatData = useMemo(
+    () =>
+      heatmap.map((p) => ({
+        date: p.date.slice(5),
+        entities: p.entities,
+        facts: p.facts,
+      })),
+    [heatmap]
+  )
+
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      {/* Hot Topics：今日热点话题（NIC-D1 数据源） */}
+      <Card className="lg:col-span-2">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2">
+            <Flame className="size-4 text-orange-500" strokeWidth={1.8} />
+            Today&apos;s Hot Topics
+            <Badge variant="secondary" className="ml-auto text-[9px]">
+              近 {insights.range_days} 天入库共现
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {hot_topics.length === 0 ? (
+            <p className="py-6 text-center text-xs text-muted-foreground">
+              近期无新增知识入库
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {hot_topics.map((t) => {
+                const level = Math.ceil((t.count / maxHot) * 3) // 1..3
+                return (
+                  <span
+                    key={t.topic}
+                    className={cn(
+                      'rounded-full border px-2.5 py-1 font-medium',
+                      level >= 3
+                        ? 'border-orange-400/40 bg-orange-500/10 text-orange-600 text-sm'
+                        : level === 2
+                          ? 'border-amber-400/40 bg-amber-500/10 text-amber-600 text-xs'
+                          : 'border-muted-foreground/20 bg-muted/40 text-muted-foreground text-xs'
+                    )}
+                    title={`出现 ${t.count} 次`}
+                  >
+                    {t.topic}
+                    <span className="ml-1.5 text-[10px] opacity-70">{t.count}</span>
+                  </span>
+                )
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Trending Companies */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="size-4 text-sky-500" strokeWidth={1.8} />
+            Trending Companies
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1.5">
+          {trending_companies.length === 0 ? (
+            <p className="py-4 text-center text-xs text-muted-foreground">暂无数据</p>
+          ) : (
+            trending_companies.map((c, i) => (
+              <InsightRankRow
+                key={c.name}
+                rank={i + 1}
+                name={c.name}
+                meta={`来源 ${c.source_count} 处`}
+                count={c.source_count}
+              />
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Emerging Concepts */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="size-4 text-violet-500" strokeWidth={1.8} />
+            Emerging Concepts
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1.5">
+          {emerging_concepts.length === 0 ? (
+            <p className="py-4 text-center text-xs text-muted-foreground">暂无数据</p>
+          ) : (
+            emerging_concepts.map((c) => (
+              <InsightRankRow
+                key={c.name}
+                name={c.name}
+                meta={`${c.entity_type} · 置信 ${c.confidence != null ? `${Math.round(c.confidence * 100)}%` : '—'}`}
+                count={c.source_count}
+              />
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Top Growing Knowledge */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="size-4 text-emerald-500" strokeWidth={1.8} />
+            Top Growing Knowledge
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {top_growing.length === 0 ? (
+            <p className="py-4 text-center text-xs text-muted-foreground">暂无数据</p>
+          ) : (
+            top_growing.map((g) => (
+              <div key={g.entity_type}>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-foreground">{g.entity_type}</span>
+                  <span className="tabular-nums text-muted-foreground">
+                    {g.count} 新增
+                  </span>
+                </div>
+                <Progress
+                  value={(g.count / growingMax) * 100}
+                  className="mt-1 h-1.5"
+                />
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Top Mentioned Companies */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquareQuote className="size-4 text-rose-500" strokeWidth={1.8} />
+            Top Mentioned
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1.5">
+          {top_mentioned.length === 0 ? (
+            <p className="py-4 text-center text-xs text-muted-foreground">暂无事实提及</p>
+          ) : (
+            top_mentioned.map((m, i) => (
+              <InsightRankRow
+                key={m.name}
+                rank={i + 1}
+                name={m.name}
+                meta="事实提及"
+                count={m.count}
+              />
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Knowledge Heatmap：近 7 天新增热度 */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="size-4 text-amber-500" strokeWidth={1.8} />
+            Knowledge Heatmap
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {heatData.length === 0 ? (
+            <p className="py-4 text-center text-xs text-muted-foreground">暂无入库记录</p>
+          ) : (
+            <div className="flex h-24 items-end gap-1.5">
+              {heatData.map((p) => {
+                const h = Math.max(4, (p.entities / Math.max(1, ...heatData.map((x) => x.entities))) * 100)
+                return (
+                  <div key={p.date} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
+                    <div
+                      className="w-full rounded-t bg-gradient-to-t from-amber-500/70 to-amber-400"
+                      style={{ height: `${h}%` }}
+                      title={`${p.date} 新增实体 ${p.entities}`}
+                    />
+                    <span className="text-[9px] text-muted-foreground">{p.date}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

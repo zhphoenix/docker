@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Search, Clock, ExternalLink } from 'lucide-react'
+import {
+  Search,
+  Clock,
+  Star,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Sparkles,
+} from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,7 +21,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { fetchNewsTimeline, type TimelineItem } from '@/services/news'
+import {
+  fetchKnowledgeEventsTimeline,
+  type TopImpactEvent,
+} from '@/services/news'
+import { cn } from '@/lib/utils'
+
+const EVENT_TYPES = [
+  { value: 'earnings', label: '财报' },
+  { value: 'regulation', label: '监管' },
+  { value: 'merger', label: '合并' },
+  { value: 'acquisition', label: '收购' },
+  { value: 'product_launch', label: '产品发布' },
+  { value: 'macro_policy', label: '宏观政策' },
+  { value: 'geopolitical', label: '地缘政治' },
+  { value: 'supply_chain', label: '供应链' },
+  { value: 'technology', label: '技术' },
+]
+
+const DIRECTION_CONFIG: Record<string, { icon: typeof TrendingUp; color: string; label: string }> = {
+  positive: { icon: TrendingUp, color: 'text-green-600', label: '正面' },
+  negative: { icon: TrendingDown, color: 'text-red-600', label: '负面' },
+  neutral: { icon: Minus, color: 'text-gray-500', label: '中性' },
+}
 
 export function TimelineTab() {
   const [entityName, setEntityName] = useState('')
@@ -21,17 +51,22 @@ export function TimelineTab() {
   const [days, setDays] = useState('90')
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['news-timeline', entityName, days],
-    queryFn: () => fetchNewsTimeline(entityName, Number(days), 50),
+    queryKey: ['core-events-timeline', entityName, days],
+    queryFn: () =>
+      fetchKnowledgeEventsTimeline({
+        entity_name: entityName,
+        days: Number(days),
+        limit: 100,
+      }),
     enabled: entityName.length > 0,
   })
 
   const items = data?.items ?? []
 
-  // Group by date
-  const grouped = items.reduce<Record<string, TimelineItem[]>>((acc, item) => {
-    const date = item.published_at
-      ? new Date(item.published_at).toLocaleDateString('zh-CN', {
+  // Group by event_date
+  const grouped = items.reduce<Record<string, TopImpactEvent[]>>((acc, item) => {
+    const date = item.event_date
+      ? new Date(item.event_date).toLocaleDateString('zh-CN', {
           year: 'numeric',
           month: 'long',
           day: 'numeric',
@@ -53,7 +88,7 @@ export function TimelineTab() {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="输入实体名称查看新闻时间线..."
+            placeholder="输入实体/公司名称查看事件时间线（如 Amazon）..."
             className="pl-9"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
@@ -77,13 +112,23 @@ export function TimelineTab() {
         </Button>
       </div>
 
+      {/* KOC 数据源说明 */}
+      {entityName && (
+        <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
+          <Sparkles className="size-3.5 text-primary" />
+          <p className="text-[11px] text-muted-foreground">
+            事件时间线来自 KOC 知识图谱（core.events），与 Event Monitor 同源
+          </p>
+        </div>
+      )}
+
       {/* Empty state */}
       {!entityName && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <Clock className="size-8 text-muted-foreground/50" />
             <p className="mt-3 text-sm text-muted-foreground">
-              输入实体名称，查看相关新闻时间线
+              输入实体/公司名称，查看 KOC 知识图谱事件时间线
             </p>
           </CardContent>
         </Card>
@@ -95,8 +140,8 @@ export function TimelineTab() {
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="space-y-2">
               <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-16 w-full rounded-xl" />
-              <Skeleton className="h-16 w-full rounded-xl" />
+              <Skeleton className="h-20 w-full rounded-xl" />
+              <Skeleton className="h-20 w-full rounded-xl" />
             </div>
           ))}
         </div>
@@ -116,7 +161,7 @@ export function TimelineTab() {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-sm text-muted-foreground">
-              未找到 "{entityName}" 的相关新闻
+              未找到 "{entityName}" 的相关事件
             </p>
           </CardContent>
         </Card>
@@ -135,47 +180,15 @@ export function TimelineTab() {
               {/* Date label */}
               <h3 className="mb-2 text-xs font-semibold text-muted-foreground">
                 {date}
+                <span className="ml-2 text-[10px] text-muted-foreground/60">
+                  {dateItems.length} 条事件
+                </span>
               </h3>
 
               {/* Items */}
               <div className="space-y-2">
-                {dateItems.map((item, idx) => (
-                  <Card key={idx} className="transition-shadow hover:shadow-[var(--shadow-soft)]">
-                    <CardContent className="p-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="min-w-0 flex-1 text-sm text-foreground">
-                          {item.title}
-                        </p>
-                        {item.url && (
-                          <a
-                            href={item.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="shrink-0 text-muted-foreground hover:text-foreground"
-                          >
-                            <ExternalLink className="size-3.5" />
-                          </a>
-                        )}
-                      </div>
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                        {item.category && (
-                          <Badge variant="secondary" className="text-[10px]">
-                            {item.category}
-                          </Badge>
-                        )}
-                        {item.importance && (
-                          <Badge variant="outline" className="text-[10px]">
-                            重要度: {item.importance}
-                          </Badge>
-                        )}
-                        {item.source_name && (
-                          <span className="text-[10px] text-muted-foreground">
-                            {item.source_name}
-                          </span>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                {dateItems.map((item) => (
+                  <TimelineEventCard key={item.id} event={item} />
                 ))}
               </div>
             </div>
@@ -183,5 +196,70 @@ export function TimelineTab() {
         </div>
       )}
     </div>
+  )
+}
+
+function TimelineEventCard({ event }: { event: TopImpactEvent }) {
+  const direction = event.impact?.direction ?? 'neutral'
+  const DirectionIcon = DIRECTION_CONFIG[direction]?.icon ?? Minus
+  const directionColor = DIRECTION_CONFIG[direction]?.color ?? 'text-gray-500'
+  const directionLabel = DIRECTION_CONFIG[direction]?.label ?? '中性'
+
+  return (
+    <Card className="transition-shadow hover:shadow-[var(--shadow-soft)]">
+      <CardContent className="p-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <div
+                className="flex shrink-0 items-center gap-0.5"
+                title={`影响评分 ${event.score?.toFixed(2) ?? '—'}`}
+              >
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={cn(
+                      'size-2.5',
+                      i < event.stars
+                        ? 'fill-amber-400 text-amber-400'
+                        : 'text-muted-foreground/25'
+                    )}
+                  />
+                ))}
+              </div>
+              <p className="min-w-0 flex-1 truncate text-sm text-foreground">
+                {event.title}
+              </p>
+            </div>
+            {event.description && (
+              <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                {event.description}
+              </p>
+            )}
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="text-[10px]">
+                {EVENT_TYPES.find((t) => t.value === event.event_type)?.label ??
+                  event.event_type}
+              </Badge>
+              {event.score != null && (
+                <span className={cn('text-xs font-medium', directionColor)}>
+                  {event.score.toFixed(2)} · {directionLabel}
+                </span>
+              )}
+              {event.company_count > 0 && (
+                <span className="inline-flex items-center rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-600">
+                  影响 {event.company_count} 家
+                </span>
+              )}
+              {event.companies.length > 0 && (
+                <span className="hidden sm:inline max-w-[200px] truncate text-[10px] text-muted-foreground">
+                  {event.companies.join('、')}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

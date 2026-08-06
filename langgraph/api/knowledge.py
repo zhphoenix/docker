@@ -16,6 +16,7 @@ from tools.postgres import postgres_tool
 from tools.llm import llm_tool
 from config.policy_loader import get_policy
 from storage.knowledge.postgres import knowledge_storage
+from storage.knowledge.package import package_storage
 from storage.knowledge.qdrant import knowledge_qdrant
 from runtime.queue import task_queue
 from pipelines.document_pipeline import doc_pipeline
@@ -28,6 +29,8 @@ from pipelines.acquire import (
     sha256_hex,
 )
 from api.path_utils import normalize_path, get_volume_mapping_info
+from services.knowledge_governance import governance
+from services.knowledge_insights import compute_insights
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
@@ -235,20 +238,548 @@ async def knowledge_stats():
 
 
 # ============================================================
+# KOC-D1 Analytics（Growth/Coverage/Usage/Quality/Freshness + 趋势）
+# ============================================================
+
+_TREND_SOURCES = {
+    "entities": ("core.entities", "status='active'"),
+    "facts": ("core.facts", "TRUE"),
+    "events": ("core.events", "TRUE"),
+}
+
+
+def _iso(value):
+    """date/datetime → ISO 字符串（None 原样）"""
+    if value is None:
+        return None
+    return value.isoformat() if hasattr(value, "isoformat") else str(value)
+
+
+@router.get("/analytics")
+async def knowledge_analytics(range_days: int = Query(7, ge=7, le=90)):
+    """KOC-D1 Analytics：Knowledge Growth/Coverage/Usage/Quality/Freshness + 7/30/90 天趋势
+
+    五维（设计 §10）+ 趋势（7/30/90 天每日新增）：
+      - growth：entities/relations/facts/events 总数（communities 未启用固定 0）
+      - coverage：entity_fact_coverage（有事实的实体占比）/ entity_types / embedding_coverage
+      - usage：agent_runs 运行量（近 range 天 + 今日 + 消费侧 Agent 排行）
+      - quality：实体置信度 / conflicts open / facts verified
+      - freshness：最后入库时间 / expired facts / 区间新增
+      - trends：entities/facts/events 按天新增序列
+    各子查询独立 try/except，单故障不影响整体返回。
+    """
+    result: dict = {"range_days": range_days}
+
+    # ── Growth：四类资产总数 ──
+    try:
+        rows = await postgres_tool.query(
+            "SELECT "
+            "(SELECT COUNT(*) FROM core.entities WHERE status='active') AS entities, "
+            "(SELECT COUNT(*) FROM core.relations WHERE status='active') AS relations, "
+            "(SELECT COUNT(*) FROM core.facts) AS facts, "
+            "(SELECT COUNT(*) FROM core.events) AS events"
+        )
+        r = rows[0]
+        result["growth"] = {
+            "entities": int(r["entities"] or 0),
+            "relations": int(r["relations"] or 0),
+            "facts": int(r["facts"] or 0),
+            "events": int(r["events"] or 0),
+            "communities": 0,  # §15 指标，当前未启用社区发现
+        }
+    except Exception:
+        logger.warning("analytics: growth query failed, degraded")
+        result["growth"] = {"entities": 0, "relations": 0, "facts": 0, "events": 0, "communities": 0}
+
+    # ── Coverage：实体-事实覆盖 / 类型覆盖 / 向量覆盖 ──
+    try:
+        rows = await postgres_tool.query(
+            "SELECT "
+            "(SELECT COUNT(*) FROM core.entities WHERE status='active') AS entities, "
+            "(SELECT COUNT(DISTINCT subject_entity) FROM core.facts) AS entities_with_facts, "
+            "(SELECT COUNT(*) FROM taxonomy.entity_types) AS entity_types"
+        )
+        r = rows[0]
+        entities = int(r["entities"] or 0)
+        with_facts = int(r["entities_with_facts"] or 0)
+        entity_fact_coverage = round(with_facts / entities * 100, 1) if entities else 0.0
+        try:
+            erows = await postgres_tool.query(
+                "SELECT COUNT(qdrant_point_id)::float / NULLIF(COUNT(*), 0) AS embed_coverage FROM chunks"
+            )
+            ec = erows[0]["embed_coverage"]
+            embedding_coverage = round(float(ec) * 100, 1) if ec is not None else None
+        except Exception:
+            logger.warning("analytics: embedding_coverage query failed, degraded")
+            embedding_coverage = None
+        result["coverage"] = {
+            "knowledge_coverage": entity_fact_coverage,
+            "entity_fact_coverage": entity_fact_coverage,
+            "entity_types": int(r["entity_types"] or 0),
+            "embedding_coverage": embedding_coverage,
+        }
+    except Exception:
+        logger.warning("analytics: coverage query failed, degraded")
+        result["coverage"] = {
+            "knowledge_coverage": 0.0,
+            "entity_fact_coverage": 0.0,
+            "entity_types": 0,
+            "embedding_coverage": None,
+        }
+
+    # ── Usage：Agent 运行量（近 range 天 + 今日 + 排行） ──
+    try:
+        rows = await postgres_tool.query(
+            "SELECT agent_id, "
+            "COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE) AS today, "
+            "COUNT(*) AS total "
+            "FROM agent_runs "
+            f"WHERE created_at >= CURRENT_DATE - INTERVAL '{range_days} days' "
+            "GROUP BY agent_id ORDER BY total DESC LIMIT 10"
+        )
+        top_agents = [
+            {"agent_id": r["agent_id"], "today": int(r["today"] or 0), "total": int(r["total"] or 0)}
+            for r in rows
+        ]
+        result["usage"] = {
+            "runs": sum(x["total"] for x in top_agents),
+            "runs_today": sum(x["today"] for x in top_agents),
+            "top_agents": top_agents,
+        }
+    except Exception:
+        logger.warning("analytics: usage query failed, degraded")
+        result["usage"] = {"runs": 0, "runs_today": 0, "top_agents": []}
+
+    # ── Quality：置信度 / 治理冲突 / 事实核验 ──
+    try:
+        rows = await postgres_tool.query(
+            "SELECT "
+            "(SELECT AVG(confidence) FROM core.entities WHERE status='active') AS entity_conf, "
+            "(SELECT COUNT(*) FROM core.knowledge_conflicts WHERE status='open') AS conflicts_open, "
+            "(SELECT COUNT(*) FROM core.facts WHERE verification_status='verified') AS facts_verified, "
+            "(SELECT COUNT(*) FROM core.facts) AS facts_total"
+        )
+        r = rows[0]
+        ec = r["entity_conf"]
+        result["quality"] = {
+            "entity_confidence": round(float(ec) * 100, 1) if ec is not None else None,
+            "conflicts_open": int(r["conflicts_open"] or 0),
+            "facts_verified": int(r["facts_verified"] or 0),
+            "facts_total": int(r["facts_total"] or 0),
+        }
+    except Exception:
+        logger.warning("analytics: quality query failed, degraded")
+        result["quality"] = {"entity_confidence": None, "conflicts_open": 0, "facts_verified": 0, "facts_total": 0}
+
+    # ── Freshness：最后更新 / 过期事实 / 区间新增 ──
+    try:
+        rows = await postgres_tool.query(
+            "SELECT "
+            "(SELECT MAX(updated_at) FROM core.entities) AS last_entity_at, "
+            "(SELECT MAX(created_at) FROM core.facts) AS last_fact_at, "
+            "(SELECT MAX(created_at) FROM core.events) AS last_event_at, "
+            "(SELECT COUNT(*) FROM core.facts WHERE lifecycle_status IN ('expired','archived')) AS facts_expired, "
+            f"(SELECT COUNT(*) FROM core.entities WHERE status='active' AND created_at >= CURRENT_DATE - INTERVAL '{range_days} days') AS new_entities, "
+            f"(SELECT COUNT(*) FROM core.facts WHERE created_at >= CURRENT_DATE - INTERVAL '{range_days} days') AS new_facts, "
+            f"(SELECT COUNT(*) FROM core.events WHERE created_at >= CURRENT_DATE - INTERVAL '{range_days} days') AS new_events"
+        )
+        r = rows[0]
+        result["freshness"] = {
+            "last_entity_at": _iso(r.get("last_entity_at")),
+            "last_fact_at": _iso(r.get("last_fact_at")),
+            "last_event_at": _iso(r.get("last_event_at")),
+            "facts_expired": int(r["facts_expired"] or 0),
+            "new_entities": int(r["new_entities"] or 0),
+            "new_facts": int(r["new_facts"] or 0),
+            "new_events": int(r["new_events"] or 0),
+        }
+    except Exception:
+        logger.warning("analytics: freshness query failed, degraded")
+        result["freshness"] = {
+            "last_entity_at": None, "last_fact_at": None, "last_event_at": None,
+            "facts_expired": 0, "new_entities": 0, "new_facts": 0, "new_events": 0,
+        }
+
+    # ── Trends：按天新增序列 ──
+    trends: dict = {"range_days": range_days, "entities": [], "facts": [], "events": []}
+    for key, (table, cond) in _TREND_SOURCES.items():
+        try:
+            rows = await postgres_tool.query(
+                f"SELECT created_at::date AS d, COUNT(*) AS cnt FROM {table} "
+                f"WHERE {cond} AND created_at >= CURRENT_DATE - INTERVAL '{range_days} days' "
+                "GROUP BY d ORDER BY d"
+            )
+            trends[key] = [
+                {"date": _iso(r["d"]), "count": int(r["cnt"] or 0)} for r in rows
+            ]
+        except Exception:
+            logger.warning(f"analytics: trend {key} query failed, degraded")
+    result["trends"] = trends
+
+    return result
+
+
+# ============================================================
 # 知识图谱查询 API
 # ============================================================
+
+
+@router.get("/insights")
+async def knowledge_insights(
+    range_days: int = Query(7, ge=1, le=90),
+    limit: int = Query(10, ge=1, le=50),
+):
+    """KOC-D2 Insights：基于近期入库统计的运营洞察（设计 §7）
+
+    - hot_topics：近期新增实体名关键词共现 Top N（NIC-D1 Trend Discovery 数据源）
+    - trending_companies / trending_industries：按 source_count 排序
+    - emerging_concepts：Concept/Technology 近期新增按置信度排序
+    - top_growing：近窗口新增实体按类型分组
+    - top_mentioned：事实关联公司提及次数（数据少时降级为 source_count 排行）
+    - heatmap：近 7 天每日新增 entities/facts
+    各子查询独立 try/except，单故障不影响整体返回。
+    """
+    return await compute_insights(range_days=range_days, limit=limit)
+
+
+def _json_or_empty(value) -> list:
+    """jsonb 列（asyncpg 无 codec 时返回 str）统一解析为 list"""
+    if value is None or isinstance(value, list):
+        return value or []
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+            return parsed if isinstance(parsed, list) else []
+        except (ValueError, TypeError):
+            return []
+    return []
+
+
+@router.get("/events/monitor")
+async def event_monitor(
+    event_type: str = Query("", description="事件类型过滤"),
+    company: str = Query("", description="受影响公司过滤（entities 数组包含）"),
+    days: int = Query(30, ge=1, le=365, description="窗口（天）"),
+    limit: int = Query(30, ge=1, le=100, description="事件列表条数"),
+):
+    """NIC-B1 Event Monitor：读 core.events（KOC 侧聚合端点）
+
+    - today_new：今日新增事件数（event_date = CURRENT_DATE）
+    - window_total：窗口内事件总数
+    - avg_score / direction 分布：窗口内影响评分均值与方向分布
+    - affected_companies / company_mentions：Top 受影响公司（entities 展开）
+    - events：事件列表（含影响公司数、impact、confidence），与 core.events 一致
+    各子查询独立 try/except，单故障不影响整体返回（对应字段降级）。
+    """
+    # 防御：直接调用（非 FastAPI 注入）时 Query 默认值是对象而非字符串
+    event_type = event_type if isinstance(event_type, str) else ""
+    company = company if isinstance(company, str) else ""
+
+    result: dict = {
+        "source": "core.events",
+        "days": days,
+        "today_new": 0,
+        "window_total": 0,
+        "avg_score": None,
+        "direction": {"positive": 0, "negative": 0, "neutral": 0},
+        "affected_companies": [],
+        "company_mentions": [],
+        "events": [],
+        "total": 0,
+    }
+
+    # ── 今日新增 + 窗口统计（单查询） ──
+    try:
+        rows = await postgres_tool.query(
+            "SELECT "
+            "COUNT(*) FILTER (WHERE e.event_date = CURRENT_DATE) AS today_new, "
+            "COUNT(*) FILTER (WHERE e.event_date >= CURRENT_DATE - INTERVAL '1 day' * $1) AS window_total, "
+            "AVG((e.impact->>'score')::float) FILTER "
+            "  (WHERE (e.impact->>'score') ~ '^[0-9]+(\\.[0-9]+)?$') AS avg_score, "
+            "COUNT(*) FILTER (WHERE e.impact->>'direction' = 'positive') AS positive_count, "
+            "COUNT(*) FILTER (WHERE e.impact->>'direction' = 'negative') AS negative_count, "
+            "COUNT(*) FILTER (WHERE e.impact->>'direction' = 'neutral') AS neutral_count "
+            "FROM core.events e ",
+            days,
+        )
+        if rows:
+            row = rows[0]
+            result["today_new"] = int(row.get("today_new") or 0)
+            result["window_total"] = int(row.get("window_total") or 0)
+            result["avg_score"] = round(float(row["avg_score"]), 3) if row.get("avg_score") is not None else None
+            result["direction"] = {
+                "positive": int(row.get("positive_count") or 0),
+                "negative": int(row.get("negative_count") or 0),
+                "neutral": int(row.get("neutral_count") or 0),
+            }
+    except Exception:
+        logger.warning("event-monitor: stats query failed, degraded")
+
+    # ── 受影响公司聚合（entities 数组展开） ──
+    try:
+        rows = await postgres_tool.query(
+            "SELECT c.name AS company, COUNT(*) AS event_count "
+            "FROM core.events e, jsonb_array_elements_text(e.entities) AS c(name) "
+            "WHERE e.event_date >= CURRENT_DATE - INTERVAL '1 day' * $1 "
+            "GROUP BY c.name ORDER BY event_count DESC, c.name LIMIT 10",
+            days,
+        )
+        result["company_mentions"] = [
+            {"company": r["company"], "event_count": int(r["event_count"] or 0)}
+            for r in rows
+        ]
+    except Exception:
+        logger.warning("event-monitor: company mentions query failed, degraded")
+
+    # ── 事件列表（窗口内，与 core.events 一致） ──
+    try:
+        sql = (
+            "SELECT e.id, e.event_type, e.title, e.description, e.event_date, "
+            "e.entities, e.impact, e.confidence, e.created_at "
+            "FROM core.events e "
+            "WHERE e.event_date >= CURRENT_DATE - INTERVAL '1 day' * $1 "
+        )
+        params: list = [days]
+        if event_type:
+            sql += "AND e.event_type = $" + str(len(params) + 1) + " "
+            params.append(event_type)
+        if company:
+            sql += (
+                "AND EXISTS (SELECT 1 FROM jsonb_array_elements_text(e.entities) c(name) "
+                "WHERE c.name = $" + str(len(params) + 1) + ") "
+            )
+            params.append(company)
+        sql += "ORDER BY e.event_date DESC NULLS LAST, e.created_at DESC LIMIT $" + str(len(params) + 1)
+        params.append(limit)
+        rows = await postgres_tool.query(sql, *params)
+        items = []
+        for r in rows:
+            entities = _json_or_empty(r.get("entities"))
+            impact_raw = r.get("impact")
+            impact = impact_raw
+            if isinstance(impact_raw, str):
+                try:
+                    parsed = json.loads(impact_raw)
+                    impact = parsed if isinstance(parsed, dict) else {}
+                except (ValueError, TypeError):
+                    impact = {}
+            elif not isinstance(impact_raw, dict):
+                impact = {}
+            event_date = r.get("event_date")
+            created_at = r.get("created_at")
+            items.append({
+                "id": str(r["id"]),
+                "event_type": r.get("event_type"),
+                "title": r.get("title"),
+                "description": r.get("description"),
+                "event_date": event_date.isoformat() if hasattr(event_date, "isoformat") else event_date,
+                "entities": entities if isinstance(entities, list) else [],
+                "company_count": len(entities) if isinstance(entities, list) else 0,
+                "impact": impact,
+                "confidence": r.get("confidence"),
+                "created_at": created_at.isoformat() if hasattr(created_at, "isoformat") else created_at,
+            })
+        result["events"] = items
+        result["total"] = len(items)
+    except Exception:
+        logger.exception("event-monitor: events query failed, degraded")
+
+    return result
+
+
+@router.get("/events/top-impact")
+async def top_impact_events(
+    company: str = Query("", description="受影响公司过滤"),
+    days: int = Query(30, ge=1, le=365, description="窗口（天）"),
+    limit: int = Query(10, ge=1, le=50, description="返回条数"),
+):
+    """NIC-B2 Top Impact Events：读 core.events 按影响评分排行（KOC 分析结果）
+
+    - 星级 = round(score * 5)（影响评分的 0-5 星映射）
+    - 数据来自 KOC 知识图谱（core.events），不触发 LLM 实时重算
+    - 支持按受影响公司过滤
+    """
+    company = company if isinstance(company, str) else ""
+
+    result: dict = {
+        "source": "core.events",
+        "days": days,
+        "items": [],
+        "total": 0,
+    }
+    try:
+        sql = (
+            "SELECT e.id, e.event_type, e.title, e.description, e.event_date, "
+            "e.entities, e.impact, e.confidence "
+            "FROM core.events e "
+            "WHERE e.event_date >= CURRENT_DATE - INTERVAL '1 day' * $1 "
+        )
+        params: list = [days]
+        if company:
+            sql += (
+                "AND EXISTS (SELECT 1 FROM jsonb_array_elements_text(e.entities) c(name) "
+                "WHERE c.name = $" + str(len(params) + 1) + ") "
+            )
+            params.append(company)
+        sql += (
+            "ORDER BY (NULLIF(e.impact->>'score', '')::float) DESC NULLS LAST "
+            "LIMIT $" + str(len(params) + 1)
+        )
+        params.append(limit)
+        rows = await postgres_tool.query(sql, *params)
+        items = []
+        for r in rows:
+            entities = _json_or_empty(r.get("entities"))
+            impact_raw = r.get("impact")
+            impact = impact_raw
+            if isinstance(impact_raw, str):
+                try:
+                    parsed = json.loads(impact_raw)
+                    impact = parsed if isinstance(parsed, dict) else {}
+                except (ValueError, TypeError):
+                    impact = {}
+            elif not isinstance(impact_raw, dict):
+                impact = {}
+            score = impact.get("score") if isinstance(impact, dict) else None
+            score_f = float(score) if score is not None else None
+            event_date = r.get("event_date")
+            items.append({
+                "id": str(r["id"]),
+                "event_type": r.get("event_type"),
+                "title": r.get("title"),
+                "description": r.get("description"),
+                "event_date": event_date.isoformat() if hasattr(event_date, "isoformat") else event_date,
+                "companies": entities if isinstance(entities, list) else [],
+                "company_count": len(entities) if isinstance(entities, list) else 0,
+                "impact": impact,
+                "score": score_f,
+                "stars": (
+                    max(0, min(5, round(score_f * 5)))
+                    if score_f is not None else 0
+                ),
+                "confidence": r.get("confidence"),
+            })
+        result["items"] = items
+        result["total"] = len(items)
+    except Exception:
+        logger.exception("top-impact: query failed, degraded")
+
+    return result
+
+
+@router.get("/events/timeline")
+async def event_timeline(
+    entity_name: str = Query("", description="受影响实体/公司过滤"),
+    days: int = Query(90, ge=1, le=365, description="窗口（天）"),
+    limit: int = Query(50, ge=1, le=200, description="返回条数"),
+):
+    """NIC-B3 事件时间线：读 core.events（Timeline 与 Event Monitor 同源）
+
+    - 按 event_date 升序排列，支持按受影响实体/公司过滤（entities 数组包含）
+    - 数据来自 KOC 知识图谱（core.events），新闻侧不再单独出时间线
+    """
+    entity_name = entity_name if isinstance(entity_name, str) else ""
+
+    result: dict = {
+        "source": "core.events",
+        "entity_name": entity_name,
+        "days": days,
+        "items": [],
+        "total": 0,
+    }
+    try:
+        sql = (
+            "SELECT e.id, e.event_type, e.title, e.description, e.event_date, "
+            "e.entities, e.impact, e.confidence "
+            "FROM core.events e "
+            "WHERE e.event_date >= CURRENT_DATE - INTERVAL '1 day' * $1 "
+        )
+        params: list = [days]
+        if entity_name:
+            sql += (
+                "AND EXISTS (SELECT 1 FROM jsonb_array_elements_text(e.entities) c(name) "
+                "WHERE c.name = $" + str(len(params) + 1) + ") "
+            )
+            params.append(entity_name)
+        sql += (
+            "ORDER BY e.event_date ASC NULLS LAST "
+            "LIMIT $" + str(len(params) + 1)
+        )
+        params.append(limit)
+        rows = await postgres_tool.query(sql, *params)
+        items = []
+        for r in rows:
+            entities = _json_or_empty(r.get("entities"))
+            impact_raw = r.get("impact")
+            impact = impact_raw
+            if isinstance(impact_raw, str):
+                try:
+                    parsed = json.loads(impact_raw)
+                    impact = parsed if isinstance(parsed, dict) else {}
+                except (ValueError, TypeError):
+                    impact = {}
+            elif not isinstance(impact_raw, dict):
+                impact = {}
+            score = impact.get("score") if isinstance(impact, dict) else None
+            score_f = float(score) if score is not None else None
+            event_date = r.get("event_date")
+            items.append({
+                "id": str(r["id"]),
+                "event_type": r.get("event_type"),
+                "title": r.get("title"),
+                "description": r.get("description"),
+                "event_date": event_date.isoformat() if hasattr(event_date, "isoformat") else event_date,
+                "companies": entities if isinstance(entities, list) else [],
+                "company_count": len(entities) if isinstance(entities, list) else 0,
+                "impact": impact,
+                "score": score_f,
+                "stars": (
+                    max(0, min(5, round(score_f * 5)))
+                    if score_f is not None else 0
+                ),
+                "confidence": r.get("confidence"),
+            })
+        result["items"] = items
+        result["total"] = len(items)
+    except Exception:
+        logger.exception("event-timeline: query failed, degraded")
+
+    return result
+
+
+@router.get("/entities/types")
+async def list_entity_types():
+    """实体类型统计（Knowledge Explorer 类型统计卡）"""
+    try:
+        rows = await knowledge_storage.count_entities_by_type()
+        return {
+            "types": [
+                {"entity_type": r["entity_type"], "count": int(r["count"] or 0)}
+                for r in rows
+            ],
+            "total": len(rows),
+        }
+    except Exception as e:
+        logger.exception("Failed to count entity types")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/entities")
 async def list_entities(
     name: str = Query("", description="实体名称搜索"),
     entity_type: str = Query("", description="实体类型过滤"),
+    min_confidence: float | None = Query(None, ge=0, le=1, description="最低置信度"),
+    min_source_count: int | None = Query(None, ge=0, description="最小来源数"),
     limit: int = Query(20, ge=1, le=100),
 ):
-    """查询实体（by name/type）"""
+    """查询实体（by name/type/confidence/source_count，KOC-C1 快速筛选）"""
     try:
         entities = await knowledge_storage.search_entities(
-            name=name, entity_type=entity_type, limit=limit
+            name=name,
+            entity_type=entity_type,
+            limit=limit,
+            min_confidence=min_confidence,
+            min_source_count=min_source_count,
         )
         return {
             "entities": [
@@ -325,6 +856,8 @@ async def get_entity_neighbors(
                 {
                     "source_entity": str(n["source_entity"]),
                     "target_entity": str(n["target_entity"]),
+                    "source_name": n.get("source_name"),
+                    "target_name": n.get("target_name"),
                     "relation_type": n["relation_type"],
                     "depth": n["depth"],
                 }
@@ -335,6 +868,118 @@ async def get_entity_neighbors(
     except Exception as e:
         logger.exception("Failed to get neighbors")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/entities/{entity_id}/timeline")
+async def get_entity_timeline(entity_id: str):
+    """KOC-D3 Evolution：实体时间线（版本历史 + 事实时间 + 相关事件）
+
+    - versions：audit.knowledge_versions（object_type='entity'）版本链，展示名称/属性演变
+    - facts：core.facts（subject_entity 关联）含 time_start/end 与入库时间
+    - events：core.events（entities 数组包含实体 id 或名称）
+    各子查询独立 try/except，单故障不影响整体返回。
+    """
+    import uuid as _uuid
+
+    # 先校验实体存在
+    try:
+        rows = await postgres_tool.query(
+            "SELECT id FROM core.entities WHERE id = $1 AND status = 'active'",
+            _uuid.UUID(entity_id),
+        )
+        if not rows:
+            raise HTTPException(status_code=404, detail="Entity not found")
+    except HTTPException:
+        raise
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid entity ID format")
+    except Exception as e:
+        logger.exception("Failed to check entity")
+        raise HTTPException(status_code=500, detail=str(e))
+
+    result: dict = {"entity_id": entity_id, "versions": [], "facts": [], "events": []}
+
+    def _parse_json(value):
+        """asyncpg jsonb 可能返回 str，统一解析为对象"""
+        if value is None:
+            return None
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except Exception:
+                return {"raw": value}
+        return value
+
+    # ── 版本历史 ──
+    try:
+        vrows = await postgres_tool.query(
+            "SELECT version, content, created_by, created_at "
+            "FROM audit.knowledge_versions "
+            "WHERE object_type='entity' AND object_id = $1 ORDER BY version",
+            _uuid.UUID(entity_id),
+        )
+        result["versions"] = [
+            {
+                "version": int(r["version"] or 1),
+                "created_by": r.get("created_by") or "system",
+                "created_at": str(r["created_at"]) if r.get("created_at") else None,
+                "content": _parse_json(r.get("content")) or {},
+            }
+            for r in vrows
+        ]
+    except Exception:
+        logger.warning("timeline: versions query failed, degraded")
+
+    # ── 事实（含时间窗口） ──
+    try:
+        frows = await postgres_tool.query(
+            "SELECT id, predicate, object_value, unit, time_start, time_end, "
+            "confidence, verification_status, created_at "
+            "FROM core.facts WHERE subject_entity = $1 ORDER BY time_start NULLS LAST, created_at",
+            _uuid.UUID(entity_id),
+        )
+        result["facts"] = [
+            {
+                "id": str(r["id"]),
+                "predicate": r["predicate"],
+                "object_value": _parse_json(r.get("object_value")),
+                "unit": r.get("unit"),
+                "time_start": _iso(r.get("time_start")),
+                "time_end": _iso(r.get("time_end")),
+                "confidence": r.get("confidence"),
+                "verification_status": r.get("verification_status"),
+                "created_at": _iso(r.get("created_at")),
+            }
+            for r in frows
+        ]
+    except Exception:
+        logger.warning("timeline: facts query failed, degraded")
+
+    # ── 相关事件（entities 数组含实体 id 或名称） ──
+    try:
+        erows = await postgres_tool.query(
+            "SELECT id, event_type, title, description, event_date, created_at "
+            "FROM core.events "
+            "WHERE entities::text LIKE $1 OR entities::text LIKE $2 "
+            "ORDER BY event_date NULLS LAST, created_at",
+            f"%{entity_id}%",
+            f"%{entity_id.split('-')[0]}%",
+        )
+        result["events"] = [
+            {
+                "id": str(r["id"]),
+                "event_type": r["event_type"],
+                "title": r["title"],
+                "description": r.get("description"),
+                "event_date": _iso(r.get("event_date")),
+                "created_at": _iso(r.get("created_at")),
+            }
+            for r in erows
+        ]
+    except Exception:
+        logger.warning("timeline: events query failed, degraded")
+
+    return result
 
 
 @router.get("/facts")
@@ -385,11 +1030,101 @@ class HybridSearchRequest(BaseModel):
     limit: int = 10
 
 
+async def _fulltext_search(query: str, limit: int) -> dict:
+    """全文检索通道（Postgres ILIKE）：实体 / 文档 / 事件
+
+    Returns:
+        {"entities": [...], "documents": [...], "events": [...]}
+    """
+    pattern = f"%{query.strip()}%"
+    results: dict = {"entities": [], "documents": [], "events": []}
+
+    # 实体全文（name / canonical_name）
+    try:
+        rows = await postgres_tool.query(
+            """
+            SELECT id, name, entity_type, description, confidence, source_count
+            FROM core.entities
+            WHERE status = 'active'
+              AND (name ILIKE $1 OR canonical_name ILIKE $1)
+            ORDER BY source_count DESC, confidence DESC NULLS LAST
+            LIMIT $2
+            """,
+            pattern, limit,
+        )
+        results["entities"] = [
+            {
+                "id": str(r["id"]),
+                "name": r["name"],
+                "entity_type": r["entity_type"],
+                "description": r.get("description"),
+            }
+            for r in rows
+        ]
+    except Exception as e:
+        logger.warning("fulltext entities failed: %s", e)
+
+    # 文档全文（title）
+    try:
+        rows = await postgres_tool.query(
+            """
+            SELECT id, title, document_type, source
+            FROM document.documents
+            WHERE title ILIKE $1
+            ORDER BY created_at DESC
+            LIMIT $2
+            """,
+            pattern, limit,
+        )
+        results["documents"] = [
+            {
+                "id": str(r["id"]),
+                "title": r.get("title"),
+                "document_type": r.get("document_type"),
+                "source": r.get("source"),
+            }
+            for r in rows
+        ]
+    except Exception as e:
+        logger.warning("fulltext documents failed: %s", e)
+
+    # 事件全文（title / description）
+    try:
+        rows = await postgres_tool.query(
+            """
+            SELECT id, title, event_type, event_date, description
+            FROM core.events
+            WHERE title ILIKE $1 OR description ILIKE $1
+            ORDER BY event_date DESC NULLS LAST, created_at DESC
+            LIMIT $2
+            """,
+            pattern, limit,
+        )
+        results["events"] = [
+            {
+                "id": str(r["id"]),
+                "title": r["title"],
+                "event_type": r.get("event_type"),
+                "event_date": str(r["event_date"]) if r.get("event_date") else None,
+                "description": r.get("description"),
+            }
+            for r in rows
+        ]
+    except Exception as e:
+        logger.warning("fulltext events failed: %s", e)
+
+    return results
+
+
 @router.post("/search")
 async def hybrid_search(request: HybridSearchRequest):
-    """混合检索：图查询 + 向量检索 + RRF 合并"""
+    """统一搜索入口（KOC-C2）：向量 + 全文 + 图 三通道混合检索
+
+    一次查询返回 Entity / Fact / Event / Document 混合结果，
+    每项标注来源通道（vector / fulltext / graph）。
+    """
     try:
-        # 1. 图查询（结构化）
+        # 1. 图查询（结构化，entity_name 可选）
         graph_results = []
         entity_ids = []
 
@@ -411,13 +1146,78 @@ async def hybrid_search(request: HybridSearchRequest):
             limit=request.limit,
         )
 
-        # 3. 合并结果
+        # 3. 全文检索（实体/文档/事件）
+        fulltext = await _fulltext_search(request.query, request.limit)
+
+        # 4. 合并统一结果（去重，vector 优先，标注来源通道）
+        merged_entities: dict[str, dict] = {}
+        for ent in vector_results.get("entities", []):
+            payload = ent.get("payload", {}) or {}
+            merged_entities[str(ent["id"])] = {
+                "id": str(ent["id"]),
+                "name": payload.get("name", ""),
+                "entity_type": payload.get("entity_type", ""),
+                "description": payload.get("description"),
+                "score": ent.get("score"),
+                "source_channels": ["vector"],
+            }
+        for ent in fulltext.get("entities", []):
+            eid = ent["id"]
+            if eid in merged_entities:
+                merged_entities[eid]["source_channels"] = sorted(
+                    set(merged_entities[eid]["source_channels"]) | {"fulltext"}
+                )
+                if not merged_entities[eid].get("description"):
+                    merged_entities[eid]["description"] = ent.get("description")
+            else:
+                merged_entities[eid] = {
+                    "id": eid,
+                    "name": ent["name"],
+                    "entity_type": ent.get("entity_type", ""),
+                    "description": ent.get("description"),
+                    "score": None,
+                    "source_channels": ["fulltext"],
+                }
+
+        # 5. 统一响应（保留 graph_results / vector_results 兼容旧前端）
         return {
             "query": request.query,
+            "source_channels": {
+                "vector": len(vector_results.get("entities", [])) > 0 or len(vector_results.get("facts", [])) > 0,
+                "fulltext": any(
+                    len(fulltext.get(k, [])) > 0 for k in ("entities", "documents", "events")
+                ),
+                "graph": len(graph_results) > 0,
+            },
+            "results": {
+                "entities": list(merged_entities.values()),
+                "facts": [
+                    {
+                        "id": str(f["id"]),
+                        "subject_name": (f.get("payload") or {}).get("subject_name", ""),
+                        "predicate": (f.get("payload") or {}).get("predicate", ""),
+                        "object_value": (f.get("payload") or {}).get("object_value", ""),
+                        "time_start": (f.get("payload") or {}).get("time_start"),
+                        "score": f.get("score"),
+                        "source_channels": ["vector"],
+                    }
+                    for f in vector_results.get("facts", [])
+                ],
+                "events": [
+                    {**e, "source_channels": ["fulltext"]}
+                    for e in fulltext.get("events", [])
+                ],
+                "documents": [
+                    {**d, "source_channels": ["fulltext"]}
+                    for d in fulltext.get("documents", [])
+                ],
+            },
             "graph_results": [
                 {
                     "source_entity": str(r["source_entity"]),
                     "target_entity": str(r["target_entity"]),
+                    "source_name": r.get("source_name"),
+                    "target_name": r.get("target_name"),
                     "relation_type": r["relation_type"],
                     "depth": r["depth"],
                 }
@@ -1080,4 +1880,264 @@ async def retry_render_job(job_id: str):
         raise
     except Exception as e:
         logger.exception("Failed to retry render job %s", job_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─────────────── Knowledge Package 管理（DP-D1 Publish） ───────────────
+
+class PublishRequest(BaseModel):
+    """发布请求体：destination 可选（默认取 policy pipeline.publish.destination）"""
+
+    destination: str | None = Field(default=None, description="发布目标（如 koc_inbox）")
+
+
+@router.get("/packages")
+async def list_packages(
+    status: str | None = Query(default=None, description="draft/published/consumed/failed"),
+    source_type: str | None = Query(default=None, description="annual_report/news/web/general"),
+    limit: int = Query(default=50, le=500),
+):
+    """Knowledge Package 列表（DP-D1，按状态/源类型筛选）"""
+    try:
+        where = []
+        params: list = []
+        if status:
+            where.append("status = $" + str(len(params) + 1))
+            params.append(status)
+        if source_type:
+            where.append("source_type = $" + str(len(params) + 1))
+            params.append(source_type)
+        sql = f"""
+            SELECT id, package_version, schema_version, source_type, document_id,
+                   status, publish_time, retry_count, created_at, updated_at
+            FROM knowledge_packages
+            {"WHERE " + " AND ".join(where) if where else ""}
+            ORDER BY created_at DESC
+            LIMIT ${len(params) + 1}
+        """
+        params.append(limit)
+        rows = await postgres_tool.query(sql, *params)
+        return {
+            "packages": [
+                {
+                    "id": str(r["id"]),
+                    "package_version": r["package_version"],
+                    "schema_version": r["schema_version"],
+                    "source_type": r["source_type"],
+                    "document_id": str(r["document_id"]) if r.get("document_id") else None,
+                    "status": r["status"],
+                    "publish_time": str(r["publish_time"]) if r.get("publish_time") else None,
+                    "retry_count": r.get("retry_count", 0),
+                    "created_at": str(r["created_at"]) if r.get("created_at") else None,
+                }
+                for r in rows
+            ],
+            "total": len(rows),
+        }
+    except Exception as e:
+        logger.exception("Failed to list packages")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/packages/{package_id}")
+async def get_package(package_id: str):
+    """Package 详情（含 payload 摘要与校验信息）"""
+    try:
+        row = await package_storage.get(package_id)
+        if not row:
+            raise HTTPException(status_code=404, detail="package not found")
+        valid, errors = await package_storage.validate_for_publish(package_id)
+        return {
+            "id": str(row["id"]),
+            "package_version": row["package_version"],
+            "schema_version": row["schema_version"],
+            "source_type": row["source_type"],
+            "document_id": str(row["document_id"]) if row.get("document_id") else None,
+            "status": row["status"],
+            "publish_time": str(row["publish_time"]) if row.get("publish_time") else None,
+            "retry_count": row.get("retry_count", 0),
+            "payload": row.get("payload"),
+            "publishable": valid,
+            "validation_errors": errors,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to get package %s", package_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/packages/{package_id}/publish")
+async def publish_package(package_id: str, body: PublishRequest | None = None):
+    """发布 Package 草稿：校验 → published（DP-D1）
+
+    校验失败：retry_count + 1，达上限置 failed；成功：published（KOC Inbox 拉取消费）。
+    """
+    try:
+        valid, errors = await package_storage.validate_for_publish(package_id)
+        if not valid:
+            raise HTTPException(
+                status_code=422,
+                detail={"message": "Package 校验未通过", "errors": errors},
+            )
+        ok = await package_storage.publish(
+            package_id, destination=body.destination if body else None
+        )
+        if not ok:
+            raise HTTPException(status_code=409, detail="发布失败（状态非 draft 或 DB 错误）")
+        return {"status": "ok", "message": "Package 已发布", "package_id": package_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to publish package %s", package_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/packages/{package_id}/retry")
+async def retry_package(package_id: str):
+    """重投失败 Package：failed → draft（retry_count + 1，DP-D1 Re-Publish）"""
+    try:
+        ok = await package_storage.retry(package_id)
+        if not ok:
+            raise HTTPException(status_code=409, detail="仅 failed 状态的 Package 可重投")
+        return {"status": "ok", "message": "Package 已重投为草稿", "package_id": package_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to retry package %s", package_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/packages/{package_id}/rollback")
+async def rollback_package(package_id: str):
+    """回退已发布 Package：published/consumed → draft（DP-D1）
+
+    支持 Rollback 场景：重新处理或重新发布，回到上一版本。
+    """
+    try:
+        ok = await package_storage.rollback(package_id)
+        if not ok:
+            raise HTTPException(status_code=409, detail="仅 published/consumed 状态可回退")
+        return {"status": "ok", "message": "Package 已回退为草稿", "package_id": package_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to rollback package %s", package_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================
+# KOC-B2 治理面板端点（Duplicate/Conflict/Low Confidence/Need Review）
+# ============================================================
+
+
+@router.get("/governance/summary")
+async def governance_summary():
+    """治理面板计数卡：四类 open 冲突计数 + 总览（KOC-B2）
+
+    sync_conflict 为 KOC-F3 预留（core.entities.sync_status 冲突），
+    与四类检测冲突同表同端点。
+    """
+    try:
+        rows = await postgres_tool.query(
+            """
+            SELECT conflict_type, COUNT(*) AS cnt
+            FROM core.knowledge_conflicts
+            WHERE status = 'open'
+            GROUP BY conflict_type
+            """
+        )
+        counts = {r["conflict_type"]: r["cnt"] for r in rows}
+        return {
+            "summary": {
+                "duplicate_entity": counts.get("duplicate_entity", 0),
+                "value_mismatch": counts.get("value_mismatch", 0),
+                "low_confidence": counts.get("low_confidence", 0),
+                "stale_fact": counts.get("stale_fact", 0),
+                "sync_conflict": counts.get("sync_conflict", 0),
+                "total": sum(counts.values()),
+            }
+        }
+    except Exception as e:
+        logger.exception("Failed to get governance summary")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/governance/items")
+async def governance_items(
+    conflict_type: str | None = Query(
+        default=None, description="duplicate_entity/value_mismatch/low_confidence/stale_fact"
+    ),
+    limit: int = Query(default=50, ge=1, le=200),
+):
+    """治理处理队列：open 状态治理项列表（含实体名/事实内容解析）"""
+    try:
+        rows = await postgres_tool.query(
+            """
+            SELECT c.id, c.conflict_type, c.entity_id, c.fact_a, c.fact_b,
+                   c.resolution, c.created_at,
+                   e.name AS entity_name, e.entity_type
+            FROM core.knowledge_conflicts c
+            LEFT JOIN core.entities e ON e.id = c.entity_id
+            WHERE c.status = 'open'
+              AND ($1::text IS NULL OR c.conflict_type = $1)
+            ORDER BY c.created_at DESC
+            LIMIT $2
+            """,
+            conflict_type,
+            limit,
+        )
+        items = []
+        for r in rows:
+            item = {
+                "id": str(r["id"]),
+                "conflict_type": r["conflict_type"],
+                "entity_id": str(r["entity_id"]) if r.get("entity_id") else None,
+                "entity_name": r.get("entity_name"),
+                "entity_type": r.get("entity_type"),
+                "fact_a": str(r["fact_a"]) if r.get("fact_a") else None,
+                "fact_b": str(r["fact_b"]) if r.get("fact_b") else None,
+                "resolution": r.get("resolution"),
+                "created_at": str(r["created_at"]) if r.get("created_at") else None,
+            }
+            # 解析 resolution JSON 供前端展示动作/详情
+            try:
+                item["resolution_obj"] = json.loads(item["resolution"]) if item["resolution"] else {}
+            except (json.JSONDecodeError, TypeError):
+                item["resolution_obj"] = {}
+            items.append(item)
+        return {"items": items, "total": len(items)}
+    except Exception as e:
+        logger.exception("Failed to get governance items")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class ResolveRequest(BaseModel):
+    """治理项处理请求体（KOC-B2）"""
+
+    action: str = Field(description="merge/keep/dismiss（合并/保留/驳回）")
+    note: str = Field(default="", description="处理备注")
+
+
+@router.post("/governance/{conflict_id}/resolve")
+async def resolve_conflict(conflict_id: str, body: ResolveRequest):
+    """处理治理项：回写 status='resolved' + resolution.action（KOC-B2）
+
+    merge 仅对 duplicate_entity 生效：真实合并重复实体（别名并入保留实体）。
+    """
+    try:
+        ok = await governance.resolve_conflict(conflict_id, body.action, body.note)
+        if not ok:
+            raise HTTPException(status_code=404, detail="治理项不存在或已处理")
+        return {
+            "status": "ok",
+            "message": f"治理项已处理（{body.action}）",
+            "conflict_id": conflict_id,
+        }
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.exception("Failed to resolve conflict %s", conflict_id)
         raise HTTPException(status_code=500, detail=str(e))

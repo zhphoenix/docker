@@ -190,5 +190,110 @@ async def test_merger_auto_approve_writes_log():
     mock_storage.record_review_log.assert_awaited_once_with(
         "inbox-1", "auto_approve", reviewer="system", reason=""
     )
-    # KOC-F1: 审核通过 → 入 Render Queue（company 优先 priority=1）
-    mock_storage.enqueue_render_job.assert_awaited_once_with("eid-1", "company")
+    # KOC-F4: 新增实体 → 全量渲染（section=None → sync_entity）；company 优先 priority=1
+    mock_storage.enqueue_render_job.assert_awaited_once_with("eid-1", "company", section=None)
+
+
+@pytest.mark.asyncio
+async def test_merger_rendering_disabled_skips_render_job():
+    """KOC-F4: rendering.enabled=false → 审核通过不产生 render_jobs（policy 总开关）"""
+    from nodes.knowledge.merger import knowledge_merger
+
+    state = {
+        "entities": [
+            {"name": "宁德时代", "entity_type": "company",
+             "aliases": [], "properties": {}, "confidence": 0.9},
+        ],
+        "relations": [], "facts": [],
+        "entity_embeddings": [[0.1, 0.2]],
+        "source_metadata": {"source": "annual_report"},
+        "document_id": "doc-2",
+    }
+
+    mock_storage = MagicMock()
+    mock_storage.find_entities_by_names = AsyncMock(return_value=[])
+    mock_storage.search_entity_by_embedding = AsyncMock(return_value=[])
+    mock_storage.bulk_upsert_entities = AsyncMock(return_value=["eid-2"])
+    mock_storage.bulk_insert_relations = AsyncMock(return_value=[])
+    mock_storage.bulk_insert_facts = AsyncMock(return_value=[])
+    mock_storage.bulk_insert_evidence = AsyncMock(return_value=None)
+    mock_storage.insert_inbox = AsyncMock(return_value="inbox-2")
+    mock_storage.update_inbox_status = AsyncMock(return_value=None)
+    mock_storage.record_knowledge_version = AsyncMock(return_value=1)
+    mock_storage.record_review_log = AsyncMock(return_value="log-id")
+    mock_storage.enqueue_render_job = AsyncMock(return_value="job-id")
+
+    def _fake_policy(path, default=None):
+        if path == "knowledge.inbox.auto_approve_confidence":
+            return 0.85
+        if path == "rendering.enabled":
+            return False
+        return default
+
+    with patch("nodes.knowledge.merger.knowledge_qdrant") as _qdrant, \
+         patch("nodes.knowledge.merger.knowledge_age") as _age, \
+         patch("nodes.knowledge.merger.create_approval", new=AsyncMock()) as _ca, \
+         patch("nodes.knowledge.merger.get_policy", side_effect=_fake_policy):
+        _age.available = False
+        _qdrant.index_entities = AsyncMock()
+        _qdrant.index_facts = AsyncMock()
+        await knowledge_merger(state, storage=mock_storage)
+
+    # 审核仍通过（auto_approve 不受渲染开关影响）
+    mock_storage.update_inbox_status.assert_awaited_once_with(
+        "inbox-2", "APPROVED", reviewer="system"
+    )
+    # 渲染总开关关闭 → 不产生 render_jobs
+    mock_storage.enqueue_render_job.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_merger_existing_entity_renders_incremental():
+    """KOC-F4: 已有实体（merge）→ 增量渲染（section=policy 配置的变更块 → sync_section）"""
+    from nodes.knowledge.merger import knowledge_merger
+
+    # 上游 Validator 已识别 existing_id → merger 按合并处理
+    state = {
+        "entities": [
+            {"name": "腾讯控股", "entity_type": "company", "existing_id": "eid-1",
+             "aliases": [], "properties": {}, "confidence": 0.9},
+        ],
+        "relations": [], "facts": [],
+        "entity_embeddings": [[0.1, 0.2]],
+        "source_metadata": {"source": "annual_report"},
+        "document_id": "doc-3",
+    }
+
+    mock_storage = MagicMock()
+    mock_storage.find_entities_by_names = AsyncMock(return_value=[])
+    mock_storage.search_entity_by_embedding = AsyncMock(return_value=[])
+    mock_storage.bulk_upsert_entities = AsyncMock(return_value=["eid-1"])
+    mock_storage.bulk_insert_relations = AsyncMock(return_value=[])
+    mock_storage.bulk_insert_facts = AsyncMock(return_value=[])
+    mock_storage.bulk_insert_evidence = AsyncMock(return_value=None)
+    mock_storage.insert_inbox = AsyncMock(return_value="inbox-3")
+    mock_storage.update_inbox_status = AsyncMock(return_value=None)
+    mock_storage.record_knowledge_version = AsyncMock(return_value=1)
+    mock_storage.record_review_log = AsyncMock(return_value="log-id")
+    mock_storage.enqueue_render_job = AsyncMock(return_value="job-id")
+
+    def _fake_policy(path, default=None):
+        if path == "knowledge.inbox.auto_approve_confidence":
+            return 0.85
+        if path == "rendering.strategy.existing_section":
+            return "facts"
+        return default
+
+    with patch("nodes.knowledge.merger.knowledge_qdrant") as _qdrant, \
+         patch("nodes.knowledge.merger.knowledge_age") as _age, \
+         patch("nodes.knowledge.merger.create_approval", new=AsyncMock()) as _ca, \
+         patch("nodes.knowledge.merger.get_policy", side_effect=_fake_policy):
+        _age.available = False
+        _qdrant.index_entities = AsyncMock()
+        _qdrant.index_facts = AsyncMock()
+        await knowledge_merger(state, storage=mock_storage)
+
+    # 已有实体 → 增量渲染（section="facts"）
+    mock_storage.enqueue_render_job.assert_awaited_once_with(
+        "eid-1", "company", section="facts"
+    )

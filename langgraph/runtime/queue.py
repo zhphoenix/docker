@@ -17,6 +17,12 @@ from tools.postgres import postgres_tool
 
 logger = logging.getLogger(__name__)
 
+# DP-D4 三级优先级 → tasks.priority 整数（数字越大越优先，与 idx_tasks_priority 索引一致）
+#   HIGH=10   Breaking News/实时任务优先被 Worker 认领
+#   NORMAL=0  默认（普通文档/批量任务）
+#   LOW=-10   Annual Report 等批量重活，避免挤占实时任务
+PRIORITY_LEVELS = {"high": 10, "normal": 0, "low": -10}
+
 
 # 进程内任务控制标志（task_id -> {paused, cancelled}），供协作式取消/暂停使用
 _controls: dict[str, dict] = {}
@@ -32,19 +38,35 @@ class TaskQueue:
         params: dict[str, Any] | None = None,
         total_items: int = 0,
         created_by: str = "system",
+        priority: int | str = 0,
     ) -> str:
-        """创建任务，返回 task_id"""
+        """创建任务，返回 task_id
+
+        Args:
+            priority: 优先级，支持整数（越大越优先）或 high/normal/low 字符串
+                （DP-D4 三级队列，与 AcquirePriority 枚举对应）
+        """
         task_id = str(uuid.uuid4())
+        prio = self._normalize_priority(priority)
         await postgres_tool.execute(
             """
-            INSERT INTO tasks (id, task_type, title, status, params, total_items, created_by)
-            VALUES ($1, $2, $3, 'pending', $4::jsonb, $5, $6)
+            INSERT INTO tasks (id, task_type, title, status, params, total_items, created_by, priority)
+            VALUES ($1, $2, $3, 'pending', $4::jsonb, $5, $6, $7)
             """,
             task_id, task_type, title,
-            json.dumps(params or {}), total_items, created_by,
+            json.dumps(params or {}), total_items, created_by, prio,
         )
-        logger.info("Task created: %s [%s] %s", task_id[:8], task_type, title)
+        logger.info("Task created: %s [%s] %s | priority=%d", task_id[:8], task_type, title, prio)
         return task_id
+
+    @staticmethod
+    def _normalize_priority(priority: int | str) -> int:
+        """归一化优先级：int 直接用；字符串按 high/normal/low 映射（未知回退 0=normal）"""
+        if isinstance(priority, int):
+            return priority
+        if isinstance(priority, str):
+            return PRIORITY_LEVELS.get(priority.lower(), 0)
+        return 0
 
     async def start_task(self, task_id: str) -> None:
         """标记任务开始"""
@@ -122,7 +144,9 @@ class TaskQueue:
             params.append(task_type)
             idx += 1
 
-        query += f" ORDER BY created_at ASC LIMIT ${idx}"
+        # DP-D4: 按优先级降序 + 创建时间升序认领（复用 idx_tasks_priority 索引），
+        # HIGH 任务优先被 Worker 认领
+        query += f" ORDER BY priority DESC, created_at ASC LIMIT ${idx}"
         params.append(limit)
 
         return await postgres_tool.query(query, *params)
