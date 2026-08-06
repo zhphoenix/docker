@@ -16,6 +16,7 @@ export interface AgentInfo {
   status: 'active' | 'paused' | 'deprecated'
   last_active_at: string | null
   source: 'builtin' | 'custom'
+  api_enabled?: boolean
 }
 
 export interface AgentRuntime {
@@ -107,6 +108,27 @@ export function fetchAgentMetrics(agentId: string, range: string = '7d'): Promis
   return apiFetch<AgentMetrics>(`/api/agents/${agentId}/metrics?range=${range}`)
 }
 
+export interface PromptVariantStat {
+  variant: string
+  runs: number
+  success: number
+  failed: number
+  success_rate: number
+  avg_latency_ms: number
+  avg_tokens: number
+}
+
+export interface PromptVariantsResponse {
+  agent_id: string
+  range: string
+  variants: PromptVariantStat[]
+  total: number
+}
+
+export function fetchPromptVariants(agentId: string, range: string = '7d'): Promise<PromptVariantsResponse> {
+  return apiFetch<PromptVariantsResponse>(`/api/agents/${agentId}/prompt-variants?range=${range}`)
+}
+
 export interface LogEntry {
   source: 'agent_run' | 'task_log'
   time: string | null
@@ -168,6 +190,81 @@ export function fetchAgentLogs(query: LogsQuery = {}): Promise<LogsResponse> {
 
 export function fetchRunTrace(runId: string): Promise<RunTrace> {
   return apiFetch<RunTrace>(`/api/logs/${runId}/trace`)
+}
+
+/* ── AC-P4-5 跨 Agent 协同调用链 ── */
+
+export interface TraceStep {
+  agent_id: string
+  display_name: string
+}
+
+export interface CollabTraceItem {
+  trace_id: string
+  agents: number
+  runs: number
+  started_at: string | null
+  last_at: string | null
+  total_duration_ms: number | null
+  failed_runs: number
+  status: 'failed' | 'completed' | 'running'
+  steps: TraceStep[]
+}
+
+export interface CollabTracesResponse {
+  items: CollabTraceItem[]
+  total: number
+  page: number
+  page_size: number
+}
+
+export function fetchCollabTraces(page: number = 1, pageSize: number = 20): Promise<CollabTracesResponse> {
+  const qs = new URLSearchParams({
+    page: String(page),
+    page_size: String(pageSize),
+  }).toString()
+  return apiFetch<CollabTracesResponse>(`/api/logs/traces?${qs}`)
+}
+
+export interface TraceChainRun {
+  run_id: string
+  agent_id: string
+  display_name: string
+  task_kind: string
+  status: string
+  question: string | null
+  duration_ms: number | null
+  error: string | null
+  error_category: string | null
+  created_at: string | null
+  timeline: {
+    node: string
+    status: string
+    duration_ms: number | null
+    detail: string | null
+  }[]
+}
+
+export interface TraceChain {
+  trace_id: string
+  runs: TraceChainRun[]
+  chain: TraceStep[]
+}
+
+export function fetchTraceChain(traceId: string): Promise<TraceChain> {
+  return apiFetch<TraceChain>(`/api/logs/trace/${traceId}`)
+}
+
+/* ── AC-P4-6 Agent API 权限 ── */
+
+export function setAgentPermission(
+  agentId: string,
+  enabled: boolean
+): Promise<{ id: string; api_enabled: boolean }> {
+  return apiFetch(`/api/agents/${agentId}/permission`, {
+    method: 'POST',
+    body: JSON.stringify({ enabled }),
+  })
 }
 
 export function buildLogsExportUrl(query: LogsQuery = {}): string {

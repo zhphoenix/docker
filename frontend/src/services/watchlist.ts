@@ -223,6 +223,29 @@ export function fetchGroups(): Promise<{ items: GroupInfo[] }> {
   return apiFetch('/api/watchlist/groups')
 }
 
+// ─── Monitor Hits (NIC-D2) ────────────────────────────
+
+export interface MonitorHit {
+  stock_code: string
+  stock_name: string | null
+  market: string | null
+  ai_score: number
+  live_count: number
+  cached_count: number
+  event_count: number
+}
+
+export function fetchMonitorHits(params?: {
+  group_name?: string
+  sort?: 'live_count' | 'cached_count' | 'event_count' | 'ai_score'
+}): Promise<{ items: MonitorHit[]; total: number; stale: number }> {
+  const searchParams = new URLSearchParams()
+  if (params?.group_name) searchParams.set('group_name', params.group_name)
+  if (params?.sort) searchParams.set('sort', params.sort)
+  const qs = searchParams.toString()
+  return apiFetch(`/api/watchlist/monitor-hits${qs ? `?${qs}` : ''}`)
+}
+
 export function lookupStock(params: {
   code?: string
   name?: string

@@ -16,6 +16,7 @@ from api.providers import router as providers_router
 from api.tasks import router as tasks_router
 from api.approvals import router as approvals_router
 from api.agents import router as agents_router
+from api.marketplace import router as marketplace_router
 from api.metrics import router as metrics_router
 from api.logs import router as logs_router
 from api.prompts import router as prompts_router
@@ -108,6 +109,10 @@ async def lifespan(app: FastAPI):
     from runtime.scheduler import start_scheduler
     start_scheduler()
 
+    # 启动 Agent 配置监听（AC-P4-1：agents.yaml / policies.yaml 变更自动热更新）
+    from services.router import start_agent_watcher
+    start_agent_watcher()
+
     # 启动 Task Worker
     from runtime.worker import start_worker
     start_worker()
@@ -120,6 +125,8 @@ async def lifespan(app: FastAPI):
     stop_worker()
     from runtime.scheduler import stop_scheduler
     stop_scheduler()
+    from services.router import stop_agent_watcher
+    stop_agent_watcher()
     from tools.llm import llm_tool
     from tools.embedding import embedding_tool
     from tools.reranker import reranker_tool
@@ -196,6 +203,7 @@ app.include_router(providers_router)
 app.include_router(tasks_router)
 app.include_router(approvals_router)
 app.include_router(agents_router)
+app.include_router(marketplace_router)
 app.include_router(metrics_router)
 app.include_router(logs_router)
 app.include_router(prompts_router)

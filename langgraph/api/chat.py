@@ -9,6 +9,8 @@ from fastapi.responses import StreamingResponse, JSONResponse
 from schemas.chat import ChatRequest
 from services.router import dispatch_agent
 from monitoring.agent_center import record_agent_run, finish_agent_run
+from prompts.loader import reset_variant_context, variant_label
+from api.agents import is_agent_api_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -36,11 +38,24 @@ async def chat_completions(request: ChatRequest):
         agent = dispatch_agent(request)
         agent_id = getattr(agent, "agent_name", "base")
 
+        # AC-P4-6：Agent API 权限校验，停用后返回 403
+        if not await is_agent_api_enabled(agent_id):
+            return JSONResponse(
+                status_code=403,
+                content={
+                    "error": {
+                        "message": f"Agent '{agent_id}' API access is disabled by administrator",
+                        "type": "permission_denied",
+                    }
+                },
+            )
+
         if request.stream:
             # 流式响应
             generator = agent.stream_run(request)
 
             async def traced_stream():
+                reset_variant_context()
                 run_id = await record_agent_run(
                     agent_id, "chat", "running", question=question
                 )
@@ -48,12 +63,14 @@ async def chat_completions(request: ChatRequest):
                     async for chunk in generator:
                         yield chunk
                     await finish_agent_run(
-                        run_id, "success", duration_ms=int((time.monotonic() - start) * 1000)
+                        run_id, "success", duration_ms=int((time.monotonic() - start) * 1000),
+                        variant=variant_label() or getattr(agent, "last_variant", None),
                     )
                 except Exception as e:
                     await finish_agent_run(
                         run_id, "failed", duration_ms=int((time.monotonic() - start) * 1000),
                         error=str(e), error_category="chat_error",
+                        variant=variant_label() or getattr(agent, "last_variant", None),
                     )
                     raise
 
@@ -68,17 +85,22 @@ async def chat_completions(request: ChatRequest):
             )
         else:
             # 非流式响应
+            reset_variant_context()
             run_id = await record_agent_run(agent_id, "chat", "running", question=question)
             try:
                 response = await agent.run(request)
                 await finish_agent_run(
-                    run_id, "success", duration_ms=int((time.monotonic() - start) * 1000)
+                    run_id, "success", duration_ms=int((time.monotonic() - start) * 1000),
+                    tokens_in=getattr(response.usage, "prompt_tokens", 0),
+                    tokens_out=getattr(response.usage, "completion_tokens", 0),
+                    variant=variant_label() or getattr(agent, "last_variant", None),
                 )
                 return response
             except Exception as e:
                 await finish_agent_run(
                     run_id, "failed", duration_ms=int((time.monotonic() - start) * 1000),
                     error=str(e), error_category="chat_error",
+                    variant=variant_label() or getattr(agent, "last_variant", None),
                 )
                 raise
 

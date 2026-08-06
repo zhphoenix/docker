@@ -31,6 +31,7 @@ from pipelines.acquire import (
 from api.path_utils import normalize_path, get_volume_mapping_info
 from services.knowledge_governance import governance
 from services.knowledge_insights import compute_insights
+from tools.knowledge_tools import knowledge_tools
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
@@ -743,6 +744,216 @@ async def event_timeline(
         result["total"] = len(items)
     except Exception:
         logger.exception("event-timeline: query failed, degraded")
+
+    return result
+
+
+# ── KOC-E1 Impact 分析（AGE 影响链查询） ──────────────────────────────────────
+
+# AGE 图名（与 scripts/sync_to_age.py 保持一致）
+_AGE_GRAPH = "investment_knowledge_graph"
+
+
+def _age_escape(value: str) -> str:
+    """转义 Cypher 字符串（反斜杠 + 单引号）"""
+    return value.replace("\\", "\\\\").replace("'", "\\'")
+
+
+def _ag_to_py(value):
+    """AGE agtype 文本 → Python 值
+
+    agtype 是 JSON 超集文本（字符串带引号、数字裸值、数组/对象为 JSON），
+    尽量按 json 解析，无法解析的返回原文本。
+    """
+    if value is None:
+        return None
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except (ValueError, TypeError):
+            return value
+    return value
+
+
+@router.get("/impact")
+async def knowledge_impact(
+    entity: str = Query(..., description="种子实体名称（Event/Policy/Industry/Company 等）"),
+    depth: int = Query(3, ge=1, le=5, description="影响链最大深度（跳数）"),
+    limit: int = Query(20, ge=1, le=50, description="受影响公司条数上限"),
+):
+    """KOC-E1 Impact 分析：AGE 影响链查询（Policy/Event → Industry → Company）
+
+    给定种子实体名称，沿图谱任意关系（供应商/客户/依赖/影响等）遍历到 Company，
+    每受影响公司返回一条最短影响链（节点名序列 + 关系类型序列）。
+    数据源：investment_knowledge_graph（由 scripts/sync_to_age.py 从 core.* 同步）。
+    """
+    entity = entity.strip() if isinstance(entity, str) else ""
+
+    result: dict = {
+        "source": _AGE_GRAPH,
+        "entity": entity,
+        "depth": depth,
+        "found": False,
+        "seed": None,
+        "chains": [],
+        "companies": [],
+        "total": 0,
+    }
+    if not entity:
+        return result
+
+    # 1. 定位种子实体
+    try:
+        seed_rows = await postgres_tool.age_query(
+            f"MATCH (s {{name: '{_age_escape(entity)}'}}) "
+            "RETURN s.name AS name, labels(s) AS labels, s.entity_type AS entity_type, "
+            "s.description AS description LIMIT 5",
+            columns=["name", "labels", "entity_type", "description"],
+            graph=_AGE_GRAPH,
+        )
+        if seed_rows:
+            seed = seed_rows[0]
+            result["found"] = True
+            result["seed"] = {
+                "name": _ag_to_py(seed.get("name")) or entity,
+                "labels": _ag_to_py(seed.get("labels")) or [],
+                "entity_type": _ag_to_py(seed.get("entity_type")),
+                "description": _ag_to_py(seed.get("description")),
+            }
+    except Exception:
+        logger.warning("knowledge-impact: seed lookup failed, degraded")
+
+    # 2. 遍历影响链（每受影响公司取最短路径，逐跳展开便于前端重建）
+    try:
+        cypher = (
+            f"MATCH path = (s {{name: '{_age_escape(entity)}'}})-[*1..{depth}]->(t:Company) "
+            "WITH t, path, length(path) AS d "
+            "ORDER BY d "
+            "WITH t, collect(path)[0] AS p "
+            "WITH t, p, length(p) AS d "
+            "UNWIND range(1, d) AS i "
+            "RETURN t.name AS company, d AS depth, i AS hop, "
+            "nodes(p)[i-1].name AS from_name, nodes(p)[i].name AS to_name, "
+            "type(relationships(p)[i-1]) AS rel_type "
+            f"ORDER BY d, company, i LIMIT {limit * depth * 2}"
+        )
+        rows = await postgres_tool.age_query(
+            cypher,
+            columns=["company", "depth", "hop", "from_name", "to_name", "rel_type"],
+            graph=_AGE_GRAPH,
+        )
+
+        # 按公司分组重建链
+        by_company: dict[str, dict] = {}
+        for r in rows:
+            company = _ag_to_py(r.get("company"))
+            if not company:
+                continue
+            depth_n = int(_ag_to_py(r.get("depth")) or 0)
+            hop_n = int(_ag_to_py(r.get("hop")) or 0)
+            from_name = _ag_to_py(r.get("from_name"))
+            to_name = _ag_to_py(r.get("to_name"))
+            rel_type = _ag_to_py(r.get("rel_type"))
+            chain = by_company.setdefault(
+                company, {"company": company, "depth": depth_n, "hops": []}
+            )
+            if depth_n < chain["depth"]:
+                chain["depth"] = depth_n
+            chain["hops"].append({
+                "hop": hop_n, "from": from_name, "to": to_name, "rel": rel_type,
+            })
+
+        chains = []
+        for company in sorted(by_company):
+            chain = by_company[company]
+            chain["hops"].sort(key=lambda h: h["hop"])
+            chains.append(chain)
+        chains.sort(key=lambda c: (c["depth"], c["company"]))
+        chains = chains[:limit]
+
+        result["chains"] = chains
+        result["companies"] = [c["company"] for c in chains]
+        result["total"] = len(chains)
+    except Exception:
+        logger.exception("knowledge-impact: chain traversal failed, degraded")
+
+    return result
+
+
+# ============================================================
+# KOC-E2 AI Knowledge Services（设计 §13）
+# ============================================================
+
+# agent_runs.agent_id → 设计 §13 消费方友好名（未知 id 回退为原始值）
+_CONSUMER_LABELS = {
+    "news_intelligence": "News Agent",
+    "knowledge_ingestion": "Workflow",
+    "research": "Research Agent",
+    "kb": "KB Agent",
+    "investment": "Investment Agent",
+    "chat": "Chat Agent",
+    "watchlist": "Watchlist",
+}
+
+
+@router.get("/services")
+async def knowledge_services():
+    """KOC-E2 AI Knowledge Services：Knowledge 被哪些 Agent 使用（设计 §13）
+
+    - consumers：agent_runs 按 agent_id 聚合的真实调用量（today/total，唯一真相源）
+    - cache：mcp-knowledge 进程内缓存统计（hits/misses/hit_rate/size），
+      复用既有无埋点 health_check MCP 工具获取
+    - totals：总量 / 今日 / 活跃消费方数
+    各数据源独立 try/except，单故障不影响整体返回（降级）。
+    """
+    result: dict = {
+        "consumers": [],
+        "cache": None,
+        "totals": {"today": 0, "total": 0, "active": 0},
+    }
+
+    # ── 消费方调用量：agent_runs 按 agent_id 聚合 ──
+    try:
+        rows = await postgres_tool.query(
+            "SELECT agent_id, "
+            "COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE) AS today, "
+            "COUNT(*) AS total "
+            "FROM agent_runs "
+            "GROUP BY agent_id ORDER BY total DESC"
+        )
+        consumers = [
+            {
+                "key": r["agent_id"],
+                "name": _CONSUMER_LABELS.get(r["agent_id"], r["agent_id"]),
+                "today": int(r["today"] or 0),
+                "total": int(r["total"] or 0),
+            }
+            for r in rows
+        ]
+        result["consumers"] = consumers
+        result["totals"] = {
+            "today": sum(c["today"] for c in consumers),
+            "total": sum(c["total"] for c in consumers),
+            "active": len(consumers),
+        }
+    except Exception:
+        logger.warning("knowledge-services: agent_runs query failed, degraded")
+
+    # ── mcp-knowledge 缓存统计（复用既有 health_check 埋点） ──
+    try:
+        raw = await knowledge_tools.call_tool("health_check")
+        if raw:
+            sc = raw.get("structuredContent") or {}
+            cache = sc.get("cache_stats")
+            if cache:
+                result["cache"] = {
+                    "hits": int(cache.get("hits") or 0),
+                    "misses": int(cache.get("misses") or 0),
+                    "hit_rate": cache.get("hit_rate"),
+                    "size": int(cache.get("size") or 0),
+                }
+    except Exception:
+        logger.warning("knowledge-services: cache stats failed, degraded")
 
     return result
 

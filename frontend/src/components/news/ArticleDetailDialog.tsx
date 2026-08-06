@@ -4,6 +4,7 @@ import { WindowedDialog } from '@/components/ui/windowed-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { fetchNewsArticle } from '@/services/news'
+import { ResearchActions } from './ResearchActions'
 import { cn } from '@/lib/utils'
 
 const IMPACT_COLORS: Record<string, string> = {
@@ -69,6 +70,11 @@ export function ArticleDetailDialog({ articleId, onClose }: Props) {
                 原文 <ExternalLink className="size-3" />
               </a>
             )}
+          </div>
+
+          {/* Research Trigger */}
+          <div className="flex flex-wrap items-center gap-2">
+            <ResearchActions question={`针对新闻「${article.title}」进行深度研究`} />
           </div>
 
           {/* Summary */}

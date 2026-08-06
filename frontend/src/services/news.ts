@@ -449,3 +449,30 @@ export function triggerNewsCollect(keyword: string): Promise<CollectResponse> {
     body: JSON.stringify({ keyword, priority: 'high' }),
   })
 }
+
+// ─── Recent Activities（NIC-E2 动态流） ───
+
+export interface NewsActivity {
+  kind: 'source_added' | 'collect_error' | 'breaking' | 'package_publish'
+  label: string
+  title: string
+  detail: string
+  time: string
+  ref_id: string | null
+}
+
+export function fetchNewsActivities(params?: {
+  days?: number
+  limit?: number
+}): Promise<{
+  activities: NewsActivity[]
+  total: number
+  days: number
+  labels: Record<string, string>
+}> {
+  const searchParams = new URLSearchParams()
+  if (params?.days) searchParams.set('days', String(params.days))
+  if (params?.limit) searchParams.set('limit', String(params.limit))
+  const qs = searchParams.toString()
+  return apiFetch(`/api/news/activities${qs ? `?${qs}` : ''}`)
+}

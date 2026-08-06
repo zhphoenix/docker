@@ -8,6 +8,8 @@ const SettingsPage = lazy(() => import('@/app/pages/SettingsPage'))
 const MonitorPage = lazy(() => import('@/app/pages/MonitorPage'))
 const AgentsPage = lazy(() => import('@/app/pages/AgentsPage'))
 const AgentDetailPage = lazy(() => import('@/app/pages/AgentDetailPage'))
+const TracesPage = lazy(() => import('@/app/pages/TracesPage'))
+const MarketplacePage = lazy(() => import('@/app/pages/MarketplacePage'))
 const KnowledgePage = lazy(() => import('@/app/pages/KnowledgePage'))
 const KnowledgeReviewPage = lazy(() => import('@/app/pages/KnowledgeReviewPage'))
 const DocumentsPage = lazy(() => import('@/app/pages/DocumentsPage'))
@@ -57,6 +59,22 @@ export const router = createBrowserRouter([
         element: (
           <SuspenseWrapper>
             <AgentsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: '/agents/marketplace',
+        element: (
+          <SuspenseWrapper>
+            <MarketplacePage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: '/agents/traces',
+        element: (
+          <SuspenseWrapper>
+            <TracesPage />
           </SuspenseWrapper>
         ),
       },

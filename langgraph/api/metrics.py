@@ -21,7 +21,8 @@ router = APIRouter(prefix="/api/agents", tags=["metrics"])
 RANGE_DAYS = {"1d": 1, "7d": 7, "30d": 30}
 
 # 参与时长统计的终态（running 无 duration_ms 语义）
-_FINISHED = ("completed", "failed")
+# chat.py 用 success/failed；invoke_tracked 用 completed/failed
+_FINISHED = ("success", "completed", "failed")
 
 
 def _estimate_cost(agent_id: str, tokens_in: int, tokens_out: int) -> float:
@@ -134,4 +135,63 @@ async def get_agent_metrics(
         "range": range_days,
         "summary": summary,
         "trend": trend,
+    }
+
+
+@router.get("/{agent_id}/prompt-variants")
+async def get_prompt_variants(
+    agent_id: str,
+    range_days: str = Query("7d", alias="range", pattern="^(1d|7d|30d)$"),
+):
+    """A/B Prompt 变体对比（AC-P4-3）
+
+    按 agent_runs.variant 分组聚合，对比各变体的运行次数 / 成功率 / 平均耗时。
+    仅统计有 variant 打标的记录（未参与 A/B 的运行无 variant，不参与对比）。
+
+    Args:
+        agent_id: 规范 Agent 名（如 chat / research）
+        range_days: 时间范围 1d / 7d / 30d，默认 7d
+    """
+    days = RANGE_DAYS.get(range_days, 7)
+
+    rows = await postgres_tool.query(
+        "SELECT "
+        "  variant, "
+        "  COUNT(*) AS runs, "
+        "  COUNT(*) FILTER (WHERE status = 'success') AS success, "
+        "  COUNT(*) FILTER (WHERE status = 'failed') AS failed, "
+        "  COALESCE(AVG(duration_ms) FILTER (WHERE status = ANY($3)), 0) AS avg_latency_ms, "
+        "  COALESCE(AVG(tokens_in + tokens_out), 0) AS avg_tokens "
+        "FROM agent_runs "
+        "WHERE agent_id = $1 AND created_at >= NOW() - make_interval(days => $2) "
+        "  AND variant IS NOT NULL "
+        "GROUP BY variant "
+        "ORDER BY variant",
+        agent_id,
+        days,
+        list(_FINISHED),
+    )
+
+    variants = []
+    for r in rows:
+        runs = int(r.get("runs") or 0)
+        success = int(r.get("success") or 0)
+        failed = int(r.get("failed") or 0)
+        variants.append(
+            {
+                "variant": r.get("variant"),
+                "runs": runs,
+                "success": success,
+                "failed": failed,
+                "success_rate": round(100.0 * success / runs, 2) if runs else 0.0,
+                "avg_latency_ms": round(_to_float(r.get("avg_latency_ms")), 1),
+                "avg_tokens": round(_to_float(r.get("avg_tokens")), 1),
+            }
+        )
+
+    return {
+        "agent_id": agent_id,
+        "range": range_days,
+        "variants": variants,
+        "total": len(variants),
     }

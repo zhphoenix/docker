@@ -133,6 +133,11 @@ export interface KnowledgeInsightTopic {
   count: number
 }
 
+export interface CooccurringTopics {
+  topics: string[]
+  count: number
+}
+
 export interface InsightEntity {
   name: string
   source_count: number
@@ -164,6 +169,7 @@ export interface KnowledgeInsights {
   range_days: number
   limit: number
   hot_topics: KnowledgeInsightTopic[]
+  cooccurring_topics: CooccurringTopics[]
   trending_companies: InsightEntity[]
   trending_industries: InsightEntity[]
   emerging_concepts: InsightConcept[]
@@ -176,6 +182,36 @@ export function fetchKnowledgeInsights(rangeDays = 7, limit = 10): Promise<Knowl
   return apiFetch<KnowledgeInsights>(
     `/api/knowledge/insights?range_days=${rangeDays}&limit=${limit}`
   )
+}
+
+// ─── KOC-E2 AI Knowledge Services ─────────────────────────
+
+export interface KnowledgeServiceConsumer {
+  key: string
+  name: string
+  today: number
+  total: number
+}
+
+export interface KnowledgeCacheStats {
+  hits: number
+  misses: number
+  hit_rate: number | null
+  size: number
+}
+
+export interface KnowledgeServicesResponse {
+  consumers: KnowledgeServiceConsumer[]
+  cache: KnowledgeCacheStats | null
+  totals: {
+    today: number
+    total: number
+    active: number
+  }
+}
+
+export function fetchKnowledgeServices(): Promise<KnowledgeServicesResponse> {
+  return apiFetch<KnowledgeServicesResponse>('/api/knowledge/services')
 }
 
 // ─── Entity ───────────────────────────────────────────────
@@ -592,4 +628,46 @@ export function resolveGovernanceItem(
     method: 'POST',
     body: JSON.stringify({ action, note }),
   })
+}
+
+// ─── KOC-E1 Impact 分析（AGE 影响链查询） ────────────────────────────
+
+export interface ImpactHop {
+  hop: number
+  from: string
+  to: string
+  rel: string
+}
+
+export interface ImpactChain {
+  company: string
+  depth: number
+  hops: ImpactHop[]
+}
+
+export interface ImpactSeed {
+  name: string
+  labels: string[]
+  entity_type: string | null
+  description: string | null
+}
+
+export interface KnowledgeImpact {
+  source: string
+  entity: string
+  depth: number
+  found: boolean
+  seed: ImpactSeed | null
+  chains: ImpactChain[]
+  companies: string[]
+  total: number
+}
+
+export function fetchKnowledgeImpact(
+  entity: string,
+  depth = 3,
+  limit = 20
+): Promise<KnowledgeImpact> {
+  const searchParams = new URLSearchParams({ entity, depth: String(depth), limit: String(limit) })
+  return apiFetch<KnowledgeImpact>(`/api/knowledge/impact?${searchParams.toString()}`)
 }

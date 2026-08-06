@@ -1,13 +1,90 @@
 """Research API - 研究任务历史（只读）"""
 
+import asyncio
 import logging
+import uuid
 
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 
 from tools.postgres import postgres_tool
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/research", tags=["research"])
+
+# 持有后台任务引用，避免被 GC 回收
+_background_tasks: set = set()
+
+
+class CreateResearchRequest(BaseModel):
+    question: str
+    symbol: str | None = None
+    market: str = "cn"
+    agent_type: str = "research"
+
+
+@router.post("", status_code=201)
+async def create_research(req: CreateResearchRequest):
+    """创建研究任务（NIC Research Trigger 入口，异步执行）
+
+    频率限制：同 symbol 在 10 分钟内去重，避免误触发拥塞任务队列。
+    """
+    if req.symbol:
+        try:
+            recent = await postgres_tool.query(
+                "SELECT id FROM research_tasks "
+                "WHERE symbol = $1 AND created_at > NOW() - INTERVAL '10 minutes' "
+                "LIMIT 1",
+                req.symbol,
+            )
+            if recent:
+                return {
+                    "task_id": str(recent[0]["id"]),
+                    "status": "running",
+                    "duplicate": True,
+                    "message": f"{req.symbol} 相关研究已在 10 分钟内触发，复用已有任务",
+                }
+        except Exception:  # noqa: BLE001
+            logger.warning("Frequency check failed, skip dedup", exc_info=True)
+
+    task_id = str(uuid.uuid4())
+    try:
+        await postgres_tool.execute(
+            "INSERT INTO research_tasks (id, question, agent_type, market, symbol, status, created_at) "
+            "VALUES ($1, $2, $3, $4, $5, 'running', NOW())",
+            task_id, req.question, req.agent_type, req.market, req.symbol,
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.exception("Failed to create research task")
+        raise HTTPException(status_code=500, detail=f"研究任务创建失败: {e}")
+
+    async def _run():
+        try:
+            from agents.research_agent import ResearchAgent
+            from schemas.chat import ChatRequest, ChatMessage
+            agent = ResearchAgent()
+            resp = await agent.run(
+                ChatRequest(messages=[ChatMessage(role="user", content=req.question)])
+            )
+            answer = resp.choices[0].message.content if resp.choices else ""
+            await postgres_tool.execute(
+                "UPDATE research_tasks SET status='completed', answer=$1, "
+                "completed_at=NOW() WHERE id=$2",
+                answer, task_id,
+            )
+        except Exception as e:  # noqa: BLE001
+            logger.exception("Research run failed: task=%s", task_id)
+            await postgres_tool.execute(
+                "UPDATE research_tasks SET status='failed', error=$1, "
+                "completed_at=NOW() WHERE id=$2",
+                str(e), task_id,
+            )
+
+    task = asyncio.create_task(_run())
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
+
+    return {"task_id": task_id, "status": "running"}
 
 
 @router.get("")

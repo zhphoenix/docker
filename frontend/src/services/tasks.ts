@@ -213,3 +213,33 @@ export interface PipelineStatusResponse {
 export function fetchPipelineStatus(): Promise<PipelineStatusResponse> {
   return apiFetch<PipelineStatusResponse>('/api/tasks/pipeline/status')
 }
+
+// ─── DP-E1 后端统计 API 契约 ──────────────────────────────
+export interface PipelineStageStats {
+  stage: string
+  label: string
+  running: number
+  pending: number
+  completed: number
+  failed: number
+}
+
+export interface PipelineStats {
+  stages: PipelineStageStats[]
+  incoming_documents: { total: number; today: number }
+  packages: {
+    total: number
+    draft: number
+    published: number
+    consumed: number
+    failed: number
+  }
+  processed_today: number
+  publish_success_rate: number | null
+  queue_length: number
+  avg_latency_ms: number | null
+}
+
+export function fetchPipelineStats(): Promise<PipelineStats> {
+  return apiFetch<PipelineStats>('/api/tasks/pipeline/stats')
+}

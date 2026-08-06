@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS agent_prompts (
     content     TEXT NOT NULL,
     version     INTEGER NOT NULL DEFAULT 1,
     is_active   BOOLEAN DEFAULT true,
+    status      VARCHAR(32) DEFAULT 'published',  -- draft / pending_approval / published（AC-P4-2）
+    traffic_weight INTEGER NOT NULL DEFAULT 100, -- A/B 分流权重（AC-P4-3），0=不参与分流
     created_at  TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(agent_id, name, version)
 );
@@ -50,11 +52,13 @@ CREATE TABLE IF NOT EXISTS agent_runs (
     tokens_out     INTEGER DEFAULT 0,
     error          TEXT,
     error_category VARCHAR(50),                   -- tool_timeout / embedding_error / mcp_error / other
+    variant        VARCHAR(50),                   -- A/B 命中的 prompt 版本（AC-P4-3），如 v1 / v2
     trace          JSONB DEFAULT '[]',            -- 节点级轨迹
     created_at     TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_agent_runs_agent   ON agent_runs(agent_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_agent_runs_status  ON agent_runs(status, created_at);
+CREATE INDEX IF NOT EXISTS idx_agent_runs_variant ON agent_runs(agent_id, variant, created_at);
 
 -- 5. agent_tool_stats 表：Tool 调用统计（P2-2）
 CREATE TABLE IF NOT EXISTS agent_tool_stats (

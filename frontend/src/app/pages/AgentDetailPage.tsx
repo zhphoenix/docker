@@ -16,6 +16,8 @@ import {
   Sparkles,
   Brain,
   ScrollText,
+  ShieldCheck,
+  ShieldOff,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -23,7 +25,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { EmptyState } from '@/components/common/EmptyState'
-import { fetchAgentDetail, toggleAgent } from '@/services/agents'
+import { fetchAgentDetail, toggleAgent, setAgentPermission } from '@/services/agents'
 import { PromptTab } from '@/components/agent/PromptTab'
 import { ConfigTab } from '@/components/agent/ConfigTab'
 import { SkillsTab } from '@/components/agent/SkillsTab'
@@ -95,6 +97,14 @@ export default function AgentDetailPage() {
     },
   })
 
+  const permissionMutation = useMutation({
+    mutationFn: (enabled: boolean) => setAgentPermission(id, enabled),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agent', id] })
+      queryClient.invalidateQueries({ queryKey: ['agents'] })
+    },
+  })
+
   const agent = detailQuery.data
 
   return (
@@ -135,6 +145,22 @@ export default function AgentDetailPage() {
             <RefreshCw className={cn('size-3.5', detailQuery.isFetching && 'animate-spin')} />
             刷新
           </Button>
+          {agent && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => permissionMutation.mutate(agent.api_enabled === false)}
+              disabled={permissionMutation.isPending}
+            >
+              {agent.api_enabled === false ? (
+                <ShieldOff className="size-3.5 text-destructive" />
+              ) : (
+                <ShieldCheck className="size-3.5" />
+              )}
+              {agent.api_enabled === false ? '启用 API' : '停用 API'}
+            </Button>
+          )}
           {agent && (
             <Button
               variant={agent.status === 'active' ? 'outline' : 'default'}

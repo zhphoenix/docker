@@ -95,6 +95,32 @@ class PostgresTool:
         async with self.pool.acquire() as conn:
             await conn.executemany(sql, args_list)
 
+    async def age_query(self, cypher: str, columns: list[str], graph: str = "investment_knowledge_graph") -> list[dict]:
+        """执行 Apache AGE Cypher 查询
+
+        AGE 的 cypher() 函数要求 ag_catalog search_path 且需 LOAD 'age'。
+        在独立连接上设置好 search_path 后执行，结束后恢复默认以免污染连接池。
+
+        Args:
+            cypher: Cypher 查询语句（不含外层 cypher() 包装）
+            columns: 返回列名列表，与 cypher 的 RETURN 列一一对应（作为 agtype 声明）
+            graph: AGE 图名称
+
+        Returns:
+            [dict, ...]；v 值为 agtype 文本（JSON 超集），调用方可用 json.loads 解析
+        """
+        await self._ensure_pool()
+        cols = ", ".join(f"{c} agtype" for c in columns)
+        sql = f"SELECT * FROM cypher('{graph}', $age${cypher}$age$) AS ({cols});"
+        async with self.pool.acquire() as conn:
+            await conn.execute("LOAD 'age';")
+            await conn.execute('SET search_path = ag_catalog, "$user", public;')
+            try:
+                rows = await conn.fetch(sql)
+                return [dict(r) for r in rows]
+            finally:
+                await conn.execute('SET search_path = "$user", public;')
+
 
 # 模块级单例
 postgres_tool = PostgresTool()

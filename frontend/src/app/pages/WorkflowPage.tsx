@@ -17,6 +17,10 @@ import {
   CalendarClock,
   AlertTriangle,
   Clock,
+  Boxes,
+  Inbox,
+  PackageCheck,
+  Gauge,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -50,6 +54,7 @@ import {
   fetchTaskStats,
   fetchWorkers,
   fetchSchedule,
+  fetchPipelineStats,
   retryTask,
   cancelTask,
   deleteTask,
@@ -57,7 +62,7 @@ import {
   triggerPipeline,
   triggerBatchEmbed,
 } from '@/services/tasks'
-import type { TaskInfo, TaskStatus, TaskLog } from '@/services/tasks'
+import type { TaskInfo, TaskStatus, TaskLog, PipelineStats } from '@/services/tasks'
 import { triggerExtraction } from '@/services/knowledge'
 import { cn } from '@/lib/utils'
 
@@ -92,12 +97,17 @@ const TYPE_SOURCE: Record<string, string> = {
   approval: '系统',
 }
 
-// Pipeline 三阶段（真实后端阶段）
-const STAGE_ORDER = ['parse', 'chunk', 'embedding']
+// Pipeline 八阶段（真实后端阶段，DP-B1 对齐）
+const STAGE_ORDER = ['acquire', 'routing', 'parse', 'chunk', 'extraction', 'embedding', 'package', 'publish']
 const STAGE_LABELS: Record<string, string> = {
-  parse: 'Parse',
-  chunk: 'Chunk',
-  embedding: 'Embedding',
+  acquire: '采集',
+  routing: '路由',
+  parse: '解析',
+  chunk: '分块',
+  extraction: '知识抽取',
+  embedding: '向量化',
+  package: '打包',
+  publish: '发布',
 }
 
 function getStageState(task: TaskInfo, stage: string): 'done' | 'active' | 'pending' | 'failed' {
@@ -160,7 +170,7 @@ function PipelineVisual({ task }: { task: TaskInfo }) {
               ) : null}
               {STAGE_LABELS[stage]}
             </div>
-            {stage !== 'embedding' && (
+            {stage !== 'publish' && (
               <div className="h-px w-3 bg-muted" />
             )}
           </div>
@@ -412,13 +422,39 @@ function TaskDetailDialog({
                     {detail.stage ? `当前阶段：${STAGE_LABELS[detail.stage] ?? detail.stage}` : '待启动'}
                   </span>
                 </div>
+                {/* 按阶段打点：从 task_logs 提取每阶段成败状态，失败阶段红色定位 */}
+                <div className="grid grid-cols-2 gap-2">
+                  {STAGE_ORDER.map((stage) => {
+                    const stageLogs = logs.filter((l) => l.stage === stage)
+                    const failed = stageLogs.filter((l) => l.level === 'error').length
+                    const info = stageLogs.length - failed
+                    return (
+                      <div
+                        key={stage}
+                        className={cn(
+                          'flex items-center justify-between rounded-md border px-2 py-1.5',
+                          failed > 0 && 'border-destructive/40 bg-destructive/5',
+                        )}
+                      >
+                        <span className="text-xs font-medium">{STAGE_LABELS[stage]}</span>
+                        {failed > 0 ? (
+                          <Badge variant="destructive" className="text-[9px]">{failed} 失败</Badge>
+                        ) : info > 0 ? (
+                          <Badge variant="outline" className="text-[9px]">{info} 打点</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-[9px]">未开始</Badge>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
                 <div className="text-xs text-muted-foreground">
-                  文档流水线真实阶段为 Parse → Chunk → Embedding。实体/图构建由知识图谱模块独立处理，不属文档流水线。
+                  流水线阶段：采集 → 路由 → 解析 → 分块 → 知识抽取 → 向量化 → 打包 → 发布。失败阶段以红色标记定位。
                 </div>
               </div>
             ) : (
               <div className="text-sm text-muted-foreground">
-                该任务类型不涉及文档流水线三阶段，当前阶段：{detail?.stage || '—'}
+                该任务类型不涉及文档流水线八阶段，当前阶段：{detail?.stage || '—'}
               </div>
             )}
           </TabsContent>
@@ -477,6 +513,168 @@ function TaskDetailDialog({
   )
 }
 
+// ─── Pipeline 八阶段统计面板（DP-E1/DP-E2） ──────────────
+const STAGE_STATE_META = {
+  running: { label: '运行中', cls: 'bg-primary/10 text-primary' },
+  pending: { label: '待处理', cls: 'bg-muted text-muted-foreground' },
+  completed: { label: '已完成', cls: 'bg-emerald-500/10 text-emerald-600' },
+  failed: { label: '失败', cls: 'bg-destructive/10 text-destructive' },
+} as const
+
+type StageStateKey = keyof typeof STAGE_STATE_META
+
+function StageStateChip({
+  state,
+  count,
+}: {
+  state: StageStateKey
+  count: number
+}) {
+  const meta = STAGE_STATE_META[state]
+  return (
+    <div className={cn('flex items-baseline gap-1 rounded-md px-1.5 py-0.5', meta.cls)}>
+      <span className="text-sm font-bold tabular-nums">{count}</span>
+      <span className="text-[10px]">{meta.label}</span>
+    </div>
+  )
+}
+
+function StagePipelineBar({
+  total,
+  meta,
+}: {
+  total: number
+  meta: { running: number; completed: number; failed: number }
+}) {
+  const done = meta.completed
+  const failed = meta.failed
+  const running = meta.running
+  const pending = Math.max(0, total - done - failed - running)
+  const w = (n: number) => (total > 0 ? `${(n / total) * 100}%` : '0%')
+  return total > 0 ? (
+    <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-muted">
+      <div className="bg-emerald-500" style={{ width: w(done) }} />
+      <div className="bg-primary" style={{ width: w(running) }} />
+      <div className="bg-destructive" style={{ width: w(failed) }} />
+      <div className="bg-muted/60" style={{ width: w(pending) }} />
+    </div>
+  ) : (
+    <div className="h-1.5 w-full rounded-full bg-muted/40" />
+  )
+}
+
+function PipelineStatsSection({ stats }: { stats: PipelineStats | undefined }) {
+  if (!stats) return null
+  const maxTotal = Math.max(1, ...stats.stages.map((s) => s.completed + s.running + s.failed))
+  const publishRate =
+    stats.publish_success_rate == null
+      ? '—'
+      : `${Math.round(stats.publish_success_rate * 100)}%`
+
+  return (
+    <div className="space-y-4">
+      {/* 生产统计指标卡 */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Card className="bg-card">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Inbox className="size-3.5" />
+              入库文档
+            </div>
+            <div className="mt-1 text-2xl font-bold tabular-nums">
+              {stats.incoming_documents.total}
+              <span className="ml-1 text-xs font-normal text-muted-foreground">
+                今日 +{stats.incoming_documents.today}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <PackageCheck className="size-3.5" />
+              知识包
+            </div>
+            <div className="mt-1 text-2xl font-bold tabular-nums">{stats.packages.total}</div>
+            <div className="mt-0.5 text-[10px] text-muted-foreground">
+              草稿 {stats.packages.draft} · 已发布 {stats.packages.published} · 已消费 {stats.packages.consumed}
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Gauge className="size-3.5" />
+              发布成功率
+            </div>
+            <div className="mt-1 text-2xl font-bold tabular-nums">{publishRate}</div>
+            <div className="mt-0.5 text-[10px] text-muted-foreground">
+              队列 {stats.queue_length} · 今日处理 {stats.processed_today}
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Clock className="size-3.5" />
+              平均耗时
+            </div>
+            <div className="mt-1 text-2xl font-bold tabular-nums">
+              {stats.avg_latency_ms == null ? '—' : `${(stats.avg_latency_ms / 1000).toFixed(1)}s`}
+            </div>
+            <div className="mt-0.5 text-[10px] text-muted-foreground">已完成任务均值</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 八阶段链路 */}
+      <Card>
+        <CardHeader className="border-b px-4 py-3">
+          <CardTitle className="flex items-center gap-2 text-sm font-medium">
+            <Boxes className="size-4 text-muted-foreground" />
+            流水线八阶段
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 p-4">
+          {stats.stages.map((s, i) => {
+            const stateCount = s.completed + s.running + s.failed
+            return (
+              <div key={s.stage}>
+                <div className="flex items-center gap-3">
+                  <div className="flex w-40 shrink-0 items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground">
+                      {i + 1}
+                    </span>
+                    <span className="text-sm font-medium">{s.label}</span>
+                  </div>
+                  <div className="flex-1">
+                    <StagePipelineBar total={stateCount} meta={s} />
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <StageStateChip state="completed" count={s.completed} />
+                    <StageStateChip state="running" count={s.running} />
+                    <StageStateChip state="failed" count={s.failed} />
+                    <StageStateChip state="pending" count={s.pending} />
+                  </div>
+                </div>
+                {s.failed > 0 && (
+                  <div className="mt-1 pl-9 text-[11px] text-destructive">
+                    该阶段有 {s.failed} 个失败记录，可定位到失败任务定位原因
+                  </div>
+                )}
+              </div>
+            )
+          })}
+          <div className="flex items-center justify-between pt-1 text-[11px] text-muted-foreground">
+            <span>归一化容量 = 各阶段已完成/运行中/失败总和的最大值</span>
+            <span className="tabular-nums">峰值 {maxTotal} 条</span>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
 // ─── 主页面 ───────────────────────────────────────────────
 export default function WorkflowPage() {
   const [status, setStatus] = useState<string>('')
@@ -505,6 +703,11 @@ export default function WorkflowPage() {
   const statsQuery = useQuery({ queryKey: ['taskStats'], queryFn: fetchTaskStats, refetchInterval: 30_000 })
   const workersQuery = useQuery({ queryKey: ['workers'], queryFn: fetchWorkers, refetchInterval: 30_000 })
   const scheduleQuery = useQuery({ queryKey: ['schedule'], queryFn: fetchSchedule, refetchInterval: 60_000 })
+  const pipelineStatsQuery = useQuery({
+    queryKey: ['pipelineStats'],
+    queryFn: fetchPipelineStats,
+    refetchInterval: 30_000,
+  })
   const failedQuery = useQuery({
     queryKey: ['tasks', 'failed'],
     queryFn: () => fetchTasks({ status: 'failed', limit: 10 }),
@@ -516,6 +719,7 @@ export default function WorkflowPage() {
     queryClient.invalidateQueries({ queryKey: ['taskStats'] })
     queryClient.invalidateQueries({ queryKey: ['workers'] })
     queryClient.invalidateQueries({ queryKey: ['schedule'] })
+    queryClient.invalidateQueries({ queryKey: ['pipelineStats'] })
   }
 
   const retryMutation = useMutation({
@@ -589,6 +793,25 @@ export default function WorkflowPage() {
           </button>
         ))}
       </div>
+
+      {/* Pipeline 八阶段视图 + 生产统计（DP-E2） */}
+      {pipelineStatsQuery.isLoading ? (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-20 w-full" />)}
+          </div>
+          <Skeleton className="h-64 w-full" />
+        </div>
+      ) : pipelineStatsQuery.isError ? (
+        <EmptyState
+          icon={Boxes}
+          title="无法加载流水线统计"
+          description="无法连接到后端统计接口，请确认 LangGraph 服务已启动（端口 8100）"
+          action={{ label: '重试', onClick: () => pipelineStatsQuery.refetch() }}
+        />
+      ) : (
+        <PipelineStatsSection stats={pipelineStatsQuery.data} />
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">

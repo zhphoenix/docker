@@ -34,6 +34,8 @@ async def news_publisher(state: dict) -> dict:
     events = state.get("events", [])
     relations = state.get("relations", [])
     source_id = state.get("source_id", "")
+    # AC-P4-5：跨 Agent 调用链标识（news → knowledge ingestion 共享）
+    trace_id = state.get("trace_id")
     new_errors: list[str] = []
 
     if not articles:
@@ -201,7 +203,7 @@ async def news_publisher(state: dict) -> dict:
         ]
         if high_conf_entities:
             try:
-                await _trigger_knowledge_agent(high_conf_entities, relations)
+                await _trigger_knowledge_agent(high_conf_entities, relations, trace_id)
                 knowledge_triggered = True
                 logger.info(
                     "Publisher: Knowledge Agent triggered with %d high-confidence entities",
@@ -226,56 +228,88 @@ async def news_publisher(state: dict) -> dict:
     }
 
 
-async def _trigger_knowledge_agent(entities: list[dict], relations: list[dict]) -> None:
+async def _trigger_knowledge_agent(entities: list[dict], relations: list[dict], trace_id: str | None = None) -> None:
     """触发 Knowledge Agent 合并高置信度实体和关系到 core schema
 
     调用 storage.knowledge.postgres 的 bulk_upsert_entities + bulk_insert_relations，
     将新闻实体合并到 core.entities（知识图谱）。
+
+    Args:
+        trace_id: AC-P4-5 跨 Agent 调用链标识，与新闻入库运行共享，
+            使 Knowledge Agent 这次合并可被 Trace 聚合追踪到衔接。
     """
+    from monitoring.agent_center import record_agent_run, finish_agent_run
     from storage.knowledge.postgres import knowledge_storage
 
-    # 转换为 Knowledge Agent 期望的格式
-    core_entities = []
-    for ent in entities:
-        core_entities.append({
-            "name": ent["name"],
-            "entity_type": ent["entity_type"],
-            "description": ent.get("description", ""),
-            "aliases": ent.get("aliases", []),
-            "properties": {"source": "news_agent"},
-            "canonical_name": ent["name"],
-            "confidence": ent.get("confidence", 0.8),
-        })
+    # AC-P4-5：为本次 Knowledge Agent 合并记录运行（与 news 同 trace_id）
+    import time as _time
+    _start = _time.monotonic()
+    _run_id = await record_agent_run(
+        agent_id="knowledge_ingestion",
+        task_kind="pipeline",
+        status="running",
+        question=f"merge {len(entities)} high-confidence entities from news_agent (trace={trace_id})",
+        trace_id=trace_id,
+    )
+    _err: str | None = None
+    _err_cat: str | None = None
+    try:
+        # 转换为 Knowledge Agent 期望的格式
+        core_entities = []
+        for ent in entities:
+            core_entities.append({
+                "name": ent["name"],
+                "entity_type": ent["entity_type"],
+                "description": ent.get("description", ""),
+                "aliases": ent.get("aliases", []),
+                "properties": {"source": "news_agent"},
+                "canonical_name": ent["name"],
+                "confidence": ent.get("confidence", 0.8),
+            })
 
-    entity_ids = await knowledge_storage.bulk_upsert_entities(core_entities)
+        entity_ids = await knowledge_storage.bulk_upsert_entities(core_entities)
 
-    # W-6 修复：同步合并高置信度关系到 core.relations
-    # 构建实体名称 → core entity ID 映射
-    if relations and entity_ids:
-        name_to_core_id = {}
-        for i, ent in enumerate(entities):
-            if i < len(entity_ids):
-                name_to_core_id[ent["name"].lower()] = entity_ids[i]
+        # W-6 修复：同步合并高置信度关系到 core.relations
+        # 构建实体名称 → core entity ID 映射
+        if relations and entity_ids:
+            name_to_core_id = {}
+            for i, ent in enumerate(entities):
+                if i < len(entity_ids):
+                    name_to_core_id[ent["name"].lower()] = entity_ids[i]
 
-        high_conf_relations = [r for r in relations if r.get("confidence", 0) >= 0.8]
-        core_relations = []
-        for rel in high_conf_relations:
-            src_id = name_to_core_id.get(rel.get("source_name", "").lower())
-            tgt_id = name_to_core_id.get(rel.get("target_name", "").lower())
-            if src_id and tgt_id:
-                core_relations.append({
-                    "source_entity": src_id,
-                    "target_entity": tgt_id,
-                    "relation_type": rel.get("relation_type", "depends_on"),
-                    "confidence": rel.get("confidence", 0.8),
-                    "properties": {"source": "news_agent"},
-                })
+            high_conf_relations = [r for r in relations if r.get("confidence", 0) >= 0.8]
+            core_relations = []
+            for rel in high_conf_relations:
+                src_id = name_to_core_id.get(rel.get("source_name", "").lower())
+                tgt_id = name_to_core_id.get(rel.get("target_name", "").lower())
+                if src_id and tgt_id:
+                    core_relations.append({
+                        "source_entity": src_id,
+                        "target_entity": tgt_id,
+                        "relation_type": rel.get("relation_type", "depends_on"),
+                        "confidence": rel.get("confidence", 0.8),
+                        "properties": {"source": "news_agent"},
+                    })
 
-        if core_relations:
-            try:
-                await knowledge_storage.bulk_insert_relations(core_relations)
-            except Exception as e:
-                logger.warning("Publisher: relation merge to core failed: %s", e)
+            if core_relations:
+                fresh_relations = core_relations
+                try:
+                    await knowledge_storage.bulk_insert_relations(fresh_relations)
+                except Exception as e:
+                    logger.warning("Publisher: relation merge to core failed: %s", e)
+    except Exception as e:
+        _err = str(e)[:1000]
+        _err_cat = type(e).__name__.lower()
+        logger.warning("Knowledge Agent trigger failed: %s", e)
+        raise
+    finally:
+        await finish_agent_run(
+            _run_id,
+            status="failed" if _err else "completed",
+            duration_ms=int((_time.monotonic() - _start) * 1000),
+            error=_err,
+            error_category=_err_cat,
+        )
 
 
 async def _publish_news_package(

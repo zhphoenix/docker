@@ -4,7 +4,7 @@ import logging
 
 from state.research_state import AgentState
 from tools.llm import llm_tool
-from prompts.loader import load_prompt
+from prompts.loader import load_prompt, variant_label
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,8 @@ async def reason(state: AgentState) -> dict:
         "prompt_tokens": usage.get("prompt_tokens", 0),
         "completion_tokens": usage.get("completion_tokens", 0),
         "total_tokens": usage.get("total_tokens", 0),
+        # A/B 分流命中版本（供埋点打标，跨 task 传递用 state 而非 contextvar）
+        "prompt_variant": variant_label(),
     })
 
     logger.info("Reason: answer generated (%d chars, %d tokens)", len(answer), usage.get("total_tokens", 0))

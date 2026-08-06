@@ -268,3 +268,123 @@ async def export_logs(
             "Content-Disposition": f'attachment; filename="agent_logs_{now}.csv"'
         },
     )
+
+
+# ---- AC-P4-5 跨 Agent 协同监控（Trace 聚合） ----
+
+# 规范 Agent 名 → 展示名（与监控口径一致）
+AGENT_DISPLAY = {
+    "news_intelligence": "News Agent",
+    "knowledge_ingestion": "Knowledge Ingestion",
+    "doc_pipeline": "Document Pipeline",
+}
+
+
+def _agent_label(agent_id: str) -> str:
+    return AGENT_DISPLAY.get(agent_id, agent_id)
+
+
+@router.get("/traces")
+async def list_traces(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+):
+    """跨 Agent 调用链聚合列表（AC-P4-5）
+
+    按 trace_id 分组，聚合一次跨 Agent 协同（如 news → knowledge ingestion）的
+    参与 Agent 数、运行数、总耗时与整体状态。
+    """
+    total_rows = await postgres_tool.query(
+        "SELECT COUNT(*) AS total FROM agent_runs WHERE trace_id IS NOT NULL"
+    )
+    total = int(total_rows[0]["total"]) if total_rows else 0
+
+    rows = await postgres_tool.query(
+        """
+        SELECT trace_id,
+               COUNT(*) AS runs,
+               COUNT(DISTINCT agent_id) AS agents,
+               MIN(created_at) AS started_at,
+               MAX(created_at) AS last_at,
+               SUM(duration_ms) AS total_duration_ms,
+               COUNT(*) FILTER (WHERE status = 'failed') AS failed_runs,
+               ARRAY_AGG(DISTINCT agent_id) AS agent_ids
+        FROM agent_runs
+        WHERE trace_id IS NOT NULL
+        GROUP BY trace_id
+        ORDER BY MAX(created_at) DESC
+        LIMIT $1 OFFSET $2
+        """,
+        page_size,
+        (page - 1) * page_size,
+    )
+
+    items = []
+    for r in rows:
+        agent_ids = r.get("agent_ids") or []
+        steps = [
+            {"agent_id": a, "display_name": _agent_label(a)}
+            for a in agent_ids
+        ]
+        items.append({
+            "trace_id": r["trace_id"],
+            "agents": int(r.get("agents") or 0),
+            "runs": int(r.get("runs") or 0),
+            "started_at": _fmt_ts(r.get("started_at")),
+            "last_at": _fmt_ts(r.get("last_at")),
+            "total_duration_ms": r.get("total_duration_ms"),
+            "failed_runs": int(r.get("failed_runs") or 0),
+            "status": "failed" if (r.get("failed_runs") or 0) > 0 else "completed",
+            "steps": steps,
+        })
+    return {"items": items, "total": total, "page": page, "page_size": page_size}
+
+
+@router.get("/trace/{trace_id}")
+async def get_trace_chain(trace_id: str):
+    """单条跨 Agent 调用链详情（AC-P4-5）
+
+    返回同一 trace_id 下按时间排序的各 Agent 运行，展示衔接顺序与节点轨迹。
+    """
+    rows = await postgres_tool.query(
+        "SELECT id, agent_id, task_kind, status, question, duration_ms, "
+        "error, error_category, trace, created_at "
+        "FROM agent_runs WHERE trace_id = $1 ORDER BY created_at ASC",
+        trace_id,
+    )
+    if not rows:
+        raise HTTPException(status_code=404, detail=f"Trace '{trace_id}' not found")
+
+    runs = [
+        {
+            "run_id": str(r["id"]),
+            "agent_id": r["agent_id"],
+            "display_name": _agent_label(r["agent_id"]),
+            "task_kind": r["task_kind"],
+            "status": r["status"],
+            "question": r["question"],
+            "duration_ms": r["duration_ms"],
+            "error": r["error"],
+            "error_category": r["error_category"],
+            "created_at": _fmt_ts(r["created_at"]),
+            "timeline": [
+                {
+                    "node": (t.get("node") or t.get("name") or t.get("step") or "step"),
+                    "status": t.get("status", "completed"),
+                    "duration_ms": t.get("duration_ms"),
+                    "detail": t.get("detail") or t.get("message"),
+                }
+                for t in _norm_trace(r.get("trace"))
+                if isinstance(t, dict)
+            ],
+        }
+        for r in rows
+    ]
+    return {
+        "trace_id": trace_id,
+        "runs": runs,
+        "chain": [
+            {"agent_id": r["agent_id"], "display_name": _agent_label(r["agent_id"])}
+            for r in rows
+        ],
+    }

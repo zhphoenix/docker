@@ -5,6 +5,7 @@ export interface PromptInfo {
   name: string
   version: number
   is_active: boolean
+  status?: string
   created_at: string
 }
 
@@ -14,7 +15,23 @@ export interface PromptDetail {
   content: string
   version: number
   is_active: boolean
+  status?: string
   created_at: string
+}
+
+export interface PromptDiffLine {
+  type: 'added' | 'removed' | 'context'
+  text: string
+}
+
+export interface PromptDiff {
+  agent_id: string
+  name: string
+  v1: number
+  v2: number
+  added: number
+  removed: number
+  lines: PromptDiffLine[]
 }
 
 export interface PromptListResponse {
@@ -52,4 +69,23 @@ export function previewPrompt(content: string, variables: Record<string, string>
     method: 'POST',
     body: JSON.stringify({ content, variables }),
   })
+}
+
+export function submitPrompt(
+  agentId: string,
+  name: string
+): Promise<{ approval_id: string; status: string; version: number }> {
+  return apiFetch(`/api/prompts/${agentId}/${name}/submit`, {
+    method: 'POST',
+    body: JSON.stringify({ approver: 'admin' }),
+  })
+}
+
+export function fetchPromptDiff(
+  agentId: string,
+  name: string,
+  v1: number,
+  v2: number
+): Promise<PromptDiff> {
+  return apiFetch(`/api/prompts/${agentId}/${name}/diff?v1=${v1}&v2=${v2}`)
 }

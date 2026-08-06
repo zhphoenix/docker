@@ -23,6 +23,8 @@ class BaseAgent:
     def __init__(self, graph, agent_name: str = "base"):
         self.graph = graph
         self.agent_name = agent_name
+        # A/B 分流命中版本（reason 节点写入 metadata，供埋点打标）
+        self.last_variant: str | None = None
 
     def _build_initial_state(self, request: ChatRequest) -> dict:
         """从 ChatRequest 构建初始 State"""
@@ -87,8 +89,10 @@ class BaseAgent:
 
         logger.info("[%s] Run completed in %.2fs, answer=%d chars", self.agent_name, elapsed, len(answer))
 
-        # 从 metadata 提取 token 用量
+        # 从 metadata 提取 token 用量 及 A/B 分流命中版本
         metadata = result.get("metadata", {})
+        self.last_variant = metadata.get("prompt_variant")
+
         usage = UsageInfo(
             prompt_tokens=metadata.get("prompt_tokens", 0),
             completion_tokens=metadata.get("completion_tokens", 0),

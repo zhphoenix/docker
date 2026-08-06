@@ -30,6 +30,7 @@ import {
   Zap,
   BarChart3,
   MessageSquareQuote,
+  Rocket,
 } from 'lucide-react'
 import {
   CartesianGrid,
@@ -50,9 +51,11 @@ import { EmptyState } from '@/components/common/EmptyState'
 import {
   fetchKnowledgeAnalytics,
   fetchKnowledgeInsights,
+  fetchKnowledgeServices,
   fetchKnowledgeStats,
   type KnowledgeAnalytics,
   type KnowledgeInsights,
+  type KnowledgeServicesResponse,
 } from '@/services/knowledge'
 import { fetchHealth } from '@/services/health'
 import { cn } from '@/lib/utils'
@@ -131,6 +134,14 @@ export function KnowledgeDashboard({ onNavigateToTasks }: KnowledgeDashboardProp
     retry: 1,
   })
 
+  // KOC-E2: AI Knowledge Services（Knowledge 被哪些 Agent 使用）
+  const servicesQuery = useQuery({
+    queryKey: ['knowledge-services'],
+    queryFn: fetchKnowledgeServices,
+    staleTime: 30_000,
+    retry: 1,
+  })
+
   // 服务状态：独立缓存键 ['dashboard-health']，避免与 StatusBar 的 ['health'] 轮询共享被动刷新
   const healthQuery = useQuery({
     queryKey: ['dashboard-health'],
@@ -145,6 +156,7 @@ export function KnowledgeDashboard({ onNavigateToTasks }: KnowledgeDashboardProp
     queryClient.invalidateQueries({ queryKey: ['knowledge-stats'] })
     queryClient.invalidateQueries({ queryKey: ['knowledge-analytics'] })
     queryClient.invalidateQueries({ queryKey: ['knowledge-insights'] })
+    queryClient.invalidateQueries({ queryKey: ['knowledge-services'] })
     healthQuery.refetch()
   }
 
@@ -260,6 +272,13 @@ export function KnowledgeDashboard({ onNavigateToTasks }: KnowledgeDashboardProp
           {insightsQuery.data && (
             <motion.div variants={item}>
               <InsightsSection insights={insightsQuery.data} />
+            </motion.div>
+          )}
+
+          {/* KOC-E2 AI Knowledge Services：Knowledge 被哪些 Agent 使用（设计 §13） */}
+          {servicesQuery.data && (
+            <motion.div variants={item}>
+              <ServicesSection services={servicesQuery.data} />
             </motion.div>
           )}
 
@@ -1061,6 +1080,111 @@ function InsightsSection({ insights }: { insights: KnowledgeInsights }) {
                 )
               })}
             </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// KOC-E2 AI Knowledge Services（设计 §13）：Knowledge 被哪些 Agent 使用
+function ServicesSection({ services }: { services: KnowledgeServicesResponse }) {
+  const { consumers, cache, totals } = services
+  const maxTotal = Math.max(1, ...consumers.map((c) => c.total))
+
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      {/* 消费方调用量 */}
+      <Card className="lg:col-span-2">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2">
+            <Rocket className="size-4 text-primary" strokeWidth={1.8} />
+            AI Knowledge Services
+            <Badge variant="secondary" className="ml-auto text-[9px]">
+              今日 {totals.today} · 累计 {totals.total} · {totals.active} 个消费方
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {consumers.length === 0 ? (
+            <p className="py-6 text-center text-xs text-muted-foreground">
+              暂无 Agent 调用记录
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {consumers.map((c) => (
+                <div
+                  key={c.key}
+                  className="rounded-lg border p-3.5 transition-colors hover:bg-muted/40"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-foreground">{c.name}</span>
+                    <Badge
+                      variant={c.today > 0 ? 'default' : 'secondary'}
+                      className="text-[9px]"
+                    >
+                      Today&apos;s {c.today}
+                    </Badge>
+                  </div>
+                  <div className="mt-2 flex items-baseline gap-1">
+                    <span className="text-2xl font-bold tabular-nums text-foreground">
+                      {formatNumber(c.total)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">Calls</span>
+                  </div>
+                  <Progress
+                    value={(c.total / maxTotal) * 100}
+                    className="mt-2 h-1.5"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* mcp-knowledge 缓存统计（复用 health_check 埋点） */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2">
+            <Boxes className="size-4 text-sky-500" strokeWidth={1.8} />
+            Knowledge Cache
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {cache ? (
+            <>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-bold tabular-nums text-foreground">
+                  {formatNumber(cache.hits)}
+                </span>
+                <span className="text-xs text-muted-foreground">Knowledge Hits</span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Misses</span>
+                  <span className="tabular-nums text-foreground">{cache.misses}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Hit Rate</span>
+                  <span className="tabular-nums text-foreground">
+                    {cache.hit_rate != null ? `${Math.round(cache.hit_rate * 100)}%` : '—'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Cached Items</span>
+                  <span className="tabular-nums text-foreground">{cache.size}</span>
+                </div>
+              </div>
+              <Progress
+                value={cache.hit_rate != null ? cache.hit_rate * 100 : 0}
+                className="h-1.5"
+              />
+            </>
+          ) : (
+            <p className="py-6 text-center text-xs text-muted-foreground">
+              缓存统计不可用
+            </p>
           )}
         </CardContent>
       </Card>

@@ -2,6 +2,7 @@
 
 基于近期入库统计产出运营洞察（设计 §7 Knowledge Insights）：
   - hot_topics          今日热点话题（近期新增 Facts/Events 关键词 + 实体名关键词共现 Top N）
+  - cooccurring_topics  关键词共现组合（NIC-D1 Trend Discovery 共现增长，如 AI+GPU+Cloud）
   - trending_companies  热门公司（Company 实体按 source_count 排序）
   - trending_industries 热门行业（Industry 实体按 source_count 排序）
   - emerging_concepts   新兴概念（Concept/Technology 近期新增，按置信度排序）
@@ -72,7 +73,7 @@ async def compute_insights(range_days: int = 7, limit: int = 10) -> dict:
       hot_topics / trending_companies / trending_industries / emerging_concepts /
       top_growing / top_mentioned / heatmap
     """
-    result: dict = {"range_days": range_days, "limit": limit}
+    result: dict = {"range_days": range_days, "limit": limit, "cooccurring_topics": []}
 
     # ── Hot Topics：近期新增实体名关键词共现统计 ──
     try:
@@ -90,9 +91,21 @@ async def compute_insights(range_days: int = 7, limit: int = 10) -> dict:
             {"topic": kw, "count": cnt}
             for kw, cnt in counter.most_common(limit)
         ]
+        # ── Co-occurring Topics：同一实体名内关键词共现组合（NIC-D1 共现增长） ──
+        # 复用本轮已取回的近期实体名，对含 ≥2 个关键词的实体名取前 3 个关键词作为组合
+        combos: Counter[tuple[str, ...]] = Counter()
+        for r in rows:
+            keys = list(dict.fromkeys(_extract_keywords(r["name"])))
+            if len(keys) >= 2:
+                combos[tuple(keys[:3])] += 1
+        result["cooccurring_topics"] = [
+            {"topics": list(combo), "count": cnt}
+            for combo, cnt in combos.most_common(limit)
+        ]
     except Exception:
         logger.warning("insights: hot_topics query failed, degraded")
         result["hot_topics"] = []
+        result["cooccurring_topics"] = []
 
     # ── Trending Companies：Company 按 source_count 排序 ──
     try:

@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 from tools.postgres import postgres_tool
+from prompts.loader import reset_variant_context, variant_label
 
 logger = logging.getLogger(__name__)
 
@@ -65,13 +66,19 @@ async def record_agent_run(
     tokens_in: int = 0,
     tokens_out: int = 0,
     trace: list[dict[str, Any]] | None = None,
+    variant: str | None = None,
+    trace_id: str | None = None,
 ) -> str | None:
-    """记录一次 Agent 运行到 agent_runs，返回 run_id（失败返回 None）"""
+    """记录一次 Agent 运行到 agent_runs，返回 run_id（失败返回 None）
+
+    trace_id: 一次跨 Agent 调用链的标识（AC-P4-5）。news_intelligence 触发
+        knowledge_ingestion 时共享同一 trace_id，用于 Trace 聚合展示衔接。
+    """
     try:
         row = await postgres_tool.query(
             "INSERT INTO agent_runs "
-            "(agent_id, task_kind, status, question, duration_ms, error, error_category, tokens_in, tokens_out, trace) "
-            "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) "
+            "(agent_id, task_kind, status, question, duration_ms, error, error_category, tokens_in, tokens_out, trace, variant, trace_id) "
+            "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) "
             "RETURNING id",
             agent_id,
             task_kind,
@@ -83,6 +90,8 @@ async def record_agent_run(
             tokens_in,
             tokens_out,
             json.dumps(trace or [], ensure_ascii=False),
+            variant,
+            trace_id,
         )
         return str(row[0]["id"]) if row else None
     except Exception as e:
@@ -99,6 +108,7 @@ async def finish_agent_run(
     tokens_in: int = 0,
     tokens_out: int = 0,
     trace: list[dict[str, Any]] | None = None,
+    variant: str | None = None,
 ) -> None:
     """更新 Agent 运行的结束状态"""
     if not run_id:
@@ -107,7 +117,8 @@ async def finish_agent_run(
         await postgres_tool.execute(
             "UPDATE agent_runs SET status=$2, "
             "duration_ms=COALESCE($3, duration_ms), "
-            "error=$4, error_category=$5, tokens_in=$6, tokens_out=$7, trace=$8 "
+            "error=$4, error_category=$5, tokens_in=$6, tokens_out=$7, trace=$8, "
+            "variant=COALESCE($9, variant) "
             "WHERE id=$1",
             run_id,
             status,
@@ -117,6 +128,7 @@ async def finish_agent_run(
             tokens_in,
             tokens_out,
             json.dumps(trace or [], ensure_ascii=False),
+            variant,
         )
     except Exception as e:
         logger.warning("finish_agent_run failed: %s", e)
@@ -129,6 +141,7 @@ async def invoke_tracked(
     task_kind: str = "pipeline",
     question: str | None = None,
     trace: list[dict[str, Any]] | None = None,
+    trace_id: str | None = None,
 ) -> dict[str, Any]:
     """统一 Graph 调用埋点包装器（AC-B3）
 
@@ -151,12 +164,14 @@ async def invoke_tracked(
         graph.ainvoke 的返回结果（与未包装时一致）
     """
     start = time.monotonic()
+    reset_variant_context()
     run_id = await record_agent_run(
         agent_id=agent_id,
         task_kind=task_kind,
         status="running",
         question=question,
         trace=trace,
+        trace_id=trace_id,
     )
     error: str | None = None
     error_category: str | None = None
@@ -173,6 +188,7 @@ async def invoke_tracked(
             error=error,
             error_category=error_category,
             trace=trace,
+            variant=variant_label(),
         )
         raise
     finally:
@@ -183,6 +199,7 @@ async def invoke_tracked(
                     status="completed",
                     duration_ms=int((time.monotonic() - start) * 1000),
                     trace=trace,
+                    variant=variant_label(),
                 )
             except Exception as e:
                 logger.warning("invoke_tracked finish failed: %s", e)

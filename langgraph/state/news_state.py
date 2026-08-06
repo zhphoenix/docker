@@ -37,3 +37,6 @@ class NewsState(TypedDict):
 
     # ── 控制（并行安全：fan-out 分支的错误自动累加，不覆盖） ──
     errors: Annotated[list[str], operator.add]
+
+    # ── 跨 Agent 调用链（AC-P4-5） ──
+    trace_id: str              # 本次新闻入库的调用链标识，触发 knowledge_ingestion 时共享

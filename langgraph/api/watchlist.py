@@ -1062,3 +1062,71 @@ async def delete_watchlist(item_id: str):
         "DELETE FROM watchlist.watchlist WHERE id = $1", item_id
     )
     return {"deleted": "删除成功"}
+
+
+@watchlist_router.get("/monitor-hits")
+async def watchlist_monitor_hits(
+    group_name: Optional[str] = Query(None),
+    sort: str = Query("live_count", description="排序字段：live_count/cached_count/event_count/ai_score"),
+):
+    """NIC-D2 Watchlist Monitor：自选股今日命中新闻数实时统计
+
+    对每只 enabled 自选股，实时从 news.articles 按标题/摘要匹配股票名称或代码
+    统计今日（Asia/Shanghai）命中新闻数，与物化字段 today_news_count 对照，
+    保证展示值与实际新闻匹配。
+    - live_count    实时命中次数（news.articles 标题/摘要 LIKE 匹配，今日）
+    - cached_count  物化 today_news_count（监控引擎上次落库值）
+    - event_count   今日事件数（today_event_count）
+    - ai_score      AI 关注评分
+    """
+    order_by = {
+        "live_count": "live_count DESC",
+        "cached_count": "cached_count DESC",
+        "event_count": "event_count DESC",
+        "ai_score": "ai_score DESC",
+    }.get(sort, "live_count DESC")
+    where = ""
+    params: list = []
+    if group_name:
+        params.append(group_name)
+        where = "WHERE w.enabled = true AND w.group_name = $1"
+    else:
+        where = "WHERE w.enabled = true"
+
+    rows = await postgres_tool.query(
+        f"""
+        SELECT w.stock_code, w.stock_name, w.market, w.ai_score,
+               w.today_news_count AS cached_count,
+               w.today_event_count AS event_count,
+               COUNT(a.id) AS live_count
+        FROM watchlist.watchlist w
+        LEFT JOIN news.articles a
+          ON a.published_at >= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Shanghai')::date
+             AND a.published_at < (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Shanghai')::date + INTERVAL '1 day'
+             AND (
+               (w.stock_name IS NOT NULL AND
+                (a.title ILIKE '%' || w.stock_name || '%' OR a.summary ILIKE '%' || w.stock_name || '%'))
+               OR a.title ILIKE '%' || w.stock_code || '%'
+             )
+        {where}
+        GROUP BY w.stock_code, w.stock_name, w.market, w.ai_score,
+                 w.today_news_count, w.today_event_count
+        ORDER BY {order_by}, w.stock_code
+        """,
+        *params,
+    )
+    items = [
+        {
+            "stock_code": r["stock_code"],
+            "stock_name": r["stock_name"],
+            "market": r["market"],
+            "ai_score": round(float(r["ai_score"]), 1) if r["ai_score"] is not None else 0.0,
+            "live_count": int(r["live_count"] or 0),
+            "cached_count": int(r["cached_count"] or 0),
+            "event_count": int(r["event_count"] or 0),
+        }
+        for r in rows
+    ]
+    # 实时命中与物化计数不一致的标的（供前端提示数据新鲜度）
+    stale = sum(1 for it in items if it["live_count"] != it["cached_count"])
+    return {"items": items, "total": len(items), "stale": stale}

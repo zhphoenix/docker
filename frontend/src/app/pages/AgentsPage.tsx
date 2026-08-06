@@ -8,8 +8,10 @@ import {
   Gauge,
   RefreshCw,
   ScrollText,
+  Store,
   TrendingUp,
   TriangleAlert,
+  Network,
   Wrench,
   type LucideIcon,
 } from 'lucide-react'
@@ -212,10 +214,20 @@ export default function AgentsPage() {
             Agent 注册表 · 运行指标 · 最近日志
           </p>
         </div>
-        <Button variant="outline" size="sm" className="gap-2" onClick={refreshAll}>
-          <RefreshCw className={cn('size-3.5', isFetching && 'animate-spin')} />
-          刷新
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate('/agents/traces')}>
+            <Network className="size-3.5" />
+            协同调用链
+          </Button>
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate('/agents/marketplace')}>
+            <Store className="size-3.5" />
+            模板市场
+          </Button>
+          <Button variant="outline" size="sm" className="gap-2" onClick={refreshAll}>
+            <RefreshCw className={cn('size-3.5', isFetching && 'animate-spin')} />
+            刷新
+          </Button>
+        </div>
       </div>
 
       {/* 三栏：Agent Registry | Runtime Metrics | Recent Logs */}

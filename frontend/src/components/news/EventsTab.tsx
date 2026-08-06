@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { fetchEventMonitor, type CoreEvent } from '@/services/news'
+import { ResearchActions } from './ResearchActions'
 import { cn } from '@/lib/utils'
 
 const EVENT_TYPES = [
@@ -289,6 +290,13 @@ function EventCard({
                   {event.entities.join('、')}
                 </span>
               )}
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <ResearchActions
+                compact
+                question={`针对事件「${event.title}」进行深度研究与影响评估`}
+                symbol={event.entities[0] ?? undefined}
+              />
             </div>
           </div>
           {event.event_date && (

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from runtime.queue import task_queue
 from pipelines.document_pipeline import doc_pipeline
+from pipelines.stages import STAGE_ORDER, STAGE_LABELS
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
@@ -148,6 +149,103 @@ async def task_stats():
         "running": counts.get("running", 0),
         "done": counts.get("done", 0),
         "failed": counts.get("failed", 0),
+    }
+
+
+@router.get("/pipeline/stats")
+async def pipeline_stats():
+    """八阶段视图 + 生产统计（DP-E1）
+
+    数据来源均为真实 DB 聚合：
+      - stages: documents.metadata.processing.stages 按阶段/状态计数
+      - documents/packages: documents / knowledge_packages 表
+      - queue_length: tasks 中 pending 计数
+      - avg_latency_ms: tasks (done) duration_ms 均值
+      - processed_today: task_logs 今日 "完成" 级阶段打点数
+      - publish_success_rate: published / (published + failed)
+    """
+    from tools.postgres import postgres_tool
+
+    # 1) 八阶段计数（真实打点，缺省为 0）
+    stage_state = {s: {"running": 0, "pending": 0, "completed": 0, "failed": 0}
+                   for s in STAGE_ORDER}
+    rows = await postgres_tool.query(
+        ""
+        "SELECT st->>'stage' AS stage, st->>'status' AS status, COUNT(*) AS cnt "
+        "FROM documents d, "
+        "jsonb_array_elements(COALESCE(d.metadata->'processing'->'stages', '"
+        "[]'::jsonb)) AS st(st) "
+        "GROUP BY st->>'stage', st->>'status'"
+    )
+    for r in rows:
+        stage, status, cnt = r["stage"], r["status"], int(r["cnt"])
+        if stage not in stage_state:
+            continue
+        key = {"running": "running", "pending": "pending",
+               "success": "completed", "failed": "failed"}.get(status)
+        if key:
+            stage_state[stage][key] += cnt
+
+    stages = [
+        {"stage": s, "label": STAGE_LABELS.get(s, s), **stage_state[s]}
+        for s in STAGE_ORDER
+    ]
+
+    # 2) Incoming Documents / 今日处理
+    doc_rows = await postgres_tool.query(
+        "SELECT COUNT(*) AS total, "
+        "COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE) AS today "
+        "FROM documents"
+    )
+    docs = doc_rows[0] if doc_rows else {"total": 0, "today": 0}
+
+    processed_rows = await postgres_tool.query(
+        "SELECT COUNT(*) AS cnt FROM task_logs "
+        "WHERE level = 'info' AND message LIKE '%完成%' "
+        "AND created_at >= CURRENT_DATE"
+    )
+    processed_today = int(processed_rows[0]["cnt"]) if processed_rows else 0
+
+    # 3) Knowledge Packages + 发布成功率
+    pkg_rows = await postgres_tool.query(
+        "SELECT status, COUNT(*) AS cnt FROM knowledge_packages GROUP BY status"
+    )
+    pkg_counts = {r["status"]: int(r["cnt"]) for r in pkg_rows}
+    published = pkg_counts.get("published", 0)
+    failed = pkg_counts.get("failed", 0)
+    publish_success_rate = (
+        round(published / (published + failed), 3)
+        if (published + failed) > 0 else None
+    )
+    packages = {
+        "total": sum(pkg_counts.values()),
+        "draft": pkg_counts.get("draft", 0),
+        "published": published,
+        "consumed": pkg_counts.get("consumed", 0),
+        "failed": failed,
+    }
+
+    # 4) 队列长度 + 平均耗时
+    queue_rows = await postgres_tool.query(
+        "SELECT COUNT(*) AS cnt FROM tasks WHERE status = 'pending'"
+    )
+    queue_length = int(queue_rows[0]["cnt"]) if queue_rows else 0
+
+    latency_rows = await postgres_tool.query(
+        "SELECT AVG(duration_ms) AS avg_ms FROM tasks "
+        "WHERE duration_ms IS NOT NULL AND status = 'done'"
+    )
+    avg_ms = latency_rows[0]["avg_ms"] if latency_rows and latency_rows[0]["avg_ms"] else None
+    avg_latency_ms = round(float(avg_ms), 0) if avg_ms is not None else None
+
+    return {
+        "stages": stages,
+        "incoming_documents": {"total": int(docs["total"]), "today": int(docs["today"])},
+        "packages": packages,
+        "processed_today": processed_today,
+        "publish_success_rate": publish_success_rate,
+        "queue_length": queue_length,
+        "avg_latency_ms": avg_latency_ms,
     }
 
 

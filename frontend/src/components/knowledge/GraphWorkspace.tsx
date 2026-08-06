@@ -1,14 +1,25 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Boxes, ExternalLink, FileText, Lightbulb } from 'lucide-react'
+import {
+  ArrowRight,
+  Boxes,
+  ExternalLink,
+  FileText,
+  Lightbulb,
+  Network,
+  Search,
+} from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Input } from '@/components/ui/input'
 import { EmptyState } from '@/components/common/EmptyState'
 import {
   SIYUAN_GRAPH_GUIDE,
   SIYUAN_URL,
   fetchEntities,
+  fetchKnowledgeImpact,
   fetchKnowledgeStats,
 } from '@/services/knowledge'
 
@@ -124,6 +135,140 @@ export function GraphWorkspace() {
           )}
         </CardContent>
       </Card>
+
+      {/* 影响链分析（KOC-E1，AGE 影响链查询） */}
+      <ImpactChainPanel />
     </div>
+  )
+}
+
+/**
+ * KOC-E1 Impact 分析：给定种子实体，沿 AGE 图谱关系遍历到受影响公司，
+ * 展示影响链（Policy/Event/Industry → Company）。
+ */
+function ImpactChainPanel() {
+  const [entity, setEntity] = useState('')
+  const [query, setQuery] = useState('')
+
+  const impactQuery = useQuery({
+    queryKey: ['knowledge-impact', query],
+    queryFn: () => fetchKnowledgeImpact(query, 3, 20),
+    enabled: query.trim().length > 0,
+    retry: 1,
+  })
+
+  const handleSearch = () => {
+    const v = entity.trim()
+    if (v) setQuery(v)
+  }
+
+  const data = impactQuery.data
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Network className="size-4 text-muted-foreground" strokeWidth={1.8} />
+          影响链分析
+        </CardTitle>
+        <CardDescription>
+          输入事件/政策/行业/公司名称，沿图谱关系（impacts/supplier/customer/depends_on 等）
+          遍历返回受影响公司链。数据源：Apache AGE 图谱。
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex gap-2">
+          <Input
+            value={entity}
+            onChange={(e) => setEntity(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            placeholder="输入实体名称，如：Black Hat / 中央经济工作会议"
+            className="flex-1"
+          />
+          <Button onClick={handleSearch} disabled={!entity.trim()}>
+            <Search className="size-4" strokeWidth={1.8} />
+            分析
+          </Button>
+        </div>
+
+        {!query && (
+          <p className="text-xs text-muted-foreground">
+            未查询。输入实体名称后点击「分析」查看影响链。
+          </p>
+        )}
+
+        {impactQuery.isLoading && (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-lg" />
+            ))}
+          </div>
+        )}
+
+        {impactQuery.isError && (
+          <EmptyState
+            icon={Network}
+            title="影响链分析失败"
+            description="查询 AGE 图谱失败，请确认图谱已同步且后端正常"
+            action={{ label: '重试', onClick: () => impactQuery.refetch() }}
+          />
+        )}
+
+        {data && !impactQuery.isLoading && !impactQuery.isError && (
+          <>
+            {!data.found ? (
+              <EmptyState
+                icon={Search}
+                title="未找到实体"
+                description={`图谱中不存在名为「${data.entity}」的实体，请确认名称或先运行 sync_to_age 同步。`}
+              />
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">{data.seed?.entity_type || 'Entity'}</Badge>
+                  <span className="text-sm font-semibold">{data.seed?.name}</span>
+                  {data.seed?.description && (
+                    <span className="truncate text-xs text-muted-foreground">
+                      {data.seed.description}
+                    </span>
+                  )}
+                </div>
+
+                {data.chains.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    该实体在 {data.depth} 跳内未发现到公司的受影响链。可增大深度后重试。
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {data.chains.map((chain) => (
+                      <div
+                        key={chain.company}
+                        className="rounded-lg border px-3 py-2"
+                      >
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-medium">{chain.company}</span>
+                          <Badge variant="outline" className="text-[10px]">
+                            {chain.depth} 跳
+                          </Badge>
+                        </div>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+                          {chain.hops.map((h, idx) => (
+                            <span key={idx} className="flex items-center gap-1">
+                              {idx > 0 && <ArrowRight className="size-3" />}
+                              <span className="font-medium text-foreground">{h.to}</span>
+                              <span className="rounded bg-muted px-1">{h.rel}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
   )
 }

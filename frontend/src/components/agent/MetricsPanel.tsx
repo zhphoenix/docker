@@ -26,7 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/common/EmptyState'
-import { fetchAgentMetrics, type AgentMetricsSummary } from '@/services/agents'
+import { fetchAgentMetrics, fetchPromptVariants, type AgentMetricsSummary, type PromptVariantStat } from '@/services/agents'
 import { cn } from '@/lib/utils'
 
 const RANGES = [
@@ -102,6 +102,14 @@ export function MetricsPanel({ agentId }: { agentId: string }) {
   const items = data?.trend ?? []
   const cards = data ? metricCards(data.summary) : []
 
+  const { data: variantsData } = useQuery({
+    queryKey: ['agent-prompt-variants', agentId, range],
+    queryFn: () => fetchPromptVariants(agentId, range),
+    enabled: !!agentId,
+    retry: 1,
+  })
+  const variants = variantsData?.variants ?? []
+
   return (
     <div className="space-y-4">
       {/* 工具栏：时间范围切换 + 刷新 */}
@@ -172,6 +180,50 @@ export function MetricsPanel({ agentId }: { agentId: string }) {
               </div>
             </CardContent>
           </Card>
+
+          {/* A/B Prompt 变体对比（AC-P4-3） */}
+          {variants.length > 0 && (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-sm">A/B Prompt 变体对比</CardTitle>
+                <span className="text-xs text-muted-foreground">
+                  {variants.length} 个变体参与分流
+                </span>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-left text-xs text-muted-foreground">
+                        <th className="px-4 py-2 font-medium">变体</th>
+                        <th className="px-4 py-2 font-medium">运行</th>
+                        <th className="px-4 py-2 font-medium">成功</th>
+                        <th className="px-4 py-2 font-medium">失败</th>
+                        <th className="px-4 py-2 font-medium">成功率</th>
+                        <th className="px-4 py-2 font-medium">平均耗时</th>
+                        <th className="px-4 py-2 font-medium">平均 Tokens</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {variants.map((v: PromptVariantStat) => (
+                        <tr key={v.variant} className="border-b last:border-0">
+                          <td className="px-4 py-2 font-medium text-primary">{v.variant}</td>
+                          <td className="px-4 py-2">{v.runs}</td>
+                          <td className="px-4 py-2 text-emerald-500">{v.success}</td>
+                          <td className="px-4 py-2 text-destructive">{v.failed}</td>
+                          <td className="px-4 py-2">
+                            <span className="font-medium">{v.success_rate}%</span>
+                          </td>
+                          <td className="px-4 py-2">{fmtDuration(v.avg_latency_ms)}</td>
+                          <td className="px-4 py-2">{fmtTokens(v.avg_tokens)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* 趋势图 */}
           {items.length === 0 ? (

@@ -400,6 +400,8 @@ async def _run_collection(keyword: str, priority: str) -> None:
         for source in sources:
             collect_start = time.monotonic()
             try:
+                # AC-P4-5：为本次新闻入库生成跨 Agent 调用链标识
+                trace_id = str(uuid.uuid4())
                 if source.source_type == "rss":
                     articles = await collect_rss(source)
                 elif source.source_type == "crawler":
@@ -442,9 +444,12 @@ async def _run_collection(keyword: str, priority: str) -> None:
                         "stored_event_ids": [],
                         "knowledge_agent_triggered": False,
                         "errors": [],
+                        # AC-P4-5：跨 Agent 调用链标识，news→knowledge ingestion 共享
+                        "trace_id": trace_id,
                     },
                     agent_id="news_intelligence",
                     question=f"manual collect source={source.id} keyword={keyword}",
+                    trace_id=trace_id,
                 )
 
                 stored = len(result.get("stored_article_ids", []))
@@ -538,4 +543,124 @@ async def set_source_enabled(source_id: str, req: SourceEnabledRequest):
         "enabled": req.enabled,
         "status": "ok",
         "message": "源已" + ("启用" if req.enabled else "停用"),
+    }
+
+
+# ──────────────────────────────────────────────
+# Recent Activities（NIC-E2 动态流）
+# ──────────────────────────────────────────────
+
+_ACTIVITY_LABELS = {
+    "source_added": "新源接入",
+    "collect_error": "采集异常",
+    "breaking": "Breaking",
+    "package_publish": "Package 发布",
+}
+
+
+@news_router.get("/activities")
+async def recent_activities(
+    days: int = Query(7, ge=1, le=90, description="动态流时间窗口（天）"),
+    limit: int = Query(30, ge=1, le=100, description="每类活动取数上限"),
+):
+    """NIC-E2 Recent Activities：新闻侧动态流
+
+    按时间倒序聚合四类真实事件：
+      - source_added    新源接入（news.sources.created_at）
+      - collect_error   采集异常（news.collect_runs 失败记录）
+      - breaking        Breaking 高影响新闻（news.articles importance_score>=0.8）
+      - package_publish Package 发布里程碑（knowledge_packages publish_time）
+    各查询独立 try/except，单类故障不影响整体返回。
+    """
+    activities: list[dict] = []
+
+    def _sink(kind: str, title: str, detail: str, at, ref_id: str | None = None):
+        if at is None:
+            return
+        activities.append({
+            "kind": kind,
+            "label": _ACTIVITY_LABELS.get(kind, kind),
+            "title": title,
+            "detail": detail,
+            "time": at.isoformat() if hasattr(at, "isoformat") else str(at),
+            "ref_id": ref_id,
+        })
+
+    # ── 1. 新源接入（news.sources.created_at） ──
+    try:
+        rows = await postgres_tool.query(
+            "SELECT source_id, name, source_type, created_at "
+            "FROM news.sources "
+            "WHERE created_at >= NOW() - ($1 || ' days')::interval "
+            "ORDER BY created_at DESC LIMIT $2",
+            str(days), limit,
+        )
+        for r in rows:
+            _sink("source_added", f"新源接入：{r['name']}", r["source_type"], r["created_at"], r["source_id"])
+    except Exception:
+        logger.warning("activities: source_added query failed, degraded")
+
+    # ── 2. 采集异常（news.collect_runs 非成功记录） ──
+    try:
+        rows = await postgres_tool.query(
+            "SELECT source_id, source_name, error, created_at "
+            "FROM news.collect_runs "
+            "WHERE NOT success AND created_at >= NOW() - ($1 || ' days')::interval "
+            "ORDER BY created_at DESC LIMIT $2",
+            str(days), limit,
+        )
+        for r in rows:
+            detail = (r["error"] or "")[:80] or r["source_name"] or r["source_id"]
+            _sink("collect_error", f"采集异常：{r['source_name'] or r['source_id']}", detail, r["created_at"], r["source_id"])
+    except Exception:
+        logger.warning("activities: collect_error query failed, degraded")
+
+    # ── 3. Breaking 高影响新闻 ──
+    try:
+        rows = await postgres_tool.query(
+            "SELECT id, title, url, importance_score, published_at "
+            "FROM news.articles "
+            "WHERE importance_score >= 0.8 "
+            "  AND published_at >= NOW() - ($1 || ' days')::interval "
+            "ORDER BY published_at DESC LIMIT $2",
+            str(days), limit,
+        )
+        for r in rows:
+            _sink(
+                "breaking",
+                (r["title"] or "")[:60],
+                f"重要性 {round(r['importance_score'], 2)}",
+                r["published_at"],
+                str(r["id"]) if r["id"] else None,
+            )
+    except Exception:
+        logger.warning("activities: breaking query failed, degraded")
+
+    # ── 4. Package 发布里程碑 ──
+    try:
+        rows = await postgres_tool.query(
+            "SELECT id, source_type, status, publish_time, created_at "
+            "FROM knowledge_packages "
+            "WHERE status = 'published' "
+            "  AND publish_time >= NOW() - ($1 || ' days')::interval "
+            "ORDER BY publish_time DESC LIMIT $2",
+            str(days), limit,
+        )
+        for r in rows:
+            _sink(
+                "package_publish",
+                f"Package 已发布：{r['source_type']}",
+                f"#{r['id']}",
+                r["publish_time"] or r["created_at"],
+                str(r["id"]) if r["id"] else None,
+            )
+    except Exception:
+        logger.warning("activities: package_publish query failed, degraded")
+
+    activities.sort(key=lambda a: a["time"], reverse=True)
+    return {
+        "activities": activities[:limit],
+        "total": len(activities[:limit]),
+        "days": days,
+        "labels": _ACTIVITY_LABELS,
     }

@@ -7,7 +7,7 @@ import math
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from services.router import AGENT_REGISTRY
+from services.router import AGENT_REGISTRY, reload_agent_registry
 from tools.postgres import postgres_tool
 from config.agent_meta import get_agent_meta
 
@@ -32,6 +32,11 @@ class ConfigUpdate(BaseModel):
     timeout: int | None = Field(default=None, ge=1)
     retry: int | None = Field(default=None, ge=0)
 
+
+class PermissionUpdate(BaseModel):
+    """AC-P4-6 Agent API 权限开关"""
+    enabled: bool = True
+
 def _load_agent_meta() -> dict:
     """内置 Agent 元数据（agent_meta.yaml）"""
     return get_agent_meta()
@@ -42,7 +47,7 @@ async def _fetch_db_agents() -> list[dict]:
     try:
         rows = await postgres_tool.query(
             "SELECT id, name, description, prompt_template, model, temperature, "
-            "tools, config, is_active, version, status, last_active_at "
+            "tools, config, is_active, version, status, last_active_at, api_enabled "
             "FROM agents ORDER BY created_at DESC"
         )
         return rows
@@ -92,6 +97,7 @@ def _merge_builtin(meta: dict) -> list[dict]:
             "status": "active",
             "last_active_at": None,
             "source": "builtin",
+            "api_enabled": True,
         })
     return agents
 
@@ -123,6 +129,7 @@ async def list_agents():
             a["status"] = r.get("status") or "active"
             a["is_active"] = bool(r.get("is_active", True))
             a["last_active_at"] = r.get("last_active_at")
+            a["api_enabled"] = bool(r.get("api_enabled", True))
         merged.append(a)
 
     # 自定义 Agent（name 不在内置集合中）
@@ -146,6 +153,7 @@ async def list_agents():
             "status": r.get("status") or ("active" if r.get("is_active", True) else "paused"),
             "last_active_at": r.get("last_active_at"),
             "source": "custom",
+            "api_enabled": bool(r.get("api_enabled", True)),
         })
 
     return {"agents": merged, "total": len(merged)}
@@ -215,6 +223,26 @@ async def agent_summary():
             "failed_today": total_failed,
             "success_rate": round(total_success / total_runs * 100, 1) if total_runs else 0.0,
         },
+    }
+
+
+@router.post("/reload")
+async def reload_agents():
+    """热更新 Agent 注册表：重建 AGENT_REGISTRY（无服务重启）
+
+    - 重新读取 agents.yaml 并 importlib 导入最新 Agent 类
+    - 原地替换注册表（clear + update），新请求立即路由到新配置
+    - 不断开在途请求：在途请求持有已实例化的 Agent 对象，不受替换影响
+    """
+    try:
+        reload_agent_registry()
+    except Exception as e:
+        logger.error("Agent registry reload failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Reload failed: {e}")
+    return {
+        "reloaded": True,
+        "agents": list(AGENT_REGISTRY.keys()),
+        "count": len(AGENT_REGISTRY),
     }
 
 
@@ -298,6 +326,52 @@ async def toggle_agent(agent_id: str):
             agent_id, m.get("description", ""), m.get("default_model"),
         )
         return {"id": agent_id, "is_active": False, "status": "paused"}
+
+
+async def is_agent_api_enabled(agent_id: str) -> bool:
+    """AC-P4-6：查询 Agent 的 API 权限开关（默认开启）
+
+    供 Agent 执行入口（chat_completions 等）校验：停用后其 API 返回 403。
+    """
+    try:
+        rows = await postgres_tool.query(
+            "SELECT api_enabled FROM agents WHERE name = $1", agent_id
+        )
+        return bool(rows[0]["api_enabled"]) if rows else True
+    except Exception:
+        logger.warning("is_agent_api_enabled query failed for %s", agent_id, exc_info=True)
+        return True
+
+
+@router.post("/{agent_id}/permission")
+async def set_agent_permission(agent_id: str, body: PermissionUpdate):
+    """AC-P4-6：切换 Agent 的 API 权限开关
+
+    enabled=false 后，该 Agent 的执行端点（chat_completions）返回 403。
+    """
+    try:
+        rows = await postgres_tool.query(
+            "SELECT name FROM agents WHERE name = $1", agent_id
+        )
+    except Exception:
+        rows = []
+
+    if rows:
+        await postgres_tool.execute(
+            "UPDATE agents SET api_enabled=$1, updated_at=NOW() WHERE name=$2",
+            body.enabled, agent_id,
+        )
+    else:
+        # 内置 Agent 无表行时，先 upsert 再设置权限
+        meta = _load_agent_meta()
+        m = meta.get(agent_id, {})
+        await postgres_tool.execute(
+            "INSERT INTO agents (name, description, model, status, is_active, api_enabled) "
+            "VALUES ($1, $2, $3, 'active', true, $4) "
+            "ON CONFLICT (name) DO UPDATE SET api_enabled=$4, updated_at=NOW()",
+            agent_id, m.get("description", ""), m.get("default_model"), body.enabled,
+        )
+    return {"id": agent_id, "api_enabled": body.enabled}
 
 
 @router.put("/{agent_id}/config")

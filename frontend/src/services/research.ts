@@ -45,3 +45,24 @@ export function fetchResearch(params?: ResearchQueryParams): Promise<ResearchLis
 export function fetchResearchDetail(id: string): Promise<ResearchDetail> {
   return apiFetch<ResearchDetail>(`/api/research/${id}`)
 }
+
+export interface CreateResearchInput {
+  question: string
+  symbol?: string
+  market?: string
+  agent_type?: string
+}
+
+export interface CreateResearchResult {
+  task_id: string
+  status: string
+  duplicate?: boolean
+  message?: string
+}
+
+export function createResearch(input: CreateResearchInput): Promise<CreateResearchResult> {
+  return apiFetch<CreateResearchResult>('/api/research', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
